@@ -40,3 +40,14 @@ target_include_directories(
   imgui/backends
   imgui/misc/cpp
 )
+
+
+# git submodule add https://github.com/nothings/stb.git
+# https://stackoverflow.com/questions/55081746/add-target-properties-to-an-existing-imported-library-in-cmake
+# Am I making compilation slower by not putting "#define STB_IMAGE_IMPLEMENTATION" into a CPP file?
+add_library(stb INTERFACE)
+set_property(TARGET stb APPEND PROPERTY INTERFACE_COMPILE_DEFINITIONS STB_IMAGE_IMPLEMENTATION)
+target_include_directories(
+  stb INTERFACE
+  stb/
+)

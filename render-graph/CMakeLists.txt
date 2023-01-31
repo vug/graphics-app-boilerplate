@@ -15,6 +15,7 @@ target_link_libraries(${APP}
   glfw
   glm
   imgui
+  stb
 )
 
 target_compile_features(${APP} PRIVATE cxx_std_20)
