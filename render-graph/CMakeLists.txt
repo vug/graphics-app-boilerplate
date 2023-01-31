@@ -15,6 +15,7 @@ target_link_libraries(${APP}
   glfw
   glm
   imgui
+  implot
   stb
 )
 

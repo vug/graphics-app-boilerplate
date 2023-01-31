@@ -42,6 +42,23 @@ target_include_directories(
 )
 
 
+# git submodule add https://github.com/epezent/implot.git 
+add_library(
+  implot
+  implot/implot.cpp
+  implot/implot_items.cpp
+  implot/implot_demo.cpp
+)
+target_link_libraries(
+  implot PRIVATE
+  imgui
+)
+target_include_directories(
+  implot PUBLIC
+  implot/
+)
+
+
 # git submodule add https://github.com/nothings/stb.git
 # https://stackoverflow.com/questions/55081746/add-target-properties-to-an-existing-imported-library-in-cmake
 # Am I making compilation slower by not putting "#define STB_IMAGE_IMPLEMENTATION" into a CPP file?
