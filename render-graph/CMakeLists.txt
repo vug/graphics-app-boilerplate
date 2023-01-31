@@ -14,6 +14,7 @@ target_link_libraries(${APP}
   glad_gl_core_31 # glad_gl_core_46
   glfw
   glm
+  imgui
 )
 
 target_compile_features(${APP} PRIVATE cxx_std_20)
