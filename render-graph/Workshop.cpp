@@ -50,7 +50,9 @@ Workshop::Workshop(int width, int height, const std::string& name) {
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-  io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+  // Multi-viewport is not working on Linux. SeeL
+  // The imgui window can't be moved outside the desktop region · Issue #3899 · ocornut/imgui · GitHub https://github.com/ocornut/imgui/issues/3899
+  // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
   ImGui::StyleColorsDark();
   // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
   ImGuiStyle& style = ImGui::GetStyle();
