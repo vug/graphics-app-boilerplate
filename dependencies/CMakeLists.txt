@@ -68,3 +68,13 @@ target_include_directories(
   stb INTERFACE
   stb/
 )
+
+
+# git submodule add https://github.com/tinyobjloader/tinyobjloader.git
+add_subdirectory(tinyobjloader)
+
+# https://github.com/Lawrencemm/openmesh
+# INTERNAL hides the value. Could have been BOOL, then parameter appears in "cmake .. -L"
+# set(BUILD_APPS false CACHE INTERNAL "" FORCE) # we don't need the QT apps that comes with OpenMesh
+# set(OPENMESH_DOCS false CACHE INTERNAL "" FORCE)
+# add_subdirectory(openmesh)

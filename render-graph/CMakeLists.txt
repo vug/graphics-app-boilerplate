@@ -17,6 +17,7 @@ target_link_libraries(${APP}
   imgui
   implot
   stb
+  tinyobjloader
 )
 
 target_compile_features(${APP} PRIVATE cxx_std_20)

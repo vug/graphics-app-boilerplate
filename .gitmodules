@@ -18,3 +18,6 @@
 [submodule "dependencies/implot"]
 	path = dependencies/implot
 	url = https://github.com/epezent/implot.git
+[submodule "dependencies/tinyobjloader"]
+	path = dependencies/tinyobjloader
+	url = https://github.com/tinyobjloader/tinyobjloader.git
