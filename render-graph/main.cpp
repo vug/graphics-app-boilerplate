@@ -2,10 +2,6 @@
 
 #include <glad/gl.h>
 
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
-#include <implot.h>
 #include <stb_image.h>
 #include <tiny_obj_loader.h>
 #include <vivid/vivid.h>
@@ -15,7 +11,7 @@
 
 int main() {
   std::cout << "Hello, RenderGraph!\n";
-  ws::Workshop workshop{};
+  ws::Workshop workshop{800, 600, "Workshop App"};
 
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
