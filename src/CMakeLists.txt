@@ -1,4 +1,4 @@
-set(APP RenderGraph01)
+set(APP Boilerplate)
 
 if(MSVC)
   # /WX if warnings should be treated as errors
