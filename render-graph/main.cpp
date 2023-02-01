@@ -8,6 +8,7 @@
 #include <glm/vec3.hpp>
 #include <stb_image.h>
 #include <tiny_obj_loader.h>
+#include <vivid/vivid.h>
 
 #include <iostream>
 

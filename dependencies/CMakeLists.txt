@@ -73,6 +73,13 @@ target_include_directories(
 # git submodule add https://github.com/tinyobjloader/tinyobjloader.git
 add_subdirectory(tinyobjloader)
 
+
+# git submodule add https://github.com/gurki/vivid.git
+# Vivid's cmake is not properly setup wrt its dependency on GLM. We are forcing it to use the GLM from our dependency folder
+set(FETCHCONTENT_SOURCE_DIR_GLM "dependencies/glm" CACHE STRING "" FORCE) # Throws a warning about relative directory unsafe. Ignore.
+add_subdirectory(vivid)
+
+
 # https://github.com/Lawrencemm/openmesh
 # INTERNAL hides the value. Could have been BOOL, then parameter appears in "cmake .. -L"
 # set(BUILD_APPS false CACHE INTERNAL "" FORCE) # we don't need the QT apps that comes with OpenMesh

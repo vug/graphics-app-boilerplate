@@ -18,6 +18,7 @@ target_link_libraries(${APP}
   implot
   stb
   tinyobjloader
+  vivid
 )
 
 target_compile_features(${APP} PRIVATE cxx_std_20)
