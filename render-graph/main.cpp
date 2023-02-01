@@ -12,7 +12,6 @@
 #include <iostream>
 
 int main() {
-  std::cout << "Hello, RenderGraph!\n";
   ws::Workshop workshop{800, 600, "Workshop App"};
 
   while (!workshop.shouldStop()) {
