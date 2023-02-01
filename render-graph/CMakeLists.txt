@@ -8,7 +8,9 @@ else()
 endif()
 
 add_executable(${APP}
-  main.cpp)
+  main.cpp
+  Workshop.h Workshop.cpp
+)
 
 target_link_libraries(${APP}
   glad_gl_core_31 # glad_gl_core_46
