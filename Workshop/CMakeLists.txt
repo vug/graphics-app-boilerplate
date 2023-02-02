@@ -1,4 +1,4 @@
-set(APP Boilerplate)
+set(TARGET Workshop)
 
 if(MSVC)
   # /WX if warnings should be treated as errors
@@ -7,12 +7,11 @@ else()
   add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
 
-add_executable(${APP}
-  main.cpp
+add_library(${TARGET} STATIC
   Workshop.h Workshop.cpp
 )
 
-target_link_libraries(${APP}
+target_link_libraries(${TARGET} PUBLIC
   glad_gl_core_31 # glad_gl_core_46
   glfw
   glm
@@ -23,4 +22,7 @@ target_link_libraries(${APP}
   vivid
 )
 
-target_compile_features(${APP} PRIVATE cxx_std_20)
+# to enable `#include <Workshop.h>` in projects that depend on Workshop
+target_include_directories(Workshop PUBLIC .)
+
+target_compile_features(${TARGET} PRIVATE cxx_std_20)

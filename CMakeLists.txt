@@ -5,6 +5,7 @@ project(GraphicsAppBoilerplate
   DESCRIPTION "A bunch of dependencies and some utility functionalities on top of them, so that I won't need to start a graphics program from scratch each time.")
 
 add_subdirectory(dependencies)
-add_subdirectory(src)
+add_subdirectory(Workshop)
+add_subdirectory(example-app)
 
 
