@@ -1,13 +1,16 @@
 #include <Workshop.h>
 
 #include <glad/gl.h>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
 #include <imgui.h>
-
-#include <stb_image.h>
-#include <tiny_obj_loader.h>
-#include <vivid/vivid.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vec3.hpp>
+
+// #include <implot.h>
+// #include <stb_image.h>
+// #include <tiny_obj_loader.h>
+// #include <vivid/vivid.h>
 
 #include <iostream>
 
@@ -20,7 +23,6 @@ int main() {
     ImGui::Begin("Main");
     static bool shouldShowImGuiDemo = false;
     ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
-    ImGui::SetNextWindowPos(ImVec2{5, 5});
     if (shouldShowImGuiDemo)
       ImGui::ShowDemoWindow();
 
