@@ -9,6 +9,7 @@ endif()
 
 add_library(${TARGET} STATIC
   Workshop.h Workshop.cpp
+  Shader.h Shader.cpp
 )
 
 target_link_libraries(${TARGET} PUBLIC
