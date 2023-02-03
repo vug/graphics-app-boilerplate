@@ -1,4 +1,4 @@
-set(TARGET Boilerplate)
+set(TARGET ClearWindow)
 
 if(MSVC)
   # /WX if warnings should be treated as errors

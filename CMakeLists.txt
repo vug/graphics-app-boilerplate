@@ -6,6 +6,6 @@ project(GraphicsAppBoilerplate
 
 add_subdirectory(dependencies)
 add_subdirectory(Workshop)
-add_subdirectory(example-app)
+add_subdirectory(example-apps/01-clear)
 
 
