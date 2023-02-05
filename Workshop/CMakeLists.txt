@@ -8,8 +8,11 @@ else()
 endif()
 
 add_library(${TARGET} STATIC
+  Common.h
   Workshop.h Workshop.cpp
   Shader.h Shader.cpp
+  Texture.h Texture.cpp
+  Framebuffer.h Framebuffer.cpp
 )
 
 target_link_libraries(${TARGET} PUBLIC
