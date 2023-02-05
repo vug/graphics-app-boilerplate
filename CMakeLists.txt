@@ -8,3 +8,7 @@ add_subdirectory(dependencies)
 add_subdirectory(Workshop)
 add_subdirectory(example-apps/01-clear)
 add_subdirectory(example-apps/02-triangle-without-vbo)
+
+file(GLOB_RECURSE ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/assets/*)
+set(WORKSHOP_ASSETS ${ASSETS} PARENT_SCOPE)
+set(WORKSHOP_ASSETS_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/assets/ PARENT_SCOPE)
