@@ -30,9 +30,10 @@ target_link_libraries(${TARGET} PUBLIC
 target_include_directories(${TARGET} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # to enable `#include "Shader.h"` inside Workshop project
 target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/Workshop)
-
+# Create an Assets.h file which holds a filepath variable to workshop assets root 
+# and place it somewhere under build/ so that it can be included via <Workshop/Assets.h>
 set(WS_ASSETS_FOLDER ${PROJECT_SOURCE_DIR}/assets)
-configure_file(Assets.h.in Assets.h @ONLY)
-target_include_directories(${TARGET} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/Workshop/Assets.h.in include/Workshop/Assets.h @ONLY)
+target_include_directories(${TARGET} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 target_compile_features(${TARGET} PRIVATE cxx_std_20)
