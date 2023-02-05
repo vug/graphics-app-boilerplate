@@ -1,0 +1,4 @@
+#include <filesystem>
+namespace ws {
+  std::filesystem::path ASSETS_FOLDER = "@WS_ASSETS_FOLDER@";
+}

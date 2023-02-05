@@ -28,5 +28,8 @@ target_link_libraries(${TARGET} PUBLIC
 
 # to enable `#include <Workshop.h>` in projects that depend on Workshop
 target_include_directories(Workshop PUBLIC .)
+set(WS_ASSETS_FOLDER ${PROJECT_SOURCE_DIR}/assets)
+configure_file(Assets.h.in Assets.h @ONLY)
+target_include_directories(${TARGET} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 
 target_compile_features(${TARGET} PRIVATE cxx_std_20)
