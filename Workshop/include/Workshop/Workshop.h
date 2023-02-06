@@ -16,9 +16,9 @@ class Workshop {
   void endFrame();
 
  private:
-  const char* glslVersion = "#version 300 es";
-  const int openGLMajorVersion = 3;
-  const int openGLMinorVersion = 1;
+  const char* glslVersion = "#version 430";
+  const int openGLMajorVersion = 4;
+  const int openGLMinorVersion = 3;
   bool shouldDebugOpenGL = true;
   bool shouldBreakAtOpenGLDebugCallback_ = true;
   bool useMSAA = false;
