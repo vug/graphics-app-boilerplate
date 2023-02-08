@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+#include "Common.hpp"
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>

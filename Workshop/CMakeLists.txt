@@ -8,12 +8,12 @@ else()
 endif()
 
 add_library(${TARGET} STATIC
-  include/Workshop/Common.h
-  include/Workshop/Workshop.h Workshop.cpp
-  include/Workshop/Shader.h Shader.cpp
-  include/Workshop/Texture.h Texture.cpp
-  include/Workshop/Framebuffer.h Framebuffer.cpp
-  include/Workshop/Model.h Model.cpp
+  includes/Workshop/Common.hpp
+  includes/Workshop/Workshop.hpp Workshop.cpp
+  includes/Workshop/Shader.hpp Shader.cpp
+  includes/Workshop/Texture.hpp Texture.cpp
+  includes/Workshop/Framebuffer.hpp Framebuffer.cpp
+  includes/Workshop/Model.hpp Model.cpp
 )
 
 target_link_libraries(${TARGET} PUBLIC
@@ -28,13 +28,13 @@ target_link_libraries(${TARGET} PUBLIC
 )
 
 # to enable `#include <Workshop/Shader.h>` in projects that depend on Workshop
-target_include_directories(${TARGET} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(${TARGET} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/includes)
 # to enable `#include "Shader.h"` inside Workshop project
-target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/Workshop)
+target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/includes/Workshop)
 # Create an Assets.h file which holds a filepath variable to workshop assets root 
 # and place it somewhere under build/ so that it can be included via <Workshop/Assets.h>
 set(WS_ASSETS_FOLDER ${PROJECT_SOURCE_DIR}/assets)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/Workshop/Assets.h.in include/Workshop/Assets.h @ONLY)
-target_include_directories(${TARGET} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/include)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/includes/Workshop/Assets.hpp.in includes/Workshop/Assets.hpp @ONLY)
+target_include_directories(${TARGET} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/includes)
 
 target_compile_features(${TARGET} PRIVATE cxx_std_20)

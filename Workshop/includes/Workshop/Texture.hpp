@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+#include "Common.hpp"
 
 #include <glad/gl.h>
 #include <filesystem>
