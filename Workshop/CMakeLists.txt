@@ -13,6 +13,7 @@ add_library(${TARGET} STATIC
   include/Workshop/Shader.h Shader.cpp
   include/Workshop/Texture.h Texture.cpp
   include/Workshop/Framebuffer.h Framebuffer.cpp
+  include/Workshop/Model.h Model.cpp
 )
 
 target_link_libraries(${TARGET} PUBLIC
