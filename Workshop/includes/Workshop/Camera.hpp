@@ -2,7 +2,9 @@
 
 #include <glm/gtx/quaternion.hpp>
 #include <glm/mat4x4.hpp>
+#include <glm/vec2.hpp>
 
+#include <functional>
 #include <numbers>
 
 namespace ws {
@@ -87,6 +89,24 @@ class AutoOrbitingCamera3DViewController {
   void update(float deltaTime);
 };
 
+// A state machine that keeps track of mouse dragging input by the given mouse button.
+// calls given callbacks at state changes
+class DragHelper {
+ private:
+  int glfwDragButton{};
+  std::function<void()> onEnterDraggingCallback;
+  std::function<void(const glm::vec2& drag)> onBeingDraggedCallback;
+  // state
+  bool isBeingDragged{};
+  bool isBeingPressed{};
+  glm::vec2 cursor0{};
+
+ public:
+  DragHelper(int glfwDragButton, std::function<void()> onEnterDraggingCallback, std::function<void(const glm::vec2& drag)> onBeingDraggedCallback);
+  // update function to call every frame
+  void checkDragging(int glfwInputButton, const glm::vec2& cursorPos);
+};
+
 // First Person Camera mechanism with state machine for dragging
 class ManualCamera3DViewController {
  private:
@@ -95,13 +115,13 @@ class ManualCamera3DViewController {
   glm::vec3 pos0{};
   float pitch0{};
   float yaw0{};
-  // ws::DragHelper rightDragHelper;
-  // ws::DragHelper middleDragHelper;
+  DragHelper rightDragHelper;
+  DragHelper middleDragHelper;
 
   const float sensitivity = 0.005f;   // look around sensitivity
   const float sensitivityB = 0.005f;  // pan sensitivity
  public:
   ManualCamera3DViewController(Camera3DView& cameraView);
-  void update(float deltaTime);
+  void update(const glm::vec2& cursorPos, int glfwInputButton);
 };
 }  // namespace ws

@@ -76,47 +76,69 @@ void AutoOrbitingCamera3DViewController::update(float deltaTime) {
 
 // -----
 
+DragHelper::DragHelper(int glfwDragButton, std::function<void()> onEnterDraggingCallback, std::function<void(const glm::vec2& drag)> onBeingDraggedCallback)
+    : glfwDragButton(glfwDragButton), onEnterDraggingCallback(onEnterDraggingCallback), onBeingDraggedCallback(onBeingDraggedCallback) {}
+
+void DragHelper::checkDragging(int glfwInputButton, const glm::vec2& cursorPos) {
+  if (glfwInputButton == glfwDragButton) {
+    // enter dragging
+    if (!isBeingDragged) {
+      isBeingDragged = true;
+      cursor0 = cursorPos;
+      onEnterDraggingCallback();  // for storing values at the beginning
+      isBeingPressed = true;
+    }
+    // being dragged
+    else {
+      const glm::vec2 drag = cursorPos - cursor0;
+      onBeingDraggedCallback(drag);  // for updating values while mouse is being dragged
+    }
+  }
+  // exit dragging
+  else if (isBeingPressed) {
+    isBeingDragged = false;
+    isBeingPressed = false;
+    // onExitDraggingCallback(); should come here if every needed
+  }
+}
+
 ManualCamera3DViewController::ManualCamera3DViewController(Camera3DView& cameraView)
-    : cameraView(cameraView)
-    //   rightDragHelper(
-    //       win,
-    //       GLFW_MOUSE_BUTTON_RIGHT,
-    //       [&]() {
-    //         pitch0 = cameraView.pitch;
-    //         yaw0 = cameraView.yaw;
-    //       },
-    //       [&](const glm::vec2& drag) {
-    //         cameraView.pitch = glm::clamp(pitch0 - drag.y * sensitivity, -std::numbers::pi_v<float> * 0.5f, std::numbers::pi_v<float> * 0.5f);
-    //         cameraView.yaw = yaw0 + drag.x * sensitivity;
-    //       }),
-    //   middleDragHelper(
-    //       win,
-    //       GLFW_MOUSE_BUTTON_MIDDLE,
-    //       [&]() {
-    //         pos0 = cameraView.position;
-    //       },
-    //       [&](const glm::vec2& drag) {
-    //         cameraView.position = pos0 + (cameraView.getRight() * drag.x - cameraView.getUp() * drag.y) * sensitivityB;
-    //       }) 
-          {}
+    : cameraView(cameraView),
+      rightDragHelper(
+          0,  // LEFT
+          [&]() {
+            pitch0 = cameraView.pitch;
+            yaw0 = cameraView.yaw;
+          },
+          [&](const glm::vec2& drag) {
+            cameraView.pitch = glm::clamp(pitch0 - drag.y * sensitivity, -std::numbers::pi_v<float> * 0.5f, std::numbers::pi_v<float> * 0.5f);
+            cameraView.yaw = yaw0 + drag.x * sensitivity;
+          }),
+      middleDragHelper(
+          1,  // GLFW_MOUSE_BUTTON_RIGHT,
+          [&]() {
+            pos0 = cameraView.position;
+          },
+          [&](const glm::vec2& drag) {
+            cameraView.position = pos0 + (cameraView.getRight() * drag.x - cameraView.getUp() * drag.y) * sensitivityB;
+          }) {}
 
-void ManualCamera3DViewController::update([[maybe_unused]] float deltaTime) {
-//   rightDragHelper.checkDragging();
+void ManualCamera3DViewController::update(const glm::vec2& cursorPos, int glfwInputButton) {
+  rightDragHelper.checkDragging(glfwInputButton, cursorPos);
+  middleDragHelper.checkDragging(glfwInputButton, cursorPos);
 
-//   middleDragHelper.checkDragging();
-
-//   float cameraSpeed = win.isKeyHeld(GLFW_KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
-//   if (win.isKeyHeld(GLFW_KEY_W))
-//     cameraView.position += cameraView.getForward() * cameraSpeed * deltaTime;
-//   if (win.isKeyHeld(GLFW_KEY_S))
-//     cameraView.position -= cameraView.getForward() * cameraSpeed * deltaTime;
-//   if (win.isKeyHeld(GLFW_KEY_A))
-//     cameraView.position -= cameraView.getRight() * cameraSpeed * deltaTime;
-//   if (win.isKeyHeld(GLFW_KEY_D))
-//     cameraView.position += cameraView.getRight() * cameraSpeed * deltaTime;
-//   if (win.isKeyHeld(GLFW_KEY_Q))
-//     cameraView.position += glm::vec3{0, 1, 0} * cameraSpeed * deltaTime;
-//   if (win.isKeyHeld(GLFW_KEY_E))
-//     cameraView.position -= glm::vec3{0, 1, 0} * cameraSpeed * deltaTime;
+  //   float cameraSpeed = win.isKeyHeld(GLFW_KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
+  //   if (win.isKeyHeld(GLFW_KEY_W))
+  //     cameraView.position += cameraView.getForward() * cameraSpeed * deltaTime;
+  //   if (win.isKeyHeld(GLFW_KEY_S))
+  //     cameraView.position -= cameraView.getForward() * cameraSpeed * deltaTime;
+  //   if (win.isKeyHeld(GLFW_KEY_A))
+  //     cameraView.position -= cameraView.getRight() * cameraSpeed * deltaTime;
+  //   if (win.isKeyHeld(GLFW_KEY_D))
+  //     cameraView.position += cameraView.getRight() * cameraSpeed * deltaTime;
+  //   if (win.isKeyHeld(GLFW_KEY_Q))
+  //     cameraView.position += glm::vec3{0, 1, 0} * cameraSpeed * deltaTime;
+  //   if (win.isKeyHeld(GLFW_KEY_E))
+  //     cameraView.position -= glm::vec3{0, 1, 0} * cameraSpeed * deltaTime;
 }
-}
+}  // namespace ws

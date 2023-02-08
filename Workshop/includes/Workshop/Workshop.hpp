@@ -14,6 +14,8 @@ class Workshop {
   bool shouldBreakAtOpenGLDebugCallback() const { return shouldBreakAtOpenGLDebugCallback_; }
   void beginFrame();
   void endFrame();
+  inline GLFWwindow* 
+  getGLFWwindow() const { return window; };
 
  private:
   const char* glslVersion = "#version 430";
