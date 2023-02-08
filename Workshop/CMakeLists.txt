@@ -14,6 +14,7 @@ add_library(${TARGET} STATIC
   includes/Workshop/Texture.hpp Texture.cpp
   includes/Workshop/Framebuffer.hpp Framebuffer.cpp
   includes/Workshop/Model.hpp Model.cpp
+  includes/Workshop/Transform.hpp Transform.cpp
 )
 
 target_link_libraries(${TARGET} PUBLIC
