@@ -85,3 +85,6 @@ add_subdirectory(vivid)
 # set(BUILD_APPS false CACHE INTERNAL "" FORCE) # we don't need the QT apps that comes with OpenMesh
 # set(OPENMESH_DOCS false CACHE INTERNAL "" FORCE)
 # add_subdirectory(openmesh)
+
+# git submodule add https://github.com/fmtlib/fmt
+add_subdirectory(fmt)

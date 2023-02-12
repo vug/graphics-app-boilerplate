@@ -19,6 +19,7 @@ add_library(${TARGET} STATIC
 )
 
 target_link_libraries(${TARGET} PUBLIC
+  fmt
   glad_gl_core_31 # glad_gl_core_46
   glfw
   glm

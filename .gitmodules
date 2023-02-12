@@ -24,3 +24,6 @@
 [submodule "dependencies/vivid"]
 	path = dependencies/vivid
 	url = https://github.com/gurki/vivid.git
+[submodule "dependencies/fmt"]
+	path = dependencies/fmt
+	url = https://github.com/fmtlib/fmt
