@@ -209,7 +209,12 @@
     glDispatchCompute(x, y, z);
   }
 
-  void Shader::SetScalar1f(const char* name, const float value) {
+  void Shader::setScalar1i(const char* name, const int value) {
+    const int location = glGetUniformLocation(id, name);
+    glUniform1i(location, value);
+  }  
+
+  void Shader::setScalar1f(const char* name, const float value) {
     const int location = glGetUniformLocation(id, name);
     glUniform1f(location, value);
   }
