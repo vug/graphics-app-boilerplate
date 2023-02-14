@@ -24,13 +24,13 @@ class Shader {
 
   static void dispatchCompute(uint32_t x, uint32_t y, uint32_t z);
 
-  void setScalar1i(const char* name, const int value);
-  void setScalar1f(const char* name, const float value);
-  void setVector2fv(const char* name, const float* value);
-  void setVector3fv(const char* name, const float* value);
-  void setMatrix3fv(const char* name, const float* value);
-  void setMatrix4fv(const char* name, const float* value);
-  void blockBinding(const char* name, uint32_t binding);
+  void setScalar1i(const char* name, const int value) const;
+  void setScalar1f(const char* name, const float value) const;
+  void setVector2fv(const char* name, const float* value) const;
+  void setVector3fv(const char* name, const float* value) const;
+  void setMatrix3fv(const char* name, const float* value) const;
+  void setMatrix4fv(const char* name, const float* value) const;
+  void blockBinding(const char* name, uint32_t binding) const;
 
   // Compiles shader sources into program.
   // Good for hard-coded shaders or recompiling generated shader code.

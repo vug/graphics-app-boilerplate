@@ -209,33 +209,33 @@
     glDispatchCompute(x, y, z);
   }
 
-  void Shader::setScalar1i(const char* name, const int value) {
+  void Shader::setScalar1i(const char* name, const int value) const {
     const int location = glGetUniformLocation(id, name);
     glUniform1i(location, value);
   }  
 
-  void Shader::setScalar1f(const char* name, const float value) {
+  void Shader::setScalar1f(const char* name, const float value) const {
     const int location = glGetUniformLocation(id, name);
     glUniform1f(location, value);
   }
 
-  void Shader::setVector2fv(const char* name, const float* value) {
+  void Shader::setVector2fv(const char* name, const float* value) const {
     const int location = glGetUniformLocation(id, name);
     glUniform2fv(location, 1, value);
   }
-  void Shader::setVector3fv(const char* name, const float* value) {
+  void Shader::setVector3fv(const char* name, const float* value) const {
     const int location = glGetUniformLocation(id, name);
     glUniform3fv(location, 1, value);
   }
-  void Shader::setMatrix3fv(const char* name, const float* value) {
+  void Shader::setMatrix3fv(const char* name, const float* value) const {
     const int location = glGetUniformLocation(id, name);
     glUniformMatrix3fv(location, 1, GL_FALSE, value);
   }
-  void Shader::setMatrix4fv(const char* name, const float* value) {
+  void Shader::setMatrix4fv(const char* name, const float* value) const {
     const int location = glGetUniformLocation(id, name);
     glUniformMatrix4fv(location, 1, GL_FALSE, value);
   }
-  void Shader::blockBinding(const char* name, uint32_t binding) {
+  void Shader::blockBinding(const char* name, uint32_t binding) const {
     unsigned int index = glGetUniformBlockIndex(id, name);
     glUniformBlockBinding(id, index, binding);
   }
