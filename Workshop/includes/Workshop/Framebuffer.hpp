@@ -15,11 +15,14 @@ class Framebuffer {
 
   void bind() const;
   void unbind() const;
-  // TODO: add recreateIfNeeded(uint32_t width, uint32_t height) method
   Texture& getColorAttachment();
+  // TODO: add recreateIfNeeded(uint32_t width, uint32_t height) method, for MSAA change
+  void resizeIfNeeded(uint32_t width, uint32_t height);
 
  private:
   uint32_t fbo{INVALID};
+  uint32_t width = 0;
+  uint32_t height = 0;
   Texture texColor;
   Texture texDepthStencil;
 };

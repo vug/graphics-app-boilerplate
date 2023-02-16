@@ -6,8 +6,10 @@
 #include <cstdio>
 
 namespace ws {
-Framebuffer::Framebuffer(uint32_t width, uint32_t height)
+Framebuffer::Framebuffer(uint32_t w, uint32_t h)
     : fbo([this]() { uint32_t id; glGenFramebuffers(1, &id); glBindFramebuffer(GL_FRAMEBUFFER, id); return id; }()),
+      width(w),
+      height(h),
       texColor{{width, height, Texture::Format::RGB8, Texture::Filter::Nearest, Texture::Wrap::Repeat}},
       texDepthStencil{{width, height, Texture::Format::Depth24Stencil8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}} {
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColor.getId(), 0);
@@ -35,5 +37,14 @@ void Framebuffer::unbind() const {
 
 Texture& Framebuffer::getColorAttachment() {
   return texColor;
+}
+
+void Framebuffer::resizeIfNeeded(uint32_t w, uint32_t h) {
+  if (width == w && height == h)
+    return;
+  width = w;
+  height = h;
+  texColor.resize(width, height);
+  texDepthStencil.resize(width, height);
 }
 }  // namespace ws
