@@ -2,6 +2,7 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <glm/vec2.hpp>
 
 #include <string>
 
@@ -14,8 +15,8 @@ class Workshop {
   bool shouldBreakAtOpenGLDebugCallback() const { return shouldBreakAtOpenGLDebugCallback_; }
   void beginFrame();
   void endFrame();
-  inline GLFWwindow* 
-  getGLFWwindow() const { return window; };
+  inline GLFWwindow* getGLFWwindow() const { return window; };
+  glm::uvec2 getWindowSize() const;
 
  private:
   const char* glslVersion = "#version 430";
