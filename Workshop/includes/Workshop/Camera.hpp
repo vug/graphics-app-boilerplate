@@ -23,12 +23,10 @@ class CameraView {
 };
 
 class CameraProjection {
- protected:
+ public:
   float nearClip{0.01f};
   float farClip{100.0f};
   float aspectRatio{1.f};
-
- public:
   virtual glm::mat4 getProjectionFromView() const = 0;
 };
 
