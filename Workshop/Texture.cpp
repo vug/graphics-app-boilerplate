@@ -134,6 +134,15 @@ void Texture::loadPixels(const void* data) {
   unbind();
 }
 
+void Texture::resize(uint32_t width, uint32_t height) {
+  specs.width = width;
+  specs.height = height;
+  GlSpecs gs = getGlSpecs();
+  bind();
+  glTexImage2D(GL_TEXTURE_2D, 0, gs.internalFormat, specs.width, specs.height, 0, gs.format, gs.type, specs.data);
+  unbind();
+}
+
 Texture::~Texture() {
   glDeleteTextures(1, &id);
 }

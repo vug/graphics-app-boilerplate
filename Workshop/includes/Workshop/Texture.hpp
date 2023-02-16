@@ -60,6 +60,7 @@ class Texture {
   void bindImageTexture(uint32_t textureUnit, Access access) const;
   // not type-safe
   void loadPixels(const void* data);
+  void resize(uint32_t width, uint32_t height);
 
   Specs specs;
 
