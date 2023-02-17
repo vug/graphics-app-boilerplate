@@ -66,5 +66,8 @@ class Shader {
   std::filesystem::path fragmentShader;
   std::filesystem::path computeShader;
   int32_t id{-1};
+
+public:
+  static void makeNamedStringFromFile(const std::string& name, const std::filesystem::path& fp);
 };
 }  // namespace ws
