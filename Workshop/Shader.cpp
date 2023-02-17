@@ -44,7 +44,7 @@
 
     unsigned int vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertex);
+    glCompileShaderIncludeARB(vertex, 0, NULL, NULL);
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
     if (!success) {
       glGetShaderInfoLog(vertex, 512, NULL, infoLog);
@@ -55,7 +55,7 @@
 
     unsigned int fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragment);
+    glCompileShaderIncludeARB(fragment, 0, NULL, NULL);
     glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
     if (!success) {
       glGetShaderInfoLog(fragment, 512, NULL, infoLog);
