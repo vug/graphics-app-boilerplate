@@ -1,4 +1,6 @@
 #include "Shader.hpp"
+
+#include <fmt/core.h>
 #include <glad/gl.h>
 
 #include <cassert>
@@ -253,5 +255,19 @@ void Shader::makeNamedStringFromFile(const std::string& name, const std::filesys
   glNamedStringARB(GL_SHADER_INCLUDE_ARB,
                    name.length(), name.data(),
                    content.length(), content.data());
+}
+
+void Shader::makeNamedStringsFromFolder(const std::filesystem::path& shaderLibFolder) {
+  for (const std::filesystem::directory_entry& dirEntry : std::filesystem::recursive_directory_iterator(shaderLibFolder)) {
+    if (!dirEntry.is_regular_file())
+      continue;
+    if (dirEntry.path().extension().string() != ".glsl")
+      continue;
+    const auto& shaderFullPath = dirEntry.path();
+    const auto shaderRelPath = std::filesystem::relative(shaderFullPath, shaderLibFolder);
+    std::string namedString{fmt::format("/lib/{}", shaderRelPath.string())};
+    fmt::println("Making namedString: {}...", namedString);
+    Shader::makeNamedStringFromFile(namedString, shaderFullPath);
+  }
 }
 }  // namespace ws
