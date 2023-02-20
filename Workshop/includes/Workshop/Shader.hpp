@@ -1,5 +1,10 @@
 #pragma once
 
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+
 //#include <cstdint>  // TODO: for uint32_t. try removing later
 #include <filesystem>
 #include <vector>
@@ -26,10 +31,10 @@ class Shader {
 
   void setScalar1i(const char* name, const int value) const;
   void setScalar1f(const char* name, const float value) const;
-  void setVector2fv(const char* name, const float* value) const;
-  void setVector3fv(const char* name, const float* value) const;
-  void setMatrix3fv(const char* name, const float* value) const;
-  void setMatrix4fv(const char* name, const float* value) const;
+  void setVector2fv(const char* name, const glm::vec2& value) const;
+  void setVector3fv(const char* name, const glm::vec3& value) const;
+  void setMatrix3fv(const char* name, const glm::mat3& value) const;
+  void setMatrix4fv(const char* name, const glm::mat4& value) const;
   void blockBinding(const char* name, uint32_t binding) const;
 
   // Compiles shader sources into program.
