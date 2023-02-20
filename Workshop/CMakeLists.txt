@@ -12,6 +12,7 @@ add_library(${TARGET} STATIC
   includes/Workshop/Workshop.hpp Workshop.cpp
   includes/Workshop/Shader.hpp Shader.cpp
   includes/Workshop/Texture.hpp Texture.cpp
+  includes/Workshop/Material.hpp Material.cpp
   includes/Workshop/Framebuffer.hpp Framebuffer.cpp
   includes/Workshop/Model.hpp Model.cpp
   includes/Workshop/Transform.hpp Transform.cpp
