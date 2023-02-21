@@ -215,32 +215,32 @@ void Shader::dispatchCompute(uint32_t x, uint32_t y, uint32_t z) {
   glDispatchCompute(x, y, z);
 }
 
-void Shader::setScalar1i(const char* name, const int value) const {
+void Shader::setInteger(const char* name, const int value) const {
   const int location = glGetUniformLocation(id, name);
   glUniform1i(location, value);
 }
 
-void Shader::setScalar1f(const char* name, const float value) const {
+void Shader::setFloat(const char* name, const float value) const {
   const int location = glGetUniformLocation(id, name);
   glUniform1f(location, value);
 }
 
-void Shader::setVector2fv(const char* name, const glm::vec2& value) const {
+void Shader::setVector2(const char* name, const glm::vec2& value) const {
   const int location = glGetUniformLocation(id, name);
   glUniform2fv(location, 1, glm::value_ptr(value));
 }
 
-void Shader::setVector3fv(const char* name, const glm::vec3& value) const {
+void Shader::setVector3(const char* name, const glm::vec3& value) const {
   const int location = glGetUniformLocation(id, name);
   glUniform3fv(location, 1, glm::value_ptr(value));
 }
 
-void Shader::setMatrix3fv(const char* name, const glm::mat3& value) const {
+void Shader::setMatrix3(const char* name, const glm::mat3& value) const {
   const int location = glGetUniformLocation(id, name);
   glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }
 
-void Shader::setMatrix4fv(const char* name, const glm::mat4& value) const {
+void Shader::setMatrix4(const char* name, const glm::mat4& value) const {
   const int location = glGetUniformLocation(id, name);
   glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }

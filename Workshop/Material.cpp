@@ -27,10 +27,10 @@ void Material::setParameter(std::string name, ParamT value) {
 
 void Material::uploadUniform(const std::string& name, const ParamT& value) {
   std::visit(overloaded{
-                 [&](int val) { shader.setScalar1i(name.c_str(), val); },
-                 [&](float val) { shader.setScalar1f(name.c_str(), val); },
-                 [&](const glm::vec2& val) { shader.setVector2fv(name.c_str(), val); },
-                 [&](const glm::vec3& val) { shader.setVector3fv(name.c_str(), val); },
+                 [&](int val) { shader.setInteger(name.c_str(), val); },
+                 [&](float val) { shader.setFloat(name.c_str(), val); },
+                 [&](const glm::vec2& val) { shader.setVector2(name.c_str(), val); },
+                 [&](const glm::vec3& val) { shader.setVector3(name.c_str(), val); },
              },
              value);
 }
