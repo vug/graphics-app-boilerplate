@@ -10,7 +10,7 @@
 
 namespace ws {
 
-Material::Material(const Shader& shader)
+Material::Material(Shader& shader)
     : shader(shader) {}
 
 void Material::addParameter(std::string name, ParamT value) {

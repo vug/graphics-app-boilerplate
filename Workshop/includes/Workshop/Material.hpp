@@ -27,13 +27,13 @@ overloaded(Ts...) -> overloaded<Ts...>;
 
 class Material {
  private:
-  const Shader& shader;
   std::unordered_map<std::string, ParamT> parameters;
 
   void uploadUniform(const std::string& name, const ParamT& value);
 
  public:
-  Material(const Shader& shader);
+  Shader& shader;
+  Material(Shader& shader);
 
   // To Consider: Maybe not needed, maybe always add parameters with a provided value
   template <ParamC P>
