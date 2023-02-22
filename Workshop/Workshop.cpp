@@ -1,5 +1,8 @@
 #include "Workshop.hpp"
 
+#include "Workshop/Assets.hpp" // Only Assets.hpp needs to be included via Workshop/
+#include "Shader.hpp"
+
 #include <glad/gl.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -75,6 +78,8 @@ Workshop::Workshop(int width, int height, const std::string& name) {
     // Ignore notifications
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
   }
+
+  Shader::makeNamedStringsFromFolder(ASSETS_FOLDER / "shaders/lib");
 }
 
 Workshop::~Workshop() {

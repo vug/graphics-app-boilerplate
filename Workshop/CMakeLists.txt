@@ -40,6 +40,6 @@ target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
 # and place it somewhere under build/ so that it can be included via <Workshop/Assets.h>
 set(WS_ASSETS_FOLDER ${PROJECT_SOURCE_DIR}/assets)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/includes/Workshop/Assets.hpp.in includes/Workshop/Assets.hpp @ONLY)
-target_include_directories(${TARGET} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/includes)
+target_include_directories(${TARGET} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/includes/)
 
 target_compile_features(${TARGET} PRIVATE cxx_std_20)
