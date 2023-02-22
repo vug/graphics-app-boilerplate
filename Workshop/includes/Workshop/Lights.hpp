@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Shader.hpp"
 
 #include <glm/vec3.hpp>
