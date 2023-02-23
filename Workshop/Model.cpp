@@ -266,8 +266,11 @@ Mesh::Mesh(const DefaultMeshData& meshData)
 
 Mesh::~Mesh() {
   glDeleteBuffers(1, &vertexBuffer);
+  vertexBuffer = ws::INVALID;
   glDeleteBuffers(1, &indexBuffer);
+  indexBuffer = ws::INVALID;
   glDeleteVertexArrays(1, &vertexArray);
+  vertexArray = ws::INVALID;
 }
 
 void Mesh::createBuffers() {
