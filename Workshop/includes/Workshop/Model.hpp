@@ -44,6 +44,10 @@ inline void hash_combine(std::size_t& s, const T& v) {
 class Mesh {
  public:
   Mesh(const DefaultMeshData& meshData);
+  Mesh(const Mesh& other) = delete;
+  Mesh& operator=(const Mesh& other) = delete;
+  Mesh(Mesh&& other) = default;
+  Mesh& operator=(Mesh&& other) = default;
   ~Mesh();
 
   DefaultMeshData meshData;
