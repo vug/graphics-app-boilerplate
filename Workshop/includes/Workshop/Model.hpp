@@ -46,8 +46,8 @@ class Mesh {
   Mesh(const DefaultMeshData& meshData);
   Mesh(const Mesh& other) = delete;
   Mesh& operator=(const Mesh& other) = delete;
-  Mesh(Mesh&& other) = default;
-  Mesh& operator=(Mesh&& other) = default;
+  Mesh(Mesh&& other);
+  Mesh& operator=(Mesh&& other);
   ~Mesh();
 
   DefaultMeshData meshData;

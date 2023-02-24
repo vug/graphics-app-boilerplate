@@ -1,5 +1,6 @@
 #include "Model.hpp"
 
+#include <fmt/core.h>
 #include <glad/gl.h>
 #include <tiny_obj_loader.h>
 #include <glm/geometric.hpp>
@@ -264,13 +265,46 @@ Mesh::Mesh(const DefaultMeshData& meshData)
   uploadData();
 }
 
+Mesh::Mesh(Mesh&& other)
+    : meshData(std::move(other.meshData)),
+      capacity(other.capacity),
+      vertexArray(other.vertexArray),
+      vertexBuffer(other.vertexBuffer),
+      indexBuffer(other.indexBuffer) {
+  other.capacity = 0;
+  other.vertexArray = INVALID;
+  other.vertexBuffer = INVALID;
+  other.indexBuffer = INVALID;
+  fmt::println("Moved Mesh with {} vertices via MoveCstor.", meshData.indices.size());
+}
+
+Mesh& Mesh::operator=(Mesh&& other) {
+  meshData = std::move(other.meshData);
+  capacity = other.capacity;
+  vertexArray = other.vertexArray;
+  vertexBuffer = other.vertexBuffer;
+  indexBuffer = other.indexBuffer;
+  other.capacity = 0;
+  other.vertexArray = INVALID;
+  other.vertexBuffer = INVALID;
+  other.indexBuffer = INVALID;
+  fmt::println("Moved Mesh with {} vertices via MoveAssign.", meshData.indices.size());
+  return *this;
+}
+
 Mesh::~Mesh() {
-  glDeleteBuffers(1, &vertexBuffer);
-  vertexBuffer = ws::INVALID;
-  glDeleteBuffers(1, &indexBuffer);
-  indexBuffer = ws::INVALID;
-  glDeleteVertexArrays(1, &vertexArray);
-  vertexArray = ws::INVALID;
+  if (vertexBuffer != INVALID) {
+    glDeleteBuffers(1, &vertexBuffer);
+    vertexBuffer = INVALID;
+  }
+  if (indexBuffer != INVALID) {
+    glDeleteBuffers(1, &indexBuffer);
+    indexBuffer = INVALID;
+  }
+  if (vertexArray != INVALID) {
+    glDeleteVertexArrays(1, &vertexArray);
+    vertexArray = ws::INVALID;
+  }
 }
 
 void Mesh::createBuffers() {
