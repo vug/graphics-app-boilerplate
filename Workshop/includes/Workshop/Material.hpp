@@ -29,7 +29,7 @@ class Material {
  private:
   std::unordered_map<std::string, ParamT> parameters;
 
-  void uploadUniform(const std::string& name, const ParamT& value);
+  void uploadUniform(const std::string& name, const ParamT& value) const;
 
  public:
   Shader& shader;
@@ -45,8 +45,8 @@ class Material {
   void addParameter(std::string name, ParamT value);
   void setParameter(std::string name, ParamT value);
 
-  void uploadParameters();
-  std::string parametersToString();
+  void uploadParameters() const;
+  std::string parametersToString() const;
 };
 
 }  // namespace ws
