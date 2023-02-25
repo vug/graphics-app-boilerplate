@@ -8,21 +8,39 @@
 #include <numbers>
 
 namespace ws {
-class CameraView {
+class ICamera {
+ public:
+  virtual const glm::vec3& getPosition() const = 0;
+  virtual glm::vec3 getDirection() const = 0;
+  virtual glm::mat4 getViewFromWorld() const = 0;
+  virtual glm::vec3 getForward() const = 0;
+  virtual glm::vec3 getUp() const = 0;
+  virtual glm::vec3 getRight() const = 0;
+
+  virtual glm::mat4 getProjectionFromView() const = 0;
+
+  glm::mat4 getProjectionFromWorld() const;
+};
+
+// Splitting ICamera into two parts: The View and the Projection
+// View is about ViewFromWorld matrix. Near, far, FOV etc. are irrelevant.
+class ICameraView : public virtual ICamera {
  public:  // TODO: make private again (?)
   glm::vec3 position{};
 
  public:
-  const glm::vec3& getPosition() const;
+  virtual const glm::vec3& getPosition() const final;
   virtual glm::vec3 getDirection() const = 0;
 
-  glm::mat4 getViewFromWorld() const;
-  glm::vec3 getForward() const;
-  glm::vec3 getUp() const;
-  glm::vec3 getRight() const;
+  virtual glm::mat4 getViewFromWorld() const final;
+  virtual glm::vec3 getForward() const final;
+  virtual glm::vec3 getUp() const final;
+  virtual glm::vec3 getRight() const final;
 };
 
-class CameraProjection {
+// Splitting ICamera into two parts. The View and Projection
+// Projection is about ProjectionFromView matrix. Cam position, direction etc. are irrelevant
+class ICameraProjection : public virtual ICamera {
  public:
   float nearClip{0.01f};
   float farClip{100.0f};
@@ -30,13 +48,9 @@ class CameraProjection {
   virtual glm::mat4 getProjectionFromView() const = 0;
 };
 
-class Camera : public CameraView, public CameraProjection {
-  glm::mat4 getProjectionFromWorld() const;
-};
-
-// 3 position + 3 orientation = 6 DoF camera.
+// 3 position + 3 orientation = 6 DoF camera view.
 // Orientation can be stated as an unit axis and an angle, or more concise as yaw/pitch/roll
-class Camera3DView : public CameraView {
+class Camera3DView : public ICameraView {
  public:  // TODO: make private again
   float pitch{};
   float yaw{std::numbers::pi_v<float> * 0.5f};
@@ -48,7 +62,7 @@ class Camera3DView : public CameraView {
   friend class Camera3DViewAutoOrbitingController;
 };
 
-class PerspectiveCameraProjection : public CameraProjection {
+class PerspectiveCameraProjection : public ICameraProjection {
  public:  // TODO: make private again
   float fov{50.f};
 
@@ -56,7 +70,7 @@ class PerspectiveCameraProjection : public CameraProjection {
   virtual glm::mat4 getProjectionFromView() const final;
 };
 
-class OrthographicCameraProjection : public CameraProjection {
+class OrthographicCameraProjection : public ICameraProjection {
  private:
   float size{5.0f};
 
@@ -64,10 +78,12 @@ class OrthographicCameraProjection : public CameraProjection {
   virtual glm::mat4 getProjectionFromView() const final;
 };
 
-class PerspectiveCamera3D : public Camera3DView,
+class PerspectiveCamera3D : public virtual ICamera,
+                            public Camera3DView,
                             public PerspectiveCameraProjection {};
 
-class OrthographicCamera3D : public Camera3DView,
+class OrthographicCamera3D : public virtual ICamera,
+                             public Camera3DView,
                              public OrthographicCameraProjection {};
 
 class AutoOrbitingCamera3DViewController {
