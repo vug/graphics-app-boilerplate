@@ -269,7 +269,11 @@ void Shader::makeNamedStringsFromFolder(const std::filesystem::path& shaderLibFo
       continue;
     const auto& shaderFullPath = dirEntry.path();
     const auto shaderRelPath = std::filesystem::relative(shaderFullPath, shaderLibFolder);
-    std::string namedString{fmt::format("/lib/{}", shaderRelPath.string())};
+    // On Windows shaderRelPath has \ as separator instead of /
+    // However glNamedStringARB requires / (?) therefore doing string manipulation for replacement
+    std::string shaderRelPathStr = shaderRelPath.string();
+    std::replace(shaderRelPathStr.begin(), shaderRelPathStr.end(), '\\', '/'); 
+    std::string namedString{fmt::format("/lib/{}", shaderRelPathStr)};
     fmt::println("Making namedString: {}...", namedString);
     Shader::makeNamedStringFromFile(namedString, shaderFullPath);
   }
