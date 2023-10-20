@@ -22,7 +22,8 @@ add_library(${TARGET} STATIC
 
 target_link_libraries(${TARGET} PUBLIC
   fmt
-  glad_gl_core_31 # glad_gl_core_46
+  # glad_gl_core_31 
+  glad_gl_core_46
   glfw
   glm
   imgui
@@ -42,4 +43,4 @@ set(WS_ASSETS_FOLDER ${PROJECT_SOURCE_DIR}/assets)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/includes/Workshop/Assets.hpp.in includes/Workshop/Assets.hpp @ONLY)
 target_include_directories(${TARGET} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/includes/)
 
-target_compile_features(${TARGET} PRIVATE cxx_std_20)
+target_compile_features(${TARGET} PRIVATE cxx_std_23)
