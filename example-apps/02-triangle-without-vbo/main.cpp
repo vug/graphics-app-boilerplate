@@ -1,5 +1,5 @@
-#include <Shader.h>
-#include <Workshop.h>
+#include <Workshop/Shader.hpp>
+#include <Workshop/Workshop.hpp>
 
 #include <glad/gl.h>
 #define GLFW_INCLUDE_NONE
@@ -17,6 +17,7 @@
 
 int main()
 {
+  std::cout << "Hi!\n";
   ws::Workshop workshop{800, 600, "Workshop App"};
 
   const char *vertexShader = R"(
@@ -60,6 +61,11 @@ void main () { outColor = vec4 (fragColor, 1.0); }
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::End();
+
+    // VAO binding is needed in 4.6 was not needed in 3.1
+    uint32_t vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
 
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT);

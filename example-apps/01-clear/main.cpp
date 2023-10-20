@@ -1,4 +1,4 @@
-#include <Workshop.h>
+#include <Workshop/Workshop.hpp>
 
 #include <glad/gl.h>
 #define GLFW_INCLUDE_NONE
