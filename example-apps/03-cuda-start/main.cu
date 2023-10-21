@@ -59,30 +59,41 @@ int main(int argc, char* argv[]) {
   ws::Workshop workshop{800, 600, "Workshop App"};
 
   const char *vertexShader = R"(
-#version 300 es
-#extension GL_EXT_separate_shader_objects : enable
-precision mediump float;
+#version 460
 
-layout (location = 0) out vec3 fragColor;
+out VertexData {
+  vec2 uv;
+} v; // vertex-to-fragment or vertex-to-geometry
 
-vec2 positions[3] = vec2[](vec2 (0.0, -0.5), vec2 (0.5, 0.5), vec2 (-0.5, 0.5));
-vec3 colors[3] = vec3[](vec3 (1.0, 0.0, 0.0), vec3 (0.0, 1.0, 0.0), vec3 (0.0, 0.0, 1.0));
-void main ()
-{
-	gl_Position = vec4 (positions[gl_VertexID], 0.0, 1.0);
-	fragColor = colors[gl_VertexID];
+vec2 positions[4] = vec2[](vec2(-1, -1), vec2(1, -1), vec2(1, 1), vec2(-1, 1));
+vec2 uvs[4] = vec2[](vec2(0, 0), vec2(1, 0), vec2(1, 1), vec2(0, 1));
+int indices[6] = int[](0, 1, 2, 0, 2, 3);
+
+void main () {
+  int ix = indices[gl_VertexID];
+	gl_Position = vec4 (positions[ix], 0.0, 1.0);
+	v.uv = uvs[ix];
 }
   )";
 
   const char *fragmentShader = R"(
-#version 300 es
-#extension GL_EXT_separate_shader_objects : enable
-precision mediump float;
+#version 460
 
-layout (location = 0) in vec3 fragColor;
+in VertexData {
+  vec2 uv;
+} v;
+
+uniform sampler2D screenTexture;
+
 layout (location = 0) out vec4 outColor;
 
-void main () { outColor = vec4 (fragColor, 1.0); }
+void main () {
+  outColor = vec4(v.uv.x, v.uv.y, 0, 1.0); 
+
+  //vec3 tex =  texture(screenTexture, v.uv).rgb;
+  //float val = (tex.r + tex.g + tex.b) / 3.0;
+  //outColor.rgb = vec3(val);
+}
   )";
   ws::Shader shader{vertexShader, fragmentShader};
 
@@ -108,8 +119,11 @@ void main () { outColor = vec4 (fragColor, 1.0); }
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    const auto winSize = workshop.getWindowSize();
+    glViewport(0, 0, winSize.x, winSize.y);
+
     shader.bind();
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
     workshop.endFrame();
   }
