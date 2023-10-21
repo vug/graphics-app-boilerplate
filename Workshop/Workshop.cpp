@@ -29,9 +29,10 @@ Workshop::Workshop(int width, int height, const std::string& name) {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, openGLMinorVersion);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
   if (shouldDebugOpenGL)
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
   if (useMSAA)
     glfwWindowHint(GLFW_SAMPLES, 8);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // default
 
   window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
   if (!window) {
