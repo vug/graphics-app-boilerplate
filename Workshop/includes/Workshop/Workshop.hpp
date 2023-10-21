@@ -19,9 +19,9 @@ class Workshop {
   glm::uvec2 getWindowSize() const;
 
  private:
-  const char* glslVersion = "#version 430";
+  const char* glslVersion = "#version 460";
   const int openGLMajorVersion = 4;
-  const int openGLMinorVersion = 3;
+  const int openGLMinorVersion = 6;
   bool shouldDebugOpenGL = true;
   bool shouldBreakAtOpenGLDebugCallback_ = true;
   bool useMSAA = false;
