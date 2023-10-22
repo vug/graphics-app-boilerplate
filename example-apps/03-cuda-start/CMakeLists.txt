@@ -2,7 +2,7 @@ set(TARGET CudaStart)
 
 if(TRUE)
 message("Method1: Make a static library out of CU files and link them. dir1 ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}")
-add_library(VectorAdd STATIC vector_add.cu vector_add.h)
+add_library(VectorAdd STATIC kernels.cu kernels.h)
 # We need to explicitly state that we need all CUDA files in the 
 # to be built with -dc as the member functions 
 # could be called by other libraries and executables
@@ -11,7 +11,7 @@ target_include_directories(VectorAdd INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRE
 
 add_executable(${TARGET}
   main.cu
-  vector_add.h)
+  kernels.h)
 set_target_properties(${TARGET} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 target_link_libraries(${TARGET} PRIVATE 
   VectorAdd
@@ -21,7 +21,7 @@ else()
 message("Method2: Make OBJ files from CU files and link them")
 add_executable(${TARGET}
   main.cu
-  vector_add.cu vector_add.h)
+  kernels.cu kernels.h)
 set_target_properties(${TARGET} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 target_include_directories(${TARGET} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 target_link_libraries(${TARGET} PRIVATE 

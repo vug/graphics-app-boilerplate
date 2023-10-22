@@ -1,8 +1,9 @@
 // Main file had to be main.cu and not main.cpp otherwise <<< is not recognized.
 // I was able to overcome this in VS Code by compiling CU files via NVCC into a library and compile main.cpp via MSVC and link them later
-#include "vector_add.h"
+#include "kernels.h"
 
 #include <Workshop/Shader.hpp>
+#include <Workshop/Texture.hpp>
 #include <Workshop/Workshop.hpp>
 
 #include <glad/gl.h>
@@ -88,14 +89,50 @@ uniform sampler2D screenTexture;
 layout (location = 0) out vec4 outColor;
 
 void main () {
-  outColor = vec4(v.uv.x, v.uv.y, 0, 1.0); 
+  //outColor = vec4(v.uv.x, v.uv.y, 0, 1.0); 
 
-  //vec3 tex =  texture(screenTexture, v.uv).rgb;
+  vec3 tex =  texture(screenTexture, v.uv).rgb;
+  outColor.rgb = tex;
+
   //float val = (tex.r + tex.g + tex.b) / 3.0;
   //outColor.rgb = vec3(val);
 }
   )";
   ws::Shader shader{vertexShader, fragmentShader};
+  const auto ws = workshop.getWindowSize();
+  auto desc = ws::Texture::Specs {ws.x, ws.y, ws::Texture::Format::RGBA8};
+  ws::Texture tex{desc};
+
+  std::vector<uint32_t> pixels(ws.x * ws.y);
+  size_t texSizeBytes = pixels.size() * sizeof(uint32_t);
+  uint32_t* d_pixels;
+  cudaMalloc(&d_pixels, texSizeBytes);
+
+  const auto threadSize = dim3(32, 32);
+  const auto blockSize = dim3(ws.x / threadSize.x + 1, ws.y / threadSize.y + 1);
+  printf("numPixels: %d, sizeBytes: %d, blockSize (%d, %d), threadSize: (%d, %d)\n", pixels.size(), texSizeBytes, blockSize.x, blockSize.y, threadSize.x, threadSize.y);
+  genTexture<<<blockSize, threadSize>>>(d_pixels, ws.x, ws.y);
+  cudaDeviceSynchronize();
+  cudaError_t error = cudaGetLastError();
+  if (error != cudaSuccess) {
+    printf("CUDA error: %s\n", cudaGetErrorString(error));
+    exit(-1);
+  }
+  
+  cudaMemcpy(pixels.data(), d_pixels, texSizeBytes, cudaMemcpyDeviceToHost);
+  cudaFree(d_pixels);
+
+  //for (uint32_t i = 0; i < ws.y; ++i) {
+  //  for (uint32_t j = 0; j < ws.x; ++j) {
+  //    // Red: 0xFF0000FF, Green: 0xFF00FF00, Blue: 0xFFFF0000
+  //    const uint8_t red = j * 255 / ws.x;
+  //    const uint8_t green = i * 255 / ws.y;
+  //    const uint8_t blue = 0;
+  //    const uint8_t alpha = 255;
+  //    pixels[i * ws.x + j] = (alpha << 24) + (blue << 16) + (green << 8) + red;
+  //  }
+  //}
+  tex.loadPixels(pixels.data());
 
   while (!workshop.shouldStop())
   {
@@ -123,7 +160,10 @@ void main () {
     glViewport(0, 0, winSize.x, winSize.y);
 
     shader.bind();
+    tex.bind();
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    tex.unbind();
+    shader.unbind();
 
     workshop.endFrame();
   }

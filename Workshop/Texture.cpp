@@ -11,8 +11,13 @@ Texture::GlSpecs Texture::getGlSpecs() const {
 
   switch (specs.format) {
     case Format::RGB8:
-      gs.internalFormat = GL_RGB;
+      gs.internalFormat = GL_RGB; // GL_RGB8 ?
       gs.format = GL_RGB;
+      gs.type = GL_UNSIGNED_BYTE;
+      break;
+    case Format::RGBA8:
+      gs.internalFormat = GL_RGBA8;
+      gs.format = GL_RGBA;
       gs.type = GL_UNSIGNED_BYTE;
       break;
     case Format::Depth24Stencil8:
