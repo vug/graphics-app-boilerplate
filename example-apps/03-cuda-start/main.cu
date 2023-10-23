@@ -20,6 +20,49 @@
 
 #include <iostream>
 
+void calcPixelsCpuToTex(ws::Texture& tex, const glm::uvec2& ws) {
+
+  std::vector<uint32_t> pixels(ws.x * ws.y);
+  for (uint32_t i = 0; i < ws.y; ++i) {
+    for (uint32_t j = 0; j < ws.x; ++j) {
+      // Red: 0xFF0000FF, Green: 0xFF00FF00, Blue: 0xFFFF0000
+      const uint8_t red = j * 255 / ws.x;
+      const uint8_t green = i * 255 / ws.y;
+      const uint8_t blue = 0;
+      const uint8_t alpha = 255;
+      pixels[i * ws.x + j] = (alpha << 24) + (blue << 16) + (green << 8) + red;
+    }
+  }
+  tex.loadPixels(pixels.data());
+}
+
+void calcPixelsGpuToCpuToTex(ws::Texture& tex, const glm::uvec2& ws) {
+  std::vector<uint32_t> pixels(ws.x * ws.y);
+  size_t texSizeBytes = pixels.size() * sizeof(uint32_t);
+  uint32_t* d_pixels;
+  cudaMalloc(&d_pixels, texSizeBytes);
+
+  const auto threadSize = dim3(32, 32);
+  const auto blockSize = dim3(ws.x / threadSize.x + 1, ws.y / threadSize.y + 1);
+  printf("numPixels: %d, sizeBytes: %d, blockSize (%d, %d), threadSize: (%d, %d)\n", pixels.size(), texSizeBytes, blockSize.x, blockSize.y, threadSize.x, threadSize.y);
+  genTexture<<<blockSize, threadSize>>>(d_pixels, ws.x, ws.y);
+  cudaDeviceSynchronize();
+  cudaError_t error = cudaGetLastError();
+  if (error != cudaSuccess) {
+    printf("CUDA error: %s\n", cudaGetErrorString(error));
+    exit(-1);
+  }
+
+  cudaMemcpy(pixels.data(), d_pixels, texSizeBytes, cudaMemcpyDeviceToHost);
+  cudaFree(d_pixels);
+
+  tex.loadPixels(pixels.data());
+}
+
+void calcPixelsGlInterop(ws::Texture& tex, const glm::uvec2& ws) {
+
+}
+
 int main(int argc, char* argv[]) {
   const int count = (argc == 2) ? std::stoi(argv[1]) : 5;
   const size_t size = count * sizeof(float);
@@ -103,36 +146,9 @@ void main () {
   auto desc = ws::Texture::Specs {ws.x, ws.y, ws::Texture::Format::RGBA8};
   ws::Texture tex{desc};
 
-  std::vector<uint32_t> pixels(ws.x * ws.y);
-  size_t texSizeBytes = pixels.size() * sizeof(uint32_t);
-  uint32_t* d_pixels;
-  cudaMalloc(&d_pixels, texSizeBytes);
-
-  const auto threadSize = dim3(32, 32);
-  const auto blockSize = dim3(ws.x / threadSize.x + 1, ws.y / threadSize.y + 1);
-  printf("numPixels: %d, sizeBytes: %d, blockSize (%d, %d), threadSize: (%d, %d)\n", pixels.size(), texSizeBytes, blockSize.x, blockSize.y, threadSize.x, threadSize.y);
-  genTexture<<<blockSize, threadSize>>>(d_pixels, ws.x, ws.y);
-  cudaDeviceSynchronize();
-  cudaError_t error = cudaGetLastError();
-  if (error != cudaSuccess) {
-    printf("CUDA error: %s\n", cudaGetErrorString(error));
-    exit(-1);
-  }
-  
-  cudaMemcpy(pixels.data(), d_pixels, texSizeBytes, cudaMemcpyDeviceToHost);
-  cudaFree(d_pixels);
-
-  //for (uint32_t i = 0; i < ws.y; ++i) {
-  //  for (uint32_t j = 0; j < ws.x; ++j) {
-  //    // Red: 0xFF0000FF, Green: 0xFF00FF00, Blue: 0xFFFF0000
-  //    const uint8_t red = j * 255 / ws.x;
-  //    const uint8_t green = i * 255 / ws.y;
-  //    const uint8_t blue = 0;
-  //    const uint8_t alpha = 255;
-  //    pixels[i * ws.x + j] = (alpha << 24) + (blue << 16) + (green << 8) + red;
-  //  }
-  //}
-  tex.loadPixels(pixels.data());
+  //calcPixelsCpuToTex(tex, ws);
+  calcPixelsGpuToCpuToTex(tex, ws);
+  //calcPixelsGlInterop(tex, ws);
 
   while (!workshop.shouldStop())
   {
