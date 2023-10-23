@@ -6,6 +6,7 @@
 #include <Workshop/Texture.hpp>
 #include <Workshop/Workshop.hpp>
 
+#include <cuda_gl_interop.h>
 #include <glad/gl.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -19,6 +20,14 @@
 // #include <vivid/vivid.h>
 
 #include <iostream>
+
+void cudaOnErrorPrintAndExit() {
+  cudaError_t error = cudaGetLastError();
+  if (error != cudaSuccess) {
+    printf("CUDA error: %s\n", cudaGetErrorString(error));
+    exit(-1);
+  }
+}
 
 void calcPixelsCpuToTex(ws::Texture& tex, const glm::uvec2& ws) {
 
@@ -44,14 +53,11 @@ void calcPixelsGpuToCpuToTex(ws::Texture& tex, const glm::uvec2& ws) {
 
   const auto threadSize = dim3(32, 32);
   const auto blockSize = dim3(ws.x / threadSize.x + 1, ws.y / threadSize.y + 1);
-  printf("numPixels: %d, sizeBytes: %d, blockSize (%d, %d), threadSize: (%d, %d)\n", pixels.size(), texSizeBytes, blockSize.x, blockSize.y, threadSize.x, threadSize.y);
+  printf("numPixels: %zd, sizeBytes: %zd, blockSize (%d, %d), threadSize: (%d, %d)\n", pixels.size(), texSizeBytes, blockSize.x, blockSize.y, threadSize.x, threadSize.y);
   genTexture<<<blockSize, threadSize>>>(d_pixels, ws.x, ws.y);
   cudaDeviceSynchronize();
-  cudaError_t error = cudaGetLastError();
-  if (error != cudaSuccess) {
-    printf("CUDA error: %s\n", cudaGetErrorString(error));
-    exit(-1);
-  }
+  cudaOnErrorPrintAndExit();
+
 
   cudaMemcpy(pixels.data(), d_pixels, texSizeBytes, cudaMemcpyDeviceToHost);
   cudaFree(d_pixels);
@@ -60,7 +66,40 @@ void calcPixelsGpuToCpuToTex(ws::Texture& tex, const glm::uvec2& ws) {
 }
 
 void calcPixelsGlInterop(ws::Texture& tex, const glm::uvec2& ws) {
+  struct cudaGraphicsResource* texCuda{};
+  cudaGraphicsGLRegisterImage(&texCuda, tex.getId(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
+  cudaOnErrorPrintAndExit();
 
+  cudaGraphicsMapResources(1, &texCuda, 0);
+  cudaOnErrorPrintAndExit();
+
+  // Get the array from GL Texture Resource after each map (instead of creating and allocating one from scratch)
+  cudaArray_t array;
+  cudaGraphicsSubResourceGetMappedArray(&array, texCuda, 0, 0);
+  cudaOnErrorPrintAndExit();
+
+  //struct cudaResourceDesc resDesc{};
+  struct cudaResourceDesc resDesc;
+  //memset(&resDesc, 0, sizeof(resDesc)); // C API?
+  resDesc.resType = cudaResourceTypeArray;
+  resDesc.res.array.array = array;
+  cudaSurfaceObject_t surface = 0;
+  cudaCreateSurfaceObject(&surface, &resDesc);
+  cudaOnErrorPrintAndExit();
+
+  const auto threadSize = dim3(32, 32);
+  const auto blockSize = dim3(ws.x / threadSize.x + 1, ws.y / threadSize.y + 1);
+  genSurface<<<blockSize, threadSize>>>(surface, ws.x, ws.y);
+  cudaOnErrorPrintAndExit();
+
+  cudaDestroySurfaceObject(surface);
+  cudaOnErrorPrintAndExit();
+
+  cudaGraphicsUnmapResources(1, &texCuda, 0);
+  cudaOnErrorPrintAndExit();
+
+  cudaGraphicsUnregisterResource(texCuda);
+  cudaOnErrorPrintAndExit();
 }
 
 int main(int argc, char* argv[]) {
@@ -147,8 +186,8 @@ void main () {
   ws::Texture tex{desc};
 
   //calcPixelsCpuToTex(tex, ws);
-  calcPixelsGpuToCpuToTex(tex, ws);
-  //calcPixelsGlInterop(tex, ws);
+  //calcPixelsGpuToCpuToTex(tex, ws);
+  calcPixelsGlInterop(tex, ws);
 
   while (!workshop.shouldStop())
   {

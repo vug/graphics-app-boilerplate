@@ -6,3 +6,5 @@
 __global__ void vectorAdd(float* a, float* b, float* out);
 
 __global__ void genTexture(unsigned int* pixels, int width, int height);
+
+__global__ void genSurface(cudaSurfaceObject_t surf, int width, int height);
