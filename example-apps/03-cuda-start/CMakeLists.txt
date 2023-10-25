@@ -10,7 +10,7 @@ set_target_properties(VectorAdd PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 target_include_directories(VectorAdd INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 add_executable(${TARGET}
-  main.cu
+  main.cpp
   kernels.h)
 set_target_properties(${TARGET} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 target_link_libraries(${TARGET} PRIVATE 
@@ -20,7 +20,7 @@ target_link_libraries(${TARGET} PRIVATE
 else()
 message("Method2: Make OBJ files from CU files and link them")
 add_executable(${TARGET}
-  main.cu
+  main.cpp
   kernels.cu kernels.h)
 set_target_properties(${TARGET} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 target_include_directories(${TARGET} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
