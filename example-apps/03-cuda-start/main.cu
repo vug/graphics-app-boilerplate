@@ -51,13 +51,9 @@ void calcPixelsGpuToCpuToTex(ws::Texture& tex, const glm::uvec2& ws) {
   uint32_t* d_pixels;
   cudaMalloc(&d_pixels, texSizeBytes);
 
-  const auto threadSize = dim3(32, 32);
-  const auto blockSize = dim3(ws.x / threadSize.x + 1, ws.y / threadSize.y + 1);
-  printf("numPixels: %zd, sizeBytes: %zd, blockSize (%d, %d), threadSize: (%d, %d)\n", pixels.size(), texSizeBytes, blockSize.x, blockSize.y, threadSize.x, threadSize.y);
-  genTexture<<<blockSize, threadSize>>>(d_pixels, ws.x, ws.y);
-  cudaDeviceSynchronize();
+  launchGenTexture(d_pixels, ws.x, ws.y);
+  cudaDeviceSynchronize(); // necessary?
   cudaOnErrorPrintAndExit();
-
 
   cudaMemcpy(pixels.data(), d_pixels, texSizeBytes, cudaMemcpyDeviceToHost);
   cudaFree(d_pixels);
@@ -87,9 +83,7 @@ void calcPixelsGlInterop(ws::Texture& tex, const glm::uvec2& ws) {
   cudaCreateSurfaceObject(&surface, &resDesc);
   cudaOnErrorPrintAndExit();
 
-  const auto threadSize = dim3(32, 32);
-  const auto blockSize = dim3(ws.x / threadSize.x + 1, ws.y / threadSize.y + 1);
-  genSurface<<<blockSize, threadSize>>>(surface, ws.x, ws.y);
+  launchGenSurface(surface, ws.x, ws.y);
   cudaOnErrorPrintAndExit();
 
   cudaDestroySurfaceObject(surface);
@@ -103,41 +97,6 @@ void calcPixelsGlInterop(ws::Texture& tex, const glm::uvec2& ws) {
 }
 
 int main(int argc, char* argv[]) {
-  const int count = (argc == 2) ? std::stoi(argv[1]) : 5;
-  const size_t size = count * sizeof(float);
-
-  // Allocate memory of inputs on host, fill them out
-  std::vector<float> h_a(count), h_b(count), h_c(count);
-  for (int ix = 0; ix < count; ++ix) {
-    h_a[ix] = ix;
-    h_b[ix] = 2 * ix;
-  }
-
-  // Allocate memory for device counterparts
-  float *d_a, *d_b, *d_c;
-  cudaMalloc(&d_a, size);
-  cudaMalloc(&d_b, size);
-  cudaMalloc(&d_c, size);
-
-  // Copy inputs from host to device
-  cudaMemcpy(d_a, h_a.data(), size, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_b, h_b.data(), size, cudaMemcpyHostToDevice);
-
-  // Run kernel
-  vectorAdd<<<1, size>>>(d_a, d_b, d_c);
-
-  // Copy the result back to host
-  cudaMemcpy(h_c.data(), d_c, size, cudaMemcpyDeviceToHost);
-
-  // "Use the result"
-  for (int i = 0; i < count; ++i)
-    std::cout << std::format("{} + {} = {}\n", h_a[i], h_b[i], h_c[i]);
-
-  // Free memory
-  cudaFree(d_a);
-  cudaFree(d_b);
-  cudaFree(d_c);
-
   std::cout << "Hi!\n";
   ws::Workshop workshop{800, 600, "Workshop App"};
 

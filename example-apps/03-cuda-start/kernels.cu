@@ -25,6 +25,13 @@ __global__ void genTexture(unsigned int* pixels, int width, int height) {
   }
 }
 
+void launchGenTexture(unsigned int* pixels, int width, int height) {
+  const auto threadSize = dim3(32, 32);
+  const auto blockSize = dim3(width / threadSize.x + 1, height / threadSize.y + 1);
+  printf("numPixels: %d, sizeBytes: %zd, blockSize (%d, %d), threadSize: (%d, %d)\n", width * height, width * height * sizeof(unsigned int), blockSize.x, blockSize.y, threadSize.x, threadSize.y);
+  genTexture<<<blockSize, threadSize>>>(pixels, width, height);
+}
+
 __global__ void genSurface(cudaSurfaceObject_t surf, int width, int height) {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -37,4 +44,10 @@ __global__ void genSurface(cudaSurfaceObject_t surf, int width, int height) {
   unsigned char alpha = 255;
   uchar4 pixel{red, green, blue, alpha};
   surf2Dwrite(pixel, surf, x * sizeof(uchar4), y);  // TODO: learn why x * 4 but just y
+}
+
+void launchGenSurface(cudaSurfaceObject_t surf, int width, int height) {
+  const auto threadSize = dim3(32, 32);
+  const auto blockSize = dim3(width / threadSize.x + 1, height / threadSize.y + 1);
+  genSurface<<<blockSize, threadSize>>>(surf, width, height);
 }
