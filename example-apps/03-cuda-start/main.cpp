@@ -83,7 +83,7 @@ void calcPixelsGlInterop(ws::Texture& tex, const glm::uvec2& ws) {
   cudaCreateSurfaceObject(&surface, &resDesc);
   cudaOnErrorPrintAndExit();
 
-  launchGenSurface(surface, ws.x, ws.y);
+  launchGenSurface(surface, ws.x, ws.y, 400);
   cudaOnErrorPrintAndExit();
 
   cudaDestroySurfaceObject(surface);
@@ -146,10 +146,16 @@ void main () {
 
   //calcPixelsCpuToTex(tex, ws);
   //calcPixelsGpuToCpuToTex(tex, ws);
-  calcPixelsGlInterop(tex, ws);
+  //calcPixelsGlInterop(tex, ws);
 
-  while (!workshop.shouldStop())
-  {
+  struct cudaGraphicsResource* texCuda{};
+  cudaGraphicsGLRegisterImage(&texCuda, tex.getId(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
+  // VAO binding is needed in 4.6 was not needed in 3.1
+  uint32_t vao;
+  glGenVertexArrays(1, &vao);
+
+  int timeStep = 0;
+  while (!workshop.shouldStop()) {
     workshop.beginFrame();
 
     ImGui::Begin("Main");
@@ -162,10 +168,19 @@ void main () {
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::End();
 
-    // VAO binding is needed in 4.6 was not needed in 3.1
-    uint32_t vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
+    cudaGraphicsMapResources(1, &texCuda, 0);
+    cudaArray_t array;
+    cudaGraphicsSubResourceGetMappedArray(&array, texCuda, 0, 0);
+    struct cudaResourceDesc resDesc{};
+    resDesc.resType = cudaResourceTypeArray;
+    resDesc.res.array.array = array;
+    cudaSurfaceObject_t surface = 0;
+    cudaCreateSurfaceObject(&surface, &resDesc);
+
+    launchGenSurface(surface, ws.x, ws.y, timeStep++);
+
+    cudaDestroySurfaceObject(surface);
+    cudaGraphicsUnmapResources(1, &texCuda, 0);
 
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -175,12 +190,16 @@ void main () {
 
     shader.bind();
     tex.bind();
+    glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
     tex.unbind();
     shader.unbind();
 
     workshop.endFrame();
   }
+
+  cudaGraphicsUnregisterResource(texCuda);
 
   return 0;
 }
