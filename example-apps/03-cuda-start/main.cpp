@@ -173,6 +173,12 @@ void main () {
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Text("WinSize (%d, %d), TexSize (%d, %d)", winSize.x, winSize.y, tex.specs.width, tex.specs.height);
+    static float x0 = -2.8f;
+    static float y0 = -1.7f;
+    static float h = 3.2f;
+    ImGui::DragFloat("x0", &x0, 0.001f);
+    ImGui::DragFloat("y0", &y0, 0.001f);
+    ImGui::DragFloat("h", &h, 0.001f);
     ImGui::End();
 
     cudaGraphicsMapResources(1, &texCuda, 0);
@@ -184,7 +190,8 @@ void main () {
     cudaSurfaceObject_t surface = 0;
     cudaCreateSurfaceObject(&surface, &resDesc);
 
-    launchGenSurface(surface, winSize.x, winSize.y, timeStep++);
+    //launchGenSurface(surface, winSize.x, winSize.y, timeStep++);
+    launchGenMandelbrot(surface, winSize.x, winSize.y, x0, y0, h, timeStep++);
 
     cudaDestroySurfaceObject(surface);
     cudaGraphicsUnmapResources(1, &texCuda, 0);
