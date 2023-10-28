@@ -140,13 +140,13 @@ void main () {
 }
   )";
   ws::Shader shader{vertexShader, fragmentShader};
-  const auto ws = workshop.getWindowSize();
-  auto desc = ws::Texture::Specs {ws.x, ws.y, ws::Texture::Format::RGBA8};
+  glm::uvec2 winSize = workshop.getWindowSize();
+  auto desc = ws::Texture::Specs{winSize.x, winSize.y, ws::Texture::Format::RGBA8};
   ws::Texture tex{desc};
 
-  //calcPixelsCpuToTex(tex, ws);
-  //calcPixelsGpuToCpuToTex(tex, ws);
-  //calcPixelsGlInterop(tex, ws);
+  //calcPixelsCpuToTex(tex, winSize);
+  //calcPixelsGpuToCpuToTex(tex, winSize);
+  //calcPixelsGlInterop(tex, winSize);
 
   struct cudaGraphicsResource* texCuda{};
   cudaGraphicsGLRegisterImage(&texCuda, tex.getId(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
@@ -157,15 +157,22 @@ void main () {
   int timeStep = 0;
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
+    
+    winSize = workshop.getWindowSize();
+    if (tex.specs.width != winSize.x || tex.specs.height != winSize.y) {
+      if (texCuda) cudaGraphicsUnregisterResource(texCuda);
+      tex.resize(winSize.x, winSize.y);
+      cudaGraphicsGLRegisterImage(&texCuda, tex.getId(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
+    }
 
     ImGui::Begin("Main");
     static bool shouldShowImGuiDemo = false;
     ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
     if (shouldShowImGuiDemo)
       ImGui::ShowDemoWindow();
-
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
+    ImGui::Text("WinSize (%d, %d), TexSize (%d, %d)", winSize.x, winSize.y, tex.specs.width, tex.specs.height);
     ImGui::End();
 
     cudaGraphicsMapResources(1, &texCuda, 0);
@@ -177,7 +184,7 @@ void main () {
     cudaSurfaceObject_t surface = 0;
     cudaCreateSurfaceObject(&surface, &resDesc);
 
-    launchGenSurface(surface, ws.x, ws.y, timeStep++);
+    launchGenSurface(surface, winSize.x, winSize.y, timeStep++);
 
     cudaDestroySurfaceObject(surface);
     cudaGraphicsUnmapResources(1, &texCuda, 0);
