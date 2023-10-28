@@ -61,8 +61,8 @@ __global__ void genMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHei
   if (texX >= texWidth || texY >= texHeight)
     return;
 
-  double u = (double)texX / (double)texWidth; // [0, 1)
-  double v = (double)texY / (double)texHeight; // [0, 1)
+  double u = (double)texX / (double)texWidth - 0.5; // [0, 1)
+  double v = (double)texY / (double)texHeight - 0.5; // [0, 1)
   double width = height / texHeight * texWidth;
   double x = x0 + u * width;
   double y = y0 + v * height;
