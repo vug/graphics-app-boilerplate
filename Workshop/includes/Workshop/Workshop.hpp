@@ -17,6 +17,9 @@ class Workshop {
   void endFrame();
   inline GLFWwindow* getGLFWwindow() const { return window; };
   glm::uvec2 getWindowSize() const;
+  uint32_t getFrameNo() const;
+  float getFrameDurationMs() const;
+  float getFrameRate() const;
 
  private:
   const char* glslVersion = "#version 460";
@@ -26,5 +29,9 @@ class Workshop {
   bool shouldBreakAtOpenGLDebugCallback_ = true;
   bool useMSAA = false;
   GLFWwindow* window = nullptr;
+  uint32_t frameNo = 0;
+  float time = 0.f;
+  float frameDurationSec = 0.f;
+  float frameRate = 0.f;
 };
 }  // namespace ws

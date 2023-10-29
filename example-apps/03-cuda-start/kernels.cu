@@ -55,7 +55,7 @@ void launchGenSurface(cudaSurfaceObject_t surf, int width, int height, int timeS
   genSurface<<<blockSize, threadSize>>>(surf, width, height, timeStep);
 }
 
-__global__ void genMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHeight, float x0, float y0, float height, int timeStep) {
+__global__ void genMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHeight, float x0, float y0, float height, int maxIter, int timeStep) {
   int texX = blockIdx.x * blockDim.x + threadIdx.x;
   int texY = blockIdx.y * blockDim.y + threadIdx.y;
   if (texX >= texWidth || texY >= texHeight)
@@ -70,7 +70,6 @@ __global__ void genMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHei
   cuDoubleComplex z = make_cuDoubleComplex(0, 0);
   bool bounded = true;
   int nSteps = 0;
-  const int maxIter = 100;
   for (int i = 0; i < maxIter; i++) {
     z = cuCadd(cuCmul(z, z), c);
     ++nSteps;
@@ -89,8 +88,8 @@ __global__ void genMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHei
   surf2Dwrite(pixel, surf, texX * sizeof(uchar4), texY);
 }
 
-void launchGenMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHeight, float x0, float y0, float height, int timeStep) {
+void launchGenMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHeight, float x0, float y0, float height, int maxIter, int timeStep) {
   const auto threadSize = dim3(32, 32);
   const auto blockSize = dim3(texWidth / threadSize.x + 1, texHeight / threadSize.y + 1);
-  genMandelbrot<<<blockSize, threadSize>>>(surf, texWidth, texHeight, x0, y0, height, timeStep);
+  genMandelbrot<<<blockSize, threadSize>>>(surf, texWidth, texHeight, x0, y0, height, maxIter, timeStep);
 }

@@ -97,6 +97,13 @@ bool Workshop::shouldStop() {
 }
 
 void Workshop::beginFrame() {
+  if (frameNo == 0) time = static_cast<float>(glfwGetTime()); // Just to keep first frame duration low
+  ++frameNo;
+  const float timeLastFrame = time;
+  time = static_cast<float>(glfwGetTime());
+  frameDurationSec = time - timeLastFrame;
+  frameRate = frameDurationSec == 0.f ? 0 : 1.f / frameDurationSec;
+
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
@@ -121,6 +128,18 @@ glm::uvec2 Workshop::getWindowSize() const {
   int x, y;
   glfwGetWindowSize(window, &x, &y);
   return {x, y};
+}
+
+uint32_t Workshop::getFrameNo() const {
+  return frameNo;
+}
+
+float Workshop::getFrameDurationMs() const {
+  return frameDurationSec * 1000.f;
+}
+
+float Workshop::getFrameRate() const {
+  return frameRate;
 }
 
 void keyCallback(GLFWwindow* window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mode) {

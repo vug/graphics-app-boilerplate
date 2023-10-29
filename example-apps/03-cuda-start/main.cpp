@@ -154,7 +154,6 @@ void main () {
   uint32_t vao;
   glGenVertexArrays(1, &vao);
 
-  int timeStep = 0;
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
     
@@ -166,19 +165,25 @@ void main () {
     }
 
     ImGui::Begin("Main");
-    static bool shouldShowImGuiDemo = false;
-    ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
-    if (shouldShowImGuiDemo)
-      ImGui::ShowDemoWindow();
+    ImGui::Text("Frame No: %6d, Frame Dur: %.2f, FPS: %.1f", workshop.getFrameNo(), workshop.getFrameDurationMs(), workshop.getFrameRate());
+    ImGui::Separator();
+    static int maxIter = 100;
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
+    ImGui::SliderInt("Max Iteration", &maxIter, 1, 200);
     ImGui::Text("WinSize (%d, %d), TexSize (%d, %d)", winSize.x, winSize.y, tex.specs.width, tex.specs.height);
+    ImGui::Text("Num Pixels: %d, Max Op: %d", winSize.x * winSize.y, winSize.x * winSize.y * maxIter);
     static float x0 = -2.8f;
     static float y0 = -1.7f;
     static float h = 3.2f;
     ImGui::DragFloat("x0", &x0, 0.001f);
     ImGui::DragFloat("y0", &y0, 0.001f);
     ImGui::DragFloat("h", &h, 0.001f);
+    ImGui::Separator();
+    static bool shouldShowImGuiDemo = false;
+    ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
+    if (shouldShowImGuiDemo)
+      ImGui::ShowDemoWindow();
     ImGui::End();
 
     cudaGraphicsMapResources(1, &texCuda, 0);
@@ -191,7 +196,7 @@ void main () {
     cudaCreateSurfaceObject(&surface, &resDesc);
 
     //launchGenSurface(surface, winSize.x, winSize.y, timeStep++);
-    launchGenMandelbrot(surface, winSize.x, winSize.y, x0, y0, h, timeStep++);
+    launchGenMandelbrot(surface, winSize.x, winSize.y, x0, y0, h, maxIter, workshop.getFrameNo());
 
     cudaDestroySurfaceObject(surface);
     cudaGraphicsUnmapResources(1, &texCuda, 0);
