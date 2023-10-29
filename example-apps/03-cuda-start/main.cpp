@@ -171,6 +171,8 @@ void main () {
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::SliderInt("Max Iteration", &maxIter, 1, 200);
+    static bool useDouble = true;
+    ImGui::Checkbox("Use Double", &useDouble);
     ImGui::Text("WinSize (%d, %d), TexSize (%d, %d)", winSize.x, winSize.y, tex.specs.width, tex.specs.height);
     ImGui::Text("Num Pixels: %d, Max Op: %d", winSize.x * winSize.y, winSize.x * winSize.y * maxIter);
     static float x0 = -2.8f;
@@ -196,7 +198,7 @@ void main () {
     cudaCreateSurfaceObject(&surface, &resDesc);
 
     //launchGenSurface(surface, winSize.x, winSize.y, timeStep++);
-    launchGenMandelbrot(surface, winSize.x, winSize.y, x0, y0, h, maxIter, workshop.getFrameNo());
+    launchGenMandelbrot(surface, winSize.x, winSize.y, x0, y0, h, maxIter, useDouble, workshop.getFrameNo());
 
     cudaDestroySurfaceObject(surface);
     cudaGraphicsUnmapResources(1, &texCuda, 0);
