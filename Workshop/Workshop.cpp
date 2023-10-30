@@ -42,6 +42,8 @@ Workshop::Workshop(int width, int height, const std::string& name) {
   glfwMakeContextCurrent(window);
   glfwSetWindowUserPointer(window, this);
   glfwSetKeyCallback(window, keyCallback);
+  glfwSetMouseButtonCallback(window, mouseButtonCallback);
+  glfwSetCursorPosCallback(window, mousePositionCallback);
   glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
   const int version = gladLoadGL(glfwGetProcAddress);

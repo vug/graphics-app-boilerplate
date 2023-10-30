@@ -18,6 +18,7 @@ add_library(${TARGET} STATIC
   includes/Workshop/Transform.hpp Transform.cpp
   includes/Workshop/Camera.hpp Camera.cpp
   includes/Workshop/Lights.hpp Lights.cpp
+  includes/Workshop/Input.hpp Input.cpp
 )
 
 target_link_libraries(${TARGET} PUBLIC

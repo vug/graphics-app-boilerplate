@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Input.hpp"
+
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glm/vec2.hpp>
@@ -7,6 +9,7 @@
 #include <string>
 
 namespace ws {
+
 class Workshop {
  public:
   Workshop(int width, int height, const std::string& name);
@@ -20,6 +23,7 @@ class Workshop {
   uint32_t getFrameNo() const;
   float getFrameDurationMs() const;
   float getFrameRate() const;
+  ThreeButtonMouseState mouseState{};
 
  private:
   const char* glslVersion = "#version 460";
