@@ -24,7 +24,10 @@ ThreeButtonMouseState::ThreeButtonMouseState()
           {MouseButton::LEFT, MouseButtonState{}},
           {MouseButton::MIDDLE, MouseButtonState{}},
           {MouseButton::RIGHT, MouseButtonState{}},
-      }) {}
+      }),
+      left(at(MouseButton::LEFT)),
+      middle(at(MouseButton::MIDDLE)),
+      right(at(MouseButton::RIGHT)) {}
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, [[maybe_unused]] int mods) {
   // buttons: {GLFW_MOUSE_BUTTON_LEFT, GLFW_MOUSE_BUTTON_MIDDLE, GLFW_MOUSE_BUTTON_RIGHT}

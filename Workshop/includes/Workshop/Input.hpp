@@ -29,6 +29,10 @@ using MouseState = std::unordered_map<MouseButton, MouseButtonState>;
 class ThreeButtonMouseState : public MouseState {
  public:
   ThreeButtonMouseState();
+
+  MouseButtonState& left;
+  MouseButtonState& middle;
+  MouseButtonState& right;
 };
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
