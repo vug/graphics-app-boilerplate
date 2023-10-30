@@ -55,7 +55,7 @@ void launchGenSurface(cudaSurfaceObject_t surf, int width, int height, int timeS
   genSurface<<<blockSize, threadSize>>>(surf, width, height, timeStep);
 }
 
-__global__ void genMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHeight, float x0, float y0, float height, int maxIter, bool useDouble, int timeStep) {
+__global__ void genMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHeight, Model model, int maxIter, bool useDouble, int timeStep) {
   int texX = blockIdx.x * blockDim.x + threadIdx.x;
   int texY = blockIdx.y * blockDim.y + threadIdx.y;
   if (texX >= texWidth || texY >= texHeight)
@@ -63,9 +63,9 @@ __global__ void genMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHei
 
   double u = (double)texX / (double)texWidth - 0.5; // [0, 1)
   double v = (double)texY / (double)texHeight - 0.5; // [0, 1)
-  double width = height / texHeight * texWidth;
-  double x = x0 + u * width;
-  double y = y0 + v * height;
+  double width = model.height / texHeight * texWidth;
+  double x = model.topLeft.x + u * width;
+  double y = model.topLeft.y + v * model.height;
   bool bounded = true;
   int nSteps = 0; 
   if (useDouble) {
@@ -101,8 +101,8 @@ __global__ void genMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHei
   surf2Dwrite(pixel, surf, texX * sizeof(uchar4), texY);
 }
 
-void launchGenMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHeight, float x0, float y0, float height, int maxIter, bool useDouble, int timeStep) {
+void launchGenMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHeight, Model model, int maxIter, bool useDouble, int timeStep) {
   const auto threadSize = dim3(32, 32);
   const auto blockSize = dim3(texWidth / threadSize.x + 1, texHeight / threadSize.y + 1);
-  genMandelbrot<<<blockSize, threadSize>>>(surf, texWidth, texHeight, x0, y0, height, maxIter, useDouble, timeStep);
+  genMandelbrot<<<blockSize, threadSize>>>(surf, texWidth, texHeight, model, maxIter, useDouble, timeStep);
 }

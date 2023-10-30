@@ -97,11 +97,6 @@ void calcPixelsGlInterop(ws::Texture& tex, const glm::uvec2& ws) {
   cudaOnErrorPrintAndExit();
 }
 
-struct Model {
-  glm::vec2 topLeft{-0.4f, 0.f};
-  float height = 2.25f;
-};
-
 int main(int argc, char* argv[]) {
   std::cout << "Hi!\n";
   ws::Workshop workshop{800, 600, "Workshop App"};
@@ -237,7 +232,7 @@ void main () {
     cudaCreateSurfaceObject(&surface, &resDesc);
 
     //launchGenSurface(surface, winSize.x, winSize.y, timeStep++);
-    launchGenMandelbrot(surface, winSize.x, winSize.y, model.topLeft.x, model.topLeft.y, model.height, maxIter, useDouble, workshop.getFrameNo());
+    launchGenMandelbrot(surface, winSize.x, winSize.y, model, maxIter, useDouble, workshop.getFrameNo());
 
     cudaDestroySurfaceObject(surface);
     cudaGraphicsUnmapResources(1, &texCuda, 0);
