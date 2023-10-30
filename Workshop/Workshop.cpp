@@ -14,7 +14,6 @@
 
 namespace ws {
 
-static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
 static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 static inline const char* glMessageSourceToString(GLenum source);
 static inline const char* glMessageTypeToString(GLenum type);
@@ -142,11 +141,6 @@ float Workshop::getFrameDurationMs() const {
 
 float Workshop::getFrameRate() const {
   return frameRate;
-}
-
-void keyCallback(GLFWwindow* window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mode) {
-  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-    glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
 void framebufferSizeCallback([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] int width, [[maybe_unused]] int height) {

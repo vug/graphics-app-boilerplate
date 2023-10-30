@@ -69,4 +69,9 @@ void mousePositionCallback(GLFWwindow* window, double xpos, double ypos) {
   }
 }
 
+void keyCallback(GLFWwindow* window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mode) {
+  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    glfwSetWindowShouldClose(window, true);
+}
+
 }
