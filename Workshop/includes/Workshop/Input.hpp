@@ -21,6 +21,7 @@ struct MouseButtonState {
   };
 
   Status status = Status::RELEASED;
+  bool isDragging = false;
   glm::vec2 pressedPos{};
 };
 

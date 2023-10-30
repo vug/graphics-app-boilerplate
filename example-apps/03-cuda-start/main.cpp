@@ -20,6 +20,7 @@
 // #include <vivid/vivid.h>
 
 #include <iostream>
+#include <print>
 
 void cudaOnErrorPrintAndExit() {
   cudaError_t error = cudaGetLastError();
@@ -96,6 +97,12 @@ void calcPixelsGlInterop(ws::Texture& tex, const glm::uvec2& ws) {
   cudaOnErrorPrintAndExit();
 }
 
+struct Model {
+  float x0 = -0.4f;
+  float y0 = 0.f;
+  float h = 2.25f;
+};
+
 int main(int argc, char* argv[]) {
   std::cout << "Hi!\n";
   ws::Workshop workshop{800, 600, "Workshop App"};
@@ -154,6 +161,34 @@ void main () {
   uint32_t vao;
   glGenVertexArrays(1, &vao);
 
+  Model model{};
+  Model modelDragBegin{};
+
+  workshop.onMouseMove = [](const glm::vec2 pos) { 
+    //std::print("Cursor moved to ({}, {})\n", pos.x, pos.y); 
+  };
+  workshop.onMouseDragBegin = [&](const ws::MouseButton button, const glm::vec2& pos0, const glm::vec2& pos) {
+    if (button != ws::MouseButton::MIDDLE)
+      return;
+    modelDragBegin = model;
+    //std::print("DRAG_BEGIN button {} from ({}, {}) to ({}, {})\n", static_cast<int>(button), pos0.x, pos0.y, pos.x, pos.y);
+  };
+  workshop.onMouseDragging = [&](const ws::MouseButton button, const glm::vec2& pos0, const glm::vec2& pos) {
+    if (button != ws::MouseButton::MIDDLE)
+      return;
+    const glm::vec2 deltaPixels = pos - pos0;
+    const glm::vec2& winSize = workshop.getWindowSize();
+    const float distPerPixel = modelDragBegin.h / winSize.y;
+    model.x0 = modelDragBegin.x0 - distPerPixel * deltaPixels.x;
+    model.y0 = modelDragBegin.y0 + distPerPixel * deltaPixels.y;
+    //std::print("DRAGGING button {} from ({}, {}) to ({}, {}), delta ({}, {})\n", static_cast<int>(button), pos0.x, pos0.y, pos.x, pos.y, deltaPixels.x, deltaPixels.y);
+  };
+  workshop.onMouseDragEnd = [](const ws::MouseButton button, const glm::vec2& pos0, const glm::vec2& pos) {
+    if (button != ws::MouseButton::MIDDLE)
+      return;
+    //std::print("DRAG_END button {} from ({}, {}) to ({}, {})\n", static_cast<int>(button), pos0.x, pos0.y, pos.x, pos.y);
+  };
+
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
     
@@ -175,12 +210,9 @@ void main () {
     ImGui::Checkbox("Use Double", &useDouble);
     ImGui::Text("WinSize (%d, %d), TexSize (%d, %d)", winSize.x, winSize.y, tex.specs.width, tex.specs.height);
     ImGui::Text("Num Pixels: %d, Max Op: %d", winSize.x * winSize.y, winSize.x * winSize.y * maxIter);
-    static float x0 = -2.8f;
-    static float y0 = -1.7f;
-    static float h = 3.2f;
-    ImGui::DragFloat("x0", &x0, 0.001f);
-    ImGui::DragFloat("y0", &y0, 0.001f);
-    ImGui::DragFloat("h", &h, 0.001f);
+    ImGui::DragFloat("x0", &model.x0, 0.001f);
+    ImGui::DragFloat("y0", &model.y0, 0.001f);
+    ImGui::DragFloat("h", &model.h, 0.001f);
     ImGui::Separator();
     static bool shouldShowImGuiDemo = false;
     ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
@@ -198,7 +230,7 @@ void main () {
     cudaCreateSurfaceObject(&surface, &resDesc);
 
     //launchGenSurface(surface, winSize.x, winSize.y, timeStep++);
-    launchGenMandelbrot(surface, winSize.x, winSize.y, x0, y0, h, maxIter, useDouble, workshop.getFrameNo());
+    launchGenMandelbrot(surface, winSize.x, winSize.y, model.x0, model.y0, model.h, maxIter, useDouble, workshop.getFrameNo());
 
     cudaDestroySurfaceObject(surface);
     cudaGraphicsUnmapResources(1, &texCuda, 0);

@@ -15,7 +15,7 @@ MouseButton glfwToMouseButton(int button) {
       return MouseButton::RIGHT;
     default:
       assert(false);  // not implemented button
-      break;
+      throw;
   }
 }
 
@@ -42,18 +42,24 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, [[maybe_unu
   MouseButtonState& mouseButtonState = ws->mouseState[mouseButton];
 
   if (action == GLFW_PRESS) {
-    std::print("PRESSED button {}, action {}\n", button, action);
+    //std::print("PRESSED button {}, action {}\n", button, action);
     mouseButtonState.status = MouseButtonState::Status::PRESSED;
+    double x, y;
+    glfwGetCursorPos(window, &x, &y);
+    mouseButtonState.pressedPos = {x, y};
   } else if (action == GLFW_RELEASE) {
-    std::print("RELEASED button {}, action {}\n", button, action);
+    //std::print("RELEASED button {}, action {}\n", button, action);
     mouseButtonState.status = MouseButtonState::Status::RELEASED;
+    double x, y;
+    glfwGetCursorPos(window, &x, &y);
+    if (mouseButtonState.isDragging) {
+      if (ws->onMouseDragEnd.has_value())
+        ws->onMouseDragEnd.value()(mouseButton, mouseButtonState.pressedPos, glm::vec2{x, y});
+      mouseButtonState.isDragging = false;
+    }
   } else {
     assert(false);  // No other action according to GLFW manual
   }
-
-  double x, y;
-  glfwGetCursorPos(window, &x, &y);
-  mouseButtonState.pressedPos = {x, y};
 }
 
 void mousePositionCallback(GLFWwindow* window, double xpos, double ypos) {
@@ -64,9 +70,20 @@ void mousePositionCallback(GLFWwindow* window, double xpos, double ypos) {
 
   for (auto& [button, state] : ws->mouseState) {
     if (state.status == MouseButtonState::Status::PRESSED) {
-      std::print("DRAGGED button {} from ({}, {}) to ({}, {})\n", static_cast<int>(button), state.pressedPos.x, state.pressedPos.y, xpos, ypos);
+      if (state.isDragging) {
+        if (ws->onMouseDragging.has_value())
+          ws->onMouseDragging.value()(button, glm::vec2{state.pressedPos.x, state.pressedPos.y}, glm::vec2{xpos, ypos});      
+      } 
+      else {
+        if (ws->onMouseDragBegin.has_value())
+          ws->onMouseDragBegin.value()(button, glm::vec2{state.pressedPos.x, state.pressedPos.y}, glm::vec2{xpos, ypos});      
+        state.isDragging = true;
+      }
     }
   }
+
+  if (ws->onMouseMove.has_value())
+    ws->onMouseMove.value()({xpos, ypos});
 }
 
 void keyCallback(GLFWwindow* window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mode) {

@@ -6,6 +6,8 @@
 #include <GLFW/glfw3.h>
 #include <glm/vec2.hpp>
 
+#include <functional>
+#include <optional>
 #include <string>
 
 namespace ws {
@@ -24,6 +26,10 @@ class Workshop {
   float getFrameDurationMs() const;
   float getFrameRate() const;
   ThreeButtonMouseState mouseState{};
+  std::optional<std::function<void(const glm::vec2&)>> onMouseMove;
+  std::optional<std::function<void(const MouseButton button, const glm::vec2& pos0, const glm::vec2& pos)>> onMouseDragBegin;
+  std::optional<std::function<void(const MouseButton button, const glm::vec2& pos0, const glm::vec2& pos)>> onMouseDragging;
+  std::optional<std::function<void(const MouseButton button, const glm::vec2& pos0, const glm::vec2& pos)>> onMouseDragEnd;
 
  private:
   const char* glslVersion = "#version 460";
