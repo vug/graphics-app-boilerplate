@@ -162,24 +162,32 @@ void main () {
 
   Model model{};
   glm::vec2 topLeftDragBegin{};
+  float heightDragBegin{};
 
   workshop.onMouseMove = [](const glm::vec2 pos) { 
     //std::print("Cursor moved to ({}, {})\n", pos.x, pos.y); 
   };
   workshop.onMouseDragBegin = [&](const ws::MouseButton button, const glm::vec2& pos0, const glm::vec2& pos) {
-    if (button != ws::MouseButton::MIDDLE)
-      return;
-    topLeftDragBegin = model.topLeft;
+    if (button == ws::MouseButton::MIDDLE) {
+      topLeftDragBegin = model.topLeft;
+    } 
+    else if (button == ws::MouseButton::RIGHT) {
+      heightDragBegin = model.height;
+    }
     //std::print("DRAG_BEGIN button {} from ({}, {}) to ({}, {})\n", static_cast<int>(button), pos0.x, pos0.y, pos.x, pos.y);
   };
   workshop.onMouseDragging = [&](const ws::MouseButton button, const glm::vec2& pos0, const glm::vec2& pos) {
-    if (button != ws::MouseButton::MIDDLE)
-      return;
-    const glm::vec2 deltaPixels = pos - pos0;
-    const glm::vec2& winSize = workshop.getWindowSize();
-    const float distPerPixel = model.height / winSize.y;
-    model.topLeft.x = topLeftDragBegin.x - distPerPixel * deltaPixels.x;
-    model.topLeft.y = topLeftDragBegin.y + distPerPixel * deltaPixels.y;
+    if (button == ws::MouseButton::MIDDLE) {
+      const glm::vec2 deltaPixels = pos - pos0;
+      const glm::vec2& winSize = workshop.getWindowSize();
+      const float distPerPixel = model.height / winSize.y;
+      model.topLeft.x = topLeftDragBegin.x - distPerPixel * deltaPixels.x;
+      model.topLeft.y = topLeftDragBegin.y + distPerPixel * deltaPixels.y;    
+    }
+    else if (button == ws::MouseButton::RIGHT) {
+      const glm::vec2 deltaPixels = pos - pos0;
+      model.height = heightDragBegin * std::powf(2, deltaPixels.y / 50.0f);
+    }
     //std::print("DRAGGING button {} from ({}, {}) to ({}, {}), delta ({}, {})\n", static_cast<int>(button), pos0.x, pos0.y, pos.x, pos.y, deltaPixels.x, deltaPixels.y);
   };
   workshop.onMouseDragEnd = [](const ws::MouseButton button, const glm::vec2& pos0, const glm::vec2& pos) {
