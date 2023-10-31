@@ -10,9 +10,9 @@ enum FractalType : int {
 };
 
 struct Model {
-  glm::vec2 topLeft{-0.4f, 0.f};
+  glm::dvec2 topLeft{-0.4f, 0.f};
   float height = 2.25f;
-  glm::vec2 z0{0.f, 0.f};
+  glm::dvec2 z0{0.f, 0.f};
   int fractalType = Fractal_Mandelbrot; // Mandelbrot or Julia
 };
 

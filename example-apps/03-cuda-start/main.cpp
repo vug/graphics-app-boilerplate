@@ -156,9 +156,6 @@ void main () {
   glGenVertexArrays(1, &vao);
 
   Model model{};
-  glm::vec2 topLeftDragBegin{};
-  float heightDragBegin{};
-
   workshop.onMouseMove = [&](const glm::vec2 pos) {
     //std::print("Cursor moved to ({}, {})\n", pos.x, pos.y); 
     if (workshop.mouseState.left.status != ws::MouseButtonState::Status::PRESSED)
@@ -166,6 +163,9 @@ void main () {
     const glm::vec2& winSize = workshop.getWindowSize();
     model.z0  = pos / winSize * 3.f - 1.5f;
   };
+
+  glm::dvec2 topLeftDragBegin{};
+  double heightDragBegin{};
   workshop.onMouseDragBegin = [&](const ws::MouseButton button, const glm::vec2& pos0, const glm::vec2& pos) {
     if (button == ws::MouseButton::MIDDLE) {
       topLeftDragBegin = model.topLeft;
@@ -177,11 +177,12 @@ void main () {
   };
   workshop.onMouseDragging = [&](const ws::MouseButton button, const glm::vec2& pos0, const glm::vec2& pos) {
     if (button == ws::MouseButton::MIDDLE) {
-      const glm::vec2 deltaPixels = pos - pos0;
-      const glm::vec2& winSize = workshop.getWindowSize();
-      const float distPerPixel = model.height / winSize.y;
+      const glm::dvec2 deltaPixels = pos - pos0;
+      const glm::dvec2& winSize = workshop.getWindowSize();
+      const double distPerPixel = model.height / winSize.y;
       model.topLeft.x = topLeftDragBegin.x - distPerPixel * deltaPixels.x;
       model.topLeft.y = topLeftDragBegin.y + distPerPixel * deltaPixels.y;    
+      //std::println("(deltaPixels {}, {}), distPerPixel {}, dist ({}, {}), topLeft ({}, {})", deltaPixels.x, deltaPixels.y, distPerPixel, -distPerPixel * deltaPixels.x, distPerPixel * deltaPixels.y, model.topLeft.x, model.topLeft.y);
     }
     else if (button == ws::MouseButton::RIGHT) {
       const glm::vec2 deltaPixels = pos - pos0;
@@ -216,10 +217,12 @@ void main () {
     ImGui::Checkbox("Use Double", &useDouble);
     ImGui::Text("WinSize (%d, %d), TexSize (%d, %d)", winSize.x, winSize.y, tex.specs.width, tex.specs.height);
     ImGui::Text("Num Pixels: %d, Max Op: %d", winSize.x * winSize.y, winSize.x * winSize.y * maxIter);
-    ImGui::DragFloat2("topLeft", glm::value_ptr(model.topLeft), 0.0001f, -3.f, 3.f, "%.5f");
-    ImGui::DragFloat("height", &model.height, 0.001f);
+    ImGui::InputDouble("left (x0)", &model.topLeft.x, 0.0001, 0.0, "%.18f");
+    ImGui::InputDouble("top (y0)", &model.topLeft.y, 0.0001, 0.0, "%.18f");
+    ImGui::DragFloat("height", &model.height, 0.001f, 0, 10, "%.18f");
     ImGui::Combo("Fractal", &model.fractalType, "Mandelbrot\0Julia");
-    ImGui::DragFloat2("z0", glm::value_ptr(model.z0), 0.0001f, -3.f, 3.f, "%.5f");
+    ImGui::InputDouble("z0/c real", &model.z0.x, 0.0001, 0.0, "%.4f");
+    ImGui::InputDouble("z0/c imag", &model.z0.y, 0.0001, 0.0, "%.4f");
     ImGui::Separator();
     static bool shouldShowImGuiDemo = false;
     ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
