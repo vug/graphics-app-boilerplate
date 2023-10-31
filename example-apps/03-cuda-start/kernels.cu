@@ -67,12 +67,13 @@ __global__ void genMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHei
   double x = model.topLeft.x + u * width;
   double y = model.topLeft.y + v * model.height;
   bool bounded = true;
-  int nSteps = 0; 
+  int nSteps = 0;
   if (useDouble) {
-    cuDoubleComplex c = make_cuDoubleComplex(x, y);
-    cuDoubleComplex z = make_cuDoubleComplex(0, 0);
+    cuDoubleComplex z0 = make_cuDoubleComplex(model.z0.x, model.z0.y);
+    cuDoubleComplex coord = make_cuDoubleComplex(x, y);
+    cuDoubleComplex z = model.fractalType == Fractal_Mandelbrot ? z0 : coord;
     for (int i = 0; i < maxIter; i++) {
-      z = cuCadd(cuCmul(z, z), c);
+      z = model.fractalType == Fractal_Mandelbrot ? cuCadd(cuCmul(z, z), coord) : cuCadd(cuCmul(z, z), z0);
       ++nSteps;
       if (cuCabs(z) > 2.) {
         bounded = false;
@@ -80,16 +81,17 @@ __global__ void genMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHei
       }
     }
   } else {
-    cuFloatComplex c = make_cuFloatComplex(x, y);
-    cuFloatComplex z = make_cuFloatComplex(0, 0);
+    cuFloatComplex z0 = make_cuFloatComplex(model.z0.x, model.z0.y);
+    cuFloatComplex coord = make_cuFloatComplex(x, y);
+    cuFloatComplex z = model.fractalType == Fractal_Mandelbrot ? z0 : coord;
     for (int i = 0; i < maxIter; i++) {
-      z = cuCaddf(cuCmulf(z, z), c);
+      z = model.fractalType == Fractal_Mandelbrot ? cuCaddf(cuCmulf(z, z), coord) : cuCaddf(cuCmulf(z, z), z0);
       ++nSteps;
       if (cuCabsf(z) > 2.) {
         bounded = false;
         break;
       }
-    }  
+    }
   }
 
   unsigned char val = bounded ? 0 : 255 * (maxIter - nSteps) / maxIter;

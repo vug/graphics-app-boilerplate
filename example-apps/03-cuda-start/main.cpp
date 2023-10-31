@@ -159,8 +159,12 @@ void main () {
   glm::vec2 topLeftDragBegin{};
   float heightDragBegin{};
 
-  workshop.onMouseMove = [](const glm::vec2 pos) { 
+  workshop.onMouseMove = [&](const glm::vec2 pos) {
     //std::print("Cursor moved to ({}, {})\n", pos.x, pos.y); 
+    if (workshop.mouseState.left.status != ws::MouseButtonState::Status::PRESSED)
+      return;
+    const glm::vec2& winSize = workshop.getWindowSize();
+    model.z0  = pos / winSize * 3.f - 1.5f;
   };
   workshop.onMouseDragBegin = [&](const ws::MouseButton button, const glm::vec2& pos0, const glm::vec2& pos) {
     if (button == ws::MouseButton::MIDDLE) {
@@ -212,9 +216,10 @@ void main () {
     ImGui::Checkbox("Use Double", &useDouble);
     ImGui::Text("WinSize (%d, %d), TexSize (%d, %d)", winSize.x, winSize.y, tex.specs.width, tex.specs.height);
     ImGui::Text("Num Pixels: %d, Max Op: %d", winSize.x * winSize.y, winSize.x * winSize.y * maxIter);
-    ImGui::DragFloat("x0", &model.topLeft.x, 0.001f);
-    ImGui::DragFloat("y0", &model.topLeft.y, 0.001f);
-    ImGui::DragFloat("h", &model.height, 0.001f);
+    ImGui::DragFloat2("topLeft", glm::value_ptr(model.topLeft), 0.0001f, -3.f, 3.f, "%.5f");
+    ImGui::DragFloat("height", &model.height, 0.001f);
+    ImGui::Combo("Fractal", &model.fractalType, "Mandelbrot\0Julia");
+    ImGui::DragFloat2("z0", glm::value_ptr(model.z0), 0.0001f, -3.f, 3.f, "%.5f");
     ImGui::Separator();
     static bool shouldShowImGuiDemo = false;
     ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
