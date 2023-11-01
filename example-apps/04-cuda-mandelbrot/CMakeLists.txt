@@ -1,13 +1,14 @@
-set(TARGET CudaStart)
+set(TARGET Mandelbrot)
 
 if(TRUE)
 message("Method1: Make a static library out of CU files and link them. dir1 ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}")
-add_library(VectorAdd STATIC kernels.cu kernels.h)
+add_library(CudaLib STATIC kernels.cu kernels.h)
 # We need to explicitly state that we need all CUDA files in the 
 # to be built with -dc as the member functions 
 # could be called by other libraries and executables
-set_target_properties(VectorAdd PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-target_include_directories(VectorAdd INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+set_target_properties(CudaLib PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_include_directories(CudaLib INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+target_link_libraries(CudaLib PRIVATE glm) # for #include <glm/vec2.hpp> in kernels.h
 
 add_executable(${TARGET}
   main.cpp
@@ -15,7 +16,7 @@ add_executable(${TARGET}
 )
 set_target_properties(${TARGET} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 target_link_libraries(${TARGET} PRIVATE 
-  VectorAdd
+  CudaLib
   Workshop
 )
 else()
