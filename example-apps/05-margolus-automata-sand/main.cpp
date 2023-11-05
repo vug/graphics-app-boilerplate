@@ -172,10 +172,33 @@ void gridApplyRulesToGrid(Grid& grid) {
   gridResetBoundaries(grid);
 }
 
+class RulesDebugger {
+ public:
+  Grid g;
+
+  RulesDebugger() {
+    g.size = {32, 2};
+    g.size2 = {32, 2};
+    resetData();
+  }
+
+  void applyRules() {
+    for (int j = 0; j < 32; j += 2)
+      gridApplyRulesToBlock(g, 0, j);
+  }
+
+  void resetData() {
+    g.data = {
+      0, 0,   0, 0,   0, 0,   0, 0,   0, 1,   0, 1,   0, 1,   0, 1,   1, 0,   1, 0,   1, 0,   1, 0,   1, 1,   1, 1,   1, 1,   1, 1,
+      0, 0,   0, 1,   1, 0,   1, 1,   0, 0,   0, 1,   1, 0,   1, 1,   0, 0,   0, 1,   1, 0,   1, 1,   0, 0,   0, 1,   1, 0,   1, 1,
+    };
+  }
+};
+
 
 int main(int argc, char* argv[]) {
   std::cout << "Hi!\n";
-  ws::Workshop workshop{1200, 600, "Sand 'Simulation' via Margolus Neighborhood Automata"};
+  ws::Workshop workshop{3200, 200, "Sand 'Simulation' via Margolus Neighborhood Automata"};
 
   const char *vertexShader = R"(
 #version 460
@@ -217,12 +240,18 @@ void main () {
 }
   )";
   ws::Shader shader{vertexShader, fragmentShader};
-  Grid grid = gridCreate(400, 200); // 60 FPS. (Probably would have been faster if not G-Sync)
+  RulesDebugger rulesDebugger{};
+  
+  Grid simGrid = gridCreate(400, 200); // 60 FPS. (Probably would have been faster if not G-Sync)
   const int nRnd = 40000;
   //Grid grid = gridCreate(2400, 1200); // 30 FPS
   //const int nRnd = 1'440'000;
-  gridResetBoundaries(grid);
-  gridAddRandomCells(grid, nRnd);
+  gridResetBoundaries(simGrid);
+  gridAddRandomCells(simGrid, nRnd);
+
+  //Grid& grid = rulesDebugger.g;
+  Grid& grid = simGrid;  
+
   glm::uvec2 winSize = workshop.getWindowSize();
   double aspectRatio = static_cast<double>(winSize.x) / winSize.y;
 
@@ -234,19 +263,6 @@ void main () {
 
   auto desc = ws::Texture::Specs{extend.x, extend.y, ws::Texture::Format::RGBA8, ws::Texture::Filter::Nearest};
   ws::Texture tex{desc};
-
-  //// Calculate the grid
-  //for (uint32_t i = 0; i < gridSize.y; ++i) {
-  //  for (uint32_t j = 0; j < gridSize.x; ++j) {
-  //    // Red: 0xFF0000FF, Green: 0xFF00FF00, Blue: 0xFFFF0000
-  //    uint32_t color = 0xFFFFFFFF;
-  //    if ((i/2 + j/2) % 2 == 0)
-  //      color = 0xFFFFFF00; // teal
-  //    else
-  //      color = 0xFF00FFFF; // yellow
-  //    grid[i * gridSize.x + j] = color;
-  //  }
-  //}
 
   //struct cudaGraphicsResource* texCuda{};
   //cudaGraphicsGLRegisterImage(&texCuda, tex.getId(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
@@ -274,6 +290,12 @@ void main () {
       gridClear(grid);
       gridAddRandomCells(grid, nRnd);
     }
+    if (ImGui::Button("RulesDebugger - Reset")) {
+      rulesDebugger.resetData();
+    }
+    if (ImGui::Button("RulesDebugger - Step")) {
+      rulesDebugger.applyRules();
+    }
     ImGui::Separator();
     static bool shouldShowImGuiDemo = false;
     ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
@@ -283,12 +305,14 @@ void main () {
 
     if (workshop.getFrameNo() % 1 == 0)
       gridApplyRulesToGrid(grid);
+    if (workshop.getFrameNo() % 100 == 50)
+      rulesDebugger.applyRules();
 
   // Copy part of it into texture
     for (uint32_t i = 0; i < extend.y; ++i) {
       for (uint32_t j = 0; j < extend.x; ++j) {
         //uint32_t gix = (i + offset.y) * grid.size2.x + (j + offset.x);
-        uint32_t gix = ((extend.y - 1 - i) + offset.y) * grid.size2.x + (j + offset.x);
+        uint32_t gix = ((extend.y - 1 - i) + offset.y) * grid.size2.x + (j + offset.x); // upside-down
         uint32_t pix = i * extend.x + j;
         pixels[pix] = grid.data[gix] * 0xFF00FFFF;
       }
