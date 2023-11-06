@@ -13,15 +13,17 @@
 #include <imgui.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vec3.hpp>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image_write.h>
 
 // #include <implot.h>
-// #include <stb_image.h>
 // #include <tiny_obj_loader.h>
 // #include <vivid/vivid.h>
 
 #include <iostream>
 #include <print>
 #include <random>
+#include <ranges>
 
 void cudaOnErrorPrintAndExit() {
   cudaError_t error = cudaGetLastError();
@@ -147,6 +149,7 @@ uint32_t gridApplyRulesToCase(uint32_t oldCase) {
       return 0b1111;
     default:
       assert(false); // no such case should happen
+      throw;
   }
 }
 
@@ -185,6 +188,7 @@ class RulesDebugger {
   void applyRules() {
     for (int j = 0; j < 32; j += 2)
       gridApplyRulesToBlock(g, 0, j);
+    ++stateNo;
   }
 
   void resetData() {
@@ -193,6 +197,26 @@ class RulesDebugger {
       0, 0,   0, 1,   1, 0,   1, 1,   0, 0,   0, 1,   1, 0,   1, 1,   0, 0,   0, 1,   1, 0,   1, 1,   0, 0,   0, 1,   1, 0,   1, 1,
     };
   }
+
+  void saveStateToImage() {
+    const std::string filename = std::format("state-{:02d}.png", stateNo);
+    const auto img = g.data 
+      | std::views::transform([](int32_t x) -> uint8_t { return x * 255; }) 
+      | std::ranges::to<std::vector>();
+    stbi_write_png(filename.c_str(), g.size.x, g.size.y, 1, img.data(), sizeof(uint8_t) * g.size.x);
+  }
+
+  void saveSuccessiveStatesToImages(int numStates) {
+    resetData();
+    for (int i = 0; i < numStates; ++i) {
+      saveStateToImage();
+      applyRules();
+    }
+  }
+
+private:
+  uint32_t stateNo = 0;
+
 };
 
 
@@ -242,15 +266,12 @@ void main () {
   ws::Shader shader{vertexShader, fragmentShader};
   RulesDebugger rulesDebugger{};
   
-  Grid simGrid = gridCreate(400, 200); // 60 FPS. (Probably would have been faster if not G-Sync)
+  Grid grid = gridCreate(400, 200); // 60 FPS. (Probably would have been faster if not G-Sync)
   const int nRnd = 40000;
   //Grid grid = gridCreate(2400, 1200); // 30 FPS
   //const int nRnd = 1'440'000;
-  gridResetBoundaries(simGrid);
-  gridAddRandomCells(simGrid, nRnd);
-
-  //Grid& grid = rulesDebugger.g;
-  Grid& grid = simGrid;  
+  gridResetBoundaries(grid);
+  gridAddRandomCells(grid, nRnd);
 
   glm::uvec2 winSize = workshop.getWindowSize();
   double aspectRatio = static_cast<double>(winSize.x) / winSize.y;
@@ -290,12 +311,8 @@ void main () {
       gridClear(grid);
       gridAddRandomCells(grid, nRnd);
     }
-    if (ImGui::Button("RulesDebugger - Reset")) {
-      rulesDebugger.resetData();
-    }
-    if (ImGui::Button("RulesDebugger - Step")) {
-      rulesDebugger.applyRules();
-    }
+    if (ImGui::Button("RulesDebugger - Save 2 States"))
+      rulesDebugger.saveSuccessiveStatesToImages(2);
     ImGui::Separator();
     static bool shouldShowImGuiDemo = false;
     ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
@@ -305,8 +322,6 @@ void main () {
 
     if (workshop.getFrameNo() % 1 == 0)
       gridApplyRulesToGrid(grid);
-    if (workshop.getFrameNo() % 100 == 50)
-      rulesDebugger.applyRules();
 
   // Copy part of it into texture
     for (uint32_t i = 0; i < extend.y; ++i) {
