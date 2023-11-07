@@ -25,6 +25,8 @@ class Workshop {
   uint32_t getFrameNo() const;
   float getFrameDurationMs() const;
   float getFrameRate() const;
+  bool getVSync() const;
+  void setVSync(bool shouldVSync);
   ThreeButtonMouseState mouseState{};
   std::optional<std::function<void(const glm::vec2&)>> onMouseMove;
   std::optional<std::function<void(const MouseButton button, const glm::vec2& pos0, const glm::vec2& pos)>> onMouseDragBegin;
@@ -38,6 +40,7 @@ class Workshop {
   bool shouldDebugOpenGL = true;
   bool shouldBreakAtOpenGLDebugCallback_ = true;
   bool useMSAA = false;
+  bool shouldVSync = true;
   GLFWwindow* window = nullptr;
   uint32_t frameNo = 0;
   float time = 0.f;

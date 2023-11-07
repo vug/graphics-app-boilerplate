@@ -303,6 +303,9 @@ void main () {
 
     ImGui::Begin("Main");
     ImGui::Text("Frame No: %6d, Frame Dur: %.2f, FPS: %.1f", workshop.getFrameNo(), workshop.getFrameDurationMs(), workshop.getFrameRate());
+    bool vSync = workshop.getVSync();
+    if (ImGui::Checkbox("VSync", &vSync))
+      workshop.setVSync(vSync);
     ImGui::Separator();
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));

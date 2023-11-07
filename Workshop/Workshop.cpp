@@ -40,6 +40,8 @@ Workshop::Workshop(int width, int height, const std::string& name) {
   }
   glfwMakeContextCurrent(window);
   glfwSetWindowUserPointer(window, this);
+  if (!shouldVSync)
+    glfwSwapInterval(0);
   glfwSetKeyCallback(window, keyCallback);
   glfwSetMouseButtonCallback(window, mouseButtonCallback);
   glfwSetCursorPosCallback(window, mousePositionCallback);
@@ -141,6 +143,15 @@ float Workshop::getFrameDurationMs() const {
 
 float Workshop::getFrameRate() const {
   return frameRate;
+}
+
+bool Workshop::getVSync() const {
+  return shouldVSync;
+}
+
+void Workshop::setVSync(bool shouldVSync) {
+  this->shouldVSync = shouldVSync;
+  glfwSwapInterval(shouldVSync ? 1 : 0);
 }
 
 void framebufferSizeCallback([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] int width, [[maybe_unused]] int height) {
