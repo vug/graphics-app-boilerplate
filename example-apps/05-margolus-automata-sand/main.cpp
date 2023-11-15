@@ -294,25 +294,22 @@ void main () {
 
   //Grid grid = gridCreate(2400, 1200); // 30 FPS
   launchGridClear(gridGpu);
-  cudaDeviceSynchronize();
   cudaOnErrorPrintAndExit();
 
   //gridResetBoundaries(grid);
   launchGridResetBoundaries(gridGpu);
-  cudaDeviceSynchronize();
   cudaOnErrorPrintAndExit();
 
   curandState* d_randState;
   cudaMalloc(&d_randState, sizeof(curandState) * gridGpu.size2.x * gridGpu.size2.y);
   launchSeedRandomization(d_randState, gridGpu);
-  cudaDeviceSynchronize();
   cudaOnErrorPrintAndExit();
 
   const int nRnd = 40000;
   //const int nRnd = 1'440'000;
   //gridAddRandomCells(grid, nRnd);
-  launchGridAddRandomCells(d_randState, gridGpu, 0.01f);
-  gridGpuDownload(gridGpu, grid);
+  launchGridAddRandomCells(d_randState, gridGpu, 0.05f);
+  cudaOnErrorPrintAndExit();
   
   glm::uvec2 winSize = workshop.getWindowSize();
   double aspectRatio = static_cast<double>(winSize.x) / winSize.y;
@@ -352,8 +349,11 @@ void main () {
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
     if (ImGui::Button("Regenerate")) {
-      gridClear(grid);
-      gridAddRandomCells(grid, nRnd);
+      //gridClear(grid);
+      //gridAddRandomCells(grid, nRnd);
+      launchGridClear(gridGpu);
+      launchGridAddRandomCells(d_randState, gridGpu, 0.05f);
+      launchGridResetBoundaries(gridGpu);
     }
     if (ImGui::Button("RulesDebugger - Save 2 States"))
       rulesDebugger.saveSuccessiveStatesToImages(2);
@@ -364,17 +364,31 @@ void main () {
       ImGui::ShowDemoWindow();
     ImGui::End();
 
-    if (workshop.getFrameNo() % 1 == 0)
-      // TODO: continue to move functionality to the GPU
-      gridApplyRulesToGrid(grid);
+    if (workshop.getFrameNo() % 1 == 0) {
+      //gridApplyRulesToGrid(grid);
+      launchGridApplyRulesToGrid(gridGpu);
+      cudaDeviceSynchronize();
+      cudaOnErrorPrintAndExit();
 
+      gridGpuDownload(gridGpu, grid);
+    }
+
+
+  // TODO: continue to move functionality to the GPU: use GL Interop
   // Copy part of it into texture
     for (uint32_t i = 0; i < extend.y; ++i) {
       for (uint32_t j = 0; j < extend.x; ++j) {
         //uint32_t gix = (i + offset.y) * grid.size2.x + (j + offset.x);
         uint32_t gix = ((extend.y - 1 - i) + offset.y) * grid.size2.x + (j + offset.x); // upside-down
         uint32_t pix = i * extend.x + j;
-        pixels[pix] = grid.data[gix] * 0xFF00FFFF;
+        uint32_t color = 0xFF000000;
+        if (grid.data[gix] == 1)
+          color = 0xFF00FFFF;
+        else if (grid.data[gix] == 2)
+          color = 0xFF0000FF;
+        else if (grid.data[gix] == 3)
+          color = 0xFFFF0000;
+        pixels[pix] = color;
       }
     }
     tex.loadPixels(pixels.data());
