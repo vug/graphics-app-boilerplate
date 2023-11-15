@@ -289,7 +289,7 @@ void main () {
   ws::Shader shader{vertexShader, fragmentShader};
   RulesDebugger rulesDebugger{};
   
-  Grid grid = gridCreate(400, 200); // 60 FPS. (Probably would have been faster if not G-Sync)
+  //Grid grid = gridCreate(400, 200); // 60 FPS. (Probably would have been faster if not G-Sync)
   GridGPU gridGpu = gridGpuCreate(400, 200);
 
   //Grid grid = gridCreate(2400, 1200); // 30 FPS
@@ -314,17 +314,18 @@ void main () {
   glm::uvec2 winSize = workshop.getWindowSize();
   double aspectRatio = static_cast<double>(winSize.x) / winSize.y;
 
-  uint32_t texHeight = grid.size2.y;
+  uint32_t texHeight = gridGpu.size2.y;
   uint32_t texWidth = texHeight * aspectRatio;
   glm::uvec2 offset{0, 0};
-  glm::uvec2 extend{std::min(texWidth, grid.size2.x - offset.x), std::min(texHeight, grid.size2.y - offset.x)};
+  glm::uvec2 extend{std::min(texWidth, gridGpu.size2.x - offset.x), std::min(texHeight, gridGpu.size2.y - offset.x)};
   std::vector<uint32_t> pixels(extend.x * extend.y);
 
   auto desc = ws::Texture::Specs{extend.x, extend.y, ws::Texture::Format::RGBA8, ws::Texture::Filter::Nearest};
   ws::Texture tex{desc};
 
-  //struct cudaGraphicsResource* texCuda{};
-  //cudaGraphicsGLRegisterImage(&texCuda, tex.getId(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
+  struct cudaGraphicsResource* texCuda{};
+  cudaGraphicsGLRegisterImage(&texCuda, tex.getId(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
+
   // VAO binding is needed in 4.6 was not needed in 3.1
   uint32_t vao;
   glGenVertexArrays(1, &vao);
@@ -370,12 +371,11 @@ void main () {
       cudaDeviceSynchronize();
       cudaOnErrorPrintAndExit();
 
-      gridGpuDownload(gridGpu, grid);
+      //gridGpuDownload(gridGpu, grid);
     }
 
-
-  // TODO: continue to move functionality to the GPU: use GL Interop
-  // Copy part of it into texture
+    // Copy part of it into texture
+    /*
     for (uint32_t i = 0; i < extend.y; ++i) {
       for (uint32_t j = 0; j < extend.x; ++j) {
         //uint32_t gix = (i + offset.y) * grid.size2.x + (j + offset.x);
@@ -392,20 +392,28 @@ void main () {
       }
     }
     tex.loadPixels(pixels.data());
+    */
 
-    //cudaGraphicsMapResources(1, &texCuda, 0);
-    //cudaArray_t array;
-    //cudaGraphicsSubResourceGetMappedArray(&array, texCuda, 0, 0);
-    //struct cudaResourceDesc resDesc{};
-    //resDesc.resType = cudaResourceTypeArray;
-    //resDesc.res.array.array = array;
-    //cudaSurfaceObject_t surface = 0;
-    //cudaCreateSurfaceObject(&surface, &resDesc);
+    cudaGraphicsMapResources(1, &texCuda, 0);
+    cudaArray_t texArray;
+    cudaGraphicsSubResourceGetMappedArray(&texArray, texCuda, 0, 0);
 
-    //launchGenSurface(surface, winSize.x, winSize.y, timeStep++);
+    struct cudaResourceDesc resDesc{};
+    resDesc.resType = cudaResourceTypeArray;
+    resDesc.res.array.array = texArray;
+    cudaSurfaceObject_t surface = 0;
+    cudaCreateSurfaceObject(&surface, &resDesc);
 
-    //cudaDestroySurfaceObject(surface);
-    //cudaGraphicsUnmapResources(1, &texCuda, 0);
+    // TODO: grid cells should be allocated via cudaMalloc3D.
+    // This might require updating the kernel logics
+    // Then copy subsection of cells into texArray
+    // Are there functions to query a cudaArray_t ? such as its dimensions...
+    launchGridCopyToTexture(gridGpu, surface);
+    cudaDeviceSynchronize();
+    cudaOnErrorPrintAndExit();
+
+    cudaDestroySurfaceObject(surface);
+    cudaGraphicsUnmapResources(1, &texCuda, 0);
 
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -424,7 +432,7 @@ void main () {
     workshop.endFrame();
   }
 
-  //cudaGraphicsUnregisterResource(texCuda);
+  cudaGraphicsUnregisterResource(texCuda);
 
   return 0;
 }
