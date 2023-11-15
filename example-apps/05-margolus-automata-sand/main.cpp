@@ -292,22 +292,28 @@ void main () {
   Grid grid = gridCreate(400, 200); // 60 FPS. (Probably would have been faster if not G-Sync)
   GridGPU gridGpu = gridGpuCreate(400, 200);
 
-  const int nRnd = 40000;
   //Grid grid = gridCreate(2400, 1200); // 30 FPS
-  //const int nRnd = 1'440'000;
-
-  //gridResetBoundaries(grid);
   launchGridClear(gridGpu);
   cudaDeviceSynchronize();
   cudaOnErrorPrintAndExit();
+
+  //gridResetBoundaries(grid);
   launchGridResetBoundaries(gridGpu);
   cudaDeviceSynchronize();
   cudaOnErrorPrintAndExit();
+
+  curandState* d_randState;
+  cudaMalloc(&d_randState, sizeof(curandState) * gridGpu.size2.x * gridGpu.size2.y);
+  launchSeedRandomization(d_randState, gridGpu);
+  cudaDeviceSynchronize();
+  cudaOnErrorPrintAndExit();
+
+  const int nRnd = 40000;
+  //const int nRnd = 1'440'000;
+  //gridAddRandomCells(grid, nRnd);
+  launchGridAddRandomCells(d_randState, gridGpu, 0.01f);
   gridGpuDownload(gridGpu, grid);
-
-  // TODO: continue to move functionality to the GPU
-  gridAddRandomCells(grid, nRnd);
-
+  
   glm::uvec2 winSize = workshop.getWindowSize();
   double aspectRatio = static_cast<double>(winSize.x) / winSize.y;
 
@@ -359,6 +365,7 @@ void main () {
     ImGui::End();
 
     if (workshop.getFrameNo() % 1 == 0)
+      // TODO: continue to move functionality to the GPU
       gridApplyRulesToGrid(grid);
 
   // Copy part of it into texture

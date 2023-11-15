@@ -53,7 +53,45 @@ void launchGridResetBoundaries(GridGPU& g) {
   gridResetBoundaries<<<blockSize, threadSize>>>(g);
 }
 
-__global__ void setupKernel(curandState_t* state) {
-  int idx = threadIdx.x + blockDim.x * blockIdx.x;
-  curand_init(1234, idx, 0, &state[idx]);
+__global__ void seedRandomization(curandState_t* state, GridGPU g) {
+  const int x = blockIdx.x * blockDim.x + threadIdx.x;
+  const int y = blockIdx.y * blockDim.y + threadIdx.y;
+  const int ix = y * g.size2.x + x;
+  if (x >= g.size2.x || y >= g.size2.y)
+    return;
+
+  const int globalSeed = 1234;
+  const int localSequence = ix;
+  curand_init(globalSeed, localSequence, 0, &state[ix]);
+}
+
+void launchSeedRandomization(curandState_t* state, const GridGPU& g) {
+  const auto threadSize = dim3(32, 32);
+  const auto blockSize = dim3(g.size2.x / threadSize.x + 1, g.size2.y / threadSize.y + 1);
+  printf("Launching seedRandomization...");
+  seedRandomization<<<blockSize, threadSize>>>(state, g);
+}
+
+__global__ void gridAddRandomCells(curandState_t* state, GridGPU g, float rate) {
+  const int x = blockIdx.x * blockDim.x + threadIdx.x;
+  const int y = blockIdx.y * blockDim.y + threadIdx.y;
+  const int ix = y * g.size2.x + x;
+  if (x >= g.size2.x || y >= g.size2.y)
+    return;
+
+  float rndUniform = curand_uniform(state + ix);
+  //const int upper = 10;
+  //const int lower = 5;
+  //rndUniform *= (upper - lower + 0.999999);
+  //rndUniform += lower;
+  //int rnd = (int)truncf(rndUniform);
+
+  g.cells[ix] = rndUniform < rate ? 1 : 0;
+}
+
+void launchGridAddRandomCells(curandState_t* state, GridGPU g, float rate) {
+  const auto threadSize = dim3(32, 32);
+  const auto blockSize = dim3(g.size2.x / threadSize.x + 1, g.size2.y / threadSize.y + 1);
+  printf("Launching gridAddRandomCells...");
+  gridAddRandomCells<<<blockSize, threadSize>>>(state, g, rate);
 }

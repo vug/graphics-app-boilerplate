@@ -12,4 +12,5 @@ struct GridGPU {
 
 void launchGridClear(GridGPU& g);
 void launchGridResetBoundaries(GridGPU& g);
-__global__ void setupKernel(curandState_t* state);
+void launchSeedRandomization(curandState_t* state, const GridGPU& g);
+void launchGridAddRandomCells(curandState_t* state, GridGPU g, float rate);
