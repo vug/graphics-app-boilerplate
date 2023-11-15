@@ -10,9 +10,8 @@ add_library(${CUDALIB} STATIC kernels.cu kernels.h)
 set_target_properties(${CUDALIB} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 target_include_directories(${CUDALIB} INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 target_link_libraries(${CUDALIB} PRIVATE 
-  glm
   curand
-) # for #include <glm/vec2.hpp> in kernels.h
+)
 
 add_executable(${TARGET}
   main.cpp
