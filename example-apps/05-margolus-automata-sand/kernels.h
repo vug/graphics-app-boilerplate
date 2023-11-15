@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cuda_runtime.h"
+#include <curand_kernel.h>
 #include "device_launch_parameters.h"
 #include <glm/vec2.hpp>
 
@@ -14,7 +15,18 @@ struct Model {
   float height = 2.25f;
   glm::dvec2 z0{0.f, 0.f};
   int fractalType = Fractal_Mandelbrot; // Mandelbrot or Julia
+  int2 a;
 };
 
-__global__ void genMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHeight, Model model, int maxIter, bool useDouble, int timeStep);
+//__global__ void genMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHeight, Model model, int maxIter, bool useDouble, int timeStep);
 void launchGenMandelbrot(cudaSurfaceObject_t surf, int texWidth, int texHeight, Model model, int maxIter, bool useDouble, int timeStep);
+
+struct GridGPU {
+  uint32_t* cells;
+  uint2 size;
+  uint2 size2;
+};
+
+void launchGridClear(GridGPU& g);
+void launchGridResetBoundaries(GridGPU& g);
+__global__ void setupKernel(curandState_t* state);

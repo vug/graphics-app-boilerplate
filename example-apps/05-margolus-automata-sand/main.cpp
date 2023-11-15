@@ -48,6 +48,29 @@ Grid gridCreate(uint32_t nx, uint32_t ny) {
   return g;
 }
 
+GridGPU gridGpuCreate(uint32_t width, uint32_t height) {
+  GridGPU g{
+    .cells = {},
+    .size = {width, height},
+    .size2 = {width + 2, height + 2},
+  };
+  // TODO: use cudaMalloc3D
+  cudaMalloc(&g.cells, sizeof(uint32_t) * g.size2.x * g.size2.y);
+  return g;
+}
+
+void gridGpuUpload(const Grid& gCpuSrc, GridGPU& gGpuDst) {
+  assert(gGpuDst.cells != nullptr);
+  assert(gGpuDst.size.x == gCpuSrc.size.x && gGpuDst.size.y == gCpuSrc.size.y);
+  cudaMemcpy(gGpuDst.cells, gCpuSrc.data.data(), sizeof(uint32_t) * gCpuSrc.size2.x * gCpuSrc.size2.y, cudaMemcpyDefault);
+}
+
+void gridGpuDownload(const GridGPU& gGpuSrc, Grid& gCpuDst) {
+  assert(gGpuSrc.cells != nullptr);
+  assert(gGpuSrc.size.x == gCpuDst.size.x && gGpuSrc.size.y == gCpuDst.size.y);
+  cudaMemcpy(gCpuDst.data.data(), gGpuSrc.cells, sizeof(uint32_t) * gCpuDst.size2.x * gCpuDst.size2.y, cudaMemcpyDefault);
+}
+
 void gridResetBoundaries(Grid& grid) {
   // Side walls: By trial and error discovered that this "dashed" pattern acts like a wall
   // ` = 1` results in creation of particles because boundaries are reset after iterations
@@ -222,7 +245,7 @@ private:
 
 int main(int argc, char* argv[]) {
   std::cout << "Hi!\n";
-  ws::Workshop workshop{3200, 200, "Sand 'Simulation' via Margolus Neighborhood Automata"};
+  ws::Workshop workshop{1200, 600, "Sand 'Simulation' via Margolus Neighborhood Automata"};
 
   const char *vertexShader = R"(
 #version 460
@@ -267,10 +290,22 @@ void main () {
   RulesDebugger rulesDebugger{};
   
   Grid grid = gridCreate(400, 200); // 60 FPS. (Probably would have been faster if not G-Sync)
+  GridGPU gridGpu = gridGpuCreate(400, 200);
+
   const int nRnd = 40000;
   //Grid grid = gridCreate(2400, 1200); // 30 FPS
   //const int nRnd = 1'440'000;
-  gridResetBoundaries(grid);
+
+  //gridResetBoundaries(grid);
+  launchGridClear(gridGpu);
+  cudaDeviceSynchronize();
+  cudaOnErrorPrintAndExit();
+  launchGridResetBoundaries(gridGpu);
+  cudaDeviceSynchronize();
+  cudaOnErrorPrintAndExit();
+  gridGpuDownload(gridGpu, grid);
+
+  // TODO: continue to move functionality to the GPU
   gridAddRandomCells(grid, nRnd);
 
   glm::uvec2 winSize = workshop.getWindowSize();
