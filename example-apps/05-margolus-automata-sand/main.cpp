@@ -314,11 +314,11 @@ void main () {
   glm::uvec2 winSize = workshop.getWindowSize();
   double aspectRatio = static_cast<double>(winSize.x) / winSize.y;
 
-  uint32_t texHeight = 80;
-  uint32_t texWidth = texHeight * aspectRatio;
-  std::vector<uint32_t> pixels(texWidth * texHeight);
+  uint32_t texInitHeight = 80;
+  uint32_t texInitWidth = texInitHeight * aspectRatio;
+  std::vector<uint32_t> pixels(texInitWidth * texInitHeight);
 
-  auto desc = ws::Texture::Specs{texWidth, texHeight, ws::Texture::Format::RGBA8, ws::Texture::Filter::Nearest};
+  auto desc = ws::Texture::Specs{texInitWidth, texInitHeight, ws::Texture::Format::RGBA8, ws::Texture::Filter::Nearest};
   ws::Texture tex{desc};
 
   struct cudaGraphicsResource* texCuda{};
@@ -359,18 +359,26 @@ void main () {
 
     static int32_t offsetX = 20;
     static int32_t offsetY = 60;
-    ImGui::DragInt("offsetX", &offsetX, 1, 0, gridGpu.size2.x - texWidth);
-    ImGui::DragInt("offsetY", &offsetY, 1, 0, gridGpu.size2.y - texHeight);
-    assert(texWidth + offsetX <= gridGpu.size2.x);
-    assert(texHeight + offsetY <= gridGpu.size2.y);
+    ImGui::DragInt("offsetX", &offsetX, 1, 0, gridGpu.size2.x - tex.specs.width);
+    ImGui::DragInt("offsetY", &offsetY, 1, 0, gridGpu.size2.y - tex.specs.height);
+    assert(tex.specs.width + offsetX <= gridGpu.size2.x);
+    assert(tex.specs.height + offsetY <= gridGpu.size2.y);
+    int32_t w = tex.specs.width;
+    int32_t h = tex.specs.height;
+    if (ImGui::DragInt("texWidth", &w, 1, 0, gridGpu.size2.x - offsetX) || ImGui::DragInt("texHeight", &h, 1, 0, gridGpu.size2.y - offsetY)) {
+      if (texCuda)
+        cudaGraphicsUnregisterResource(texCuda);
+      tex.resize(w, h);
+      cudaGraphicsGLRegisterImage(&texCuda, tex.getId(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
+    }
 
     ImDrawList* drawList = ImGui::GetWindowDrawList();
     const ImVec2 cursor = ImGui::GetCursorScreenPos();
     const float gridRectHeight = 200;
     const ImVec2 gridRectSize {(float)gridGpu.size2.x / gridGpu.size2.y * gridRectHeight, gridRectHeight};
-    const float texRectHeight = gridRectHeight / gridGpu.size2.y * texHeight;
-    const ImVec2 texRectSize{(float)texWidth / texHeight * texRectHeight, texRectHeight};
-    const ImVec2 texRectOffset{(float)offsetX * texWidth / gridGpu.size2.x, (float)offsetY * texHeight / gridGpu.size2.y};
+    const float texRectHeight = gridRectHeight / gridGpu.size2.y * tex.specs.height;
+    const ImVec2 texRectSize{(float)tex.specs.width / tex.specs.height * texRectHeight, texRectHeight};
+    const ImVec2 texRectOffset{(float)offsetX * tex.specs.width / gridGpu.size2.x, (float)offsetY * tex.specs.height / gridGpu.size2.y};
     drawList->AddRect(cursor, {cursor.x + gridRectSize.x, cursor.y + gridRectSize.y}, 0xFF00FFFF);
     drawList->AddRect({cursor.x + offsetX, cursor.y + offsetY}, {cursor.x + offsetX + texRectSize.x, cursor.y + offsetY + texRectSize.y}, 0xFFFFFFFF);
     ImGui::Dummy(gridRectSize);
@@ -424,7 +432,7 @@ void main () {
     // This might require updating the kernel logics
     // Then copy subsection of cells into texArray
     // Are there functions to query a cudaArray_t ? such as its dimensions...
-    launchGridCopyToTexture(gridGpu, surface, offsetX, offsetY, texWidth, texHeight);
+    launchGridCopyToTexture(gridGpu, surface, offsetX, offsetY, tex.specs.width, tex.specs.height);
     cudaDeviceSynchronize();
     cudaOnErrorPrintAndExit();
 
