@@ -290,7 +290,7 @@ void main () {
   RulesDebugger rulesDebugger{};
   
   //Grid grid = gridCreate(400, 200); // 60 FPS. (Probably would have been faster if not G-Sync)
-  GridGPU gridGpu = gridGpuCreate(400, 200);
+  GridGPU gridGpu = gridGpuCreate(8'192, 4'096);
 
   //Grid grid = gridCreate(2400, 1200); // 30 FPS
   launchGridClear(gridGpu);
@@ -331,13 +331,6 @@ void main () {
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
     
-    //winSize = workshop.getWindowSize();
-    //if (tex.specs.width != winSize.x || tex.specs.height != winSize.y) {
-    //  //if (texCuda) cudaGraphicsUnregisterResource(texCuda);
-    //  //tex.resize(winSize.x, winSize.y);
-    //  //cudaGraphicsGLRegisterImage(&texCuda, tex.getId(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
-    //}
-
     ImGui::Begin("Main");
     ImGui::Text("Frame No: %6d, Frame Dur: %.2f, FPS: %.1f", workshop.getFrameNo(), workshop.getFrameDurationMs(), workshop.getFrameRate());
     bool vSync = workshop.getVSync();
@@ -378,9 +371,9 @@ void main () {
     const ImVec2 gridRectSize {(float)gridGpu.size2.x / gridGpu.size2.y * gridRectHeight, gridRectHeight};
     const float texRectHeight = gridRectHeight / gridGpu.size2.y * tex.specs.height;
     const ImVec2 texRectSize{(float)tex.specs.width / tex.specs.height * texRectHeight, texRectHeight};
-    const ImVec2 texRectOffset{(float)offsetX * tex.specs.width / gridGpu.size2.x, (float)offsetY * tex.specs.height / gridGpu.size2.y};
+    const ImVec2 texRectOffset{(float)offsetX * gridRectSize.x / gridGpu.size2.x, (float)offsetY * gridRectSize.y / gridGpu.size2.y};
     drawList->AddRect(cursor, {cursor.x + gridRectSize.x, cursor.y + gridRectSize.y}, 0xFF00FFFF);
-    drawList->AddRect({cursor.x + offsetX, cursor.y + offsetY}, {cursor.x + offsetX + texRectSize.x, cursor.y + offsetY + texRectSize.y}, 0xFFFFFFFF);
+    drawList->AddRect({cursor.x + texRectOffset.x, cursor.y + texRectOffset.y}, {cursor.x + texRectOffset.x + texRectSize.x, cursor.y + texRectOffset.y + texRectSize.y}, 0xFFFFFFFF);
     ImGui::Dummy(gridRectSize);
     ImGui::Separator();
     static bool shouldShowImGuiDemo = false;
