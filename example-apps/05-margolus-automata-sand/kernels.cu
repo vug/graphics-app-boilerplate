@@ -205,12 +205,11 @@ void launchGridApplyRulesToGrid(GridGPU g) {
   gridResetBoundaries<<<blockSize, threadSize>>>(g);
 }
 
-__global__ void gridCopyToTexture(GridGPU g, cudaSurfaceObject_t surface) {
+__global__ void gridCopyToTexture(GridGPU g, cudaSurfaceObject_t surface, unsigned int offsetX, unsigned int offsetY, unsigned int texWidth, unsigned int texHeight) {
   const int x = blockIdx.x * blockDim.x + threadIdx.x;
   const int y = blockIdx.y * blockDim.y + threadIdx.y;
-  const int ix = y * g.size2.x + x;
-  if (x >= g.size2.x || y >= g.size2.y)
-  //if (x >= 10 || y >= 10)
+  const int ix = (offsetY + y) * g.size2.x + (offsetX + x);
+  if (x >= texWidth || y >= texHeight)
     return;
 
   const int texX = x;
@@ -219,11 +218,11 @@ __global__ void gridCopyToTexture(GridGPU g, cudaSurfaceObject_t surface) {
   if (g.cells[ix] == 1) {
     pixel = {255, 255, 0, 255};
   }
-  surf2Dwrite(pixel, surface, texX * sizeof(uchar4), g.size2.y - 1 - texY);
+  surf2Dwrite(pixel, surface, texX * sizeof(uchar4), texHeight - 1 - texY);
 }
 
-void launchGridCopyToTexture(GridGPU g, cudaSurfaceObject_t surface) {
+void launchGridCopyToTexture(GridGPU g, cudaSurfaceObject_t surface, unsigned int offsetX, unsigned int offsetY, unsigned int texWidth, unsigned int texHeight) {
   const auto threadSize = dim3(32, 32);
-  const auto blockSize = dim3(g.size2.x / threadSize.x + 1, g.size2.y / threadSize.y + 1);
-  gridCopyToTexture<<<blockSize, threadSize>>>(g, surface);
+  const auto blockSize = dim3(texWidth / threadSize.x + 1, texHeight / threadSize.y + 1);
+  gridCopyToTexture<<<blockSize, threadSize>>>(g, surface, offsetX, offsetY, texWidth, texHeight);
 }

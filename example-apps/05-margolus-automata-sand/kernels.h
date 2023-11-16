@@ -15,4 +15,4 @@ void launchGridResetBoundaries(GridGPU& g);
 void launchSeedRandomization(curandState_t* state, const GridGPU& g);
 void launchGridAddRandomCells(curandState_t* state, GridGPU g, float rate);
 void launchGridApplyRulesToGrid(GridGPU g);
-void launchGridCopyToTexture(GridGPU g, cudaSurfaceObject_t surface);
+void launchGridCopyToTexture(GridGPU g, cudaSurfaceObject_t surface, unsigned int offsetX, unsigned int offsetY, unsigned int texWidth, unsigned int texHeight);
