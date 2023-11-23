@@ -48,6 +48,10 @@ void main () { outColor = vec4 (fragColor, 1.0); }
   )";
   ws::Shader shader{vertexShader, fragmentShader};
 
+  // VAO binding is needed in 4.6 was not needed in 3.1
+  uint32_t vao;
+  glGenVertexArrays(1, &vao);
+
   while (!workshop.shouldStop())
   {
     workshop.beginFrame();
@@ -62,9 +66,6 @@ void main () { outColor = vec4 (fragColor, 1.0); }
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::End();
 
-    // VAO binding is needed in 4.6 was not needed in 3.1
-    uint32_t vao;
-    glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
