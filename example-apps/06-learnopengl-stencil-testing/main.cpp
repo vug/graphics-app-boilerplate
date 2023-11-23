@@ -1,4 +1,8 @@
+#include <Workshop/Assets.hpp>
+#include <Workshop/Camera.hpp>
+#include <Workshop/Model.hpp>
 #include <Workshop/Shader.hpp>
+#include <Workshop/Transform.hpp>
 #include <Workshop/Workshop.hpp>
 
 #include <glad/gl.h>
@@ -10,14 +14,48 @@
 
 #include <print>
 
+struct Renderable {
+  ws::Mesh mesh;
+  ws::Shader shader;
+  ws::Transform transform;
+  glm::vec4 color;
+};
+
 int main()
 {
   std::println("Hi!");
   ws::Workshop workshop{800, 600, "Workshop App"};
 
-  while (!workshop.shouldStop())
-  {
+  Renderable cube1{
+    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")},
+    .shader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"},
+    .transform{glm::vec3{-1, 1, -1}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
+    .color{0.9, 0.8, 0.1, 1.0},
+  };
+  Renderable cube2{
+    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")},
+    .shader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"},
+    .transform{glm::vec3{2, 1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
+    .color{0.9, 0.1, 0.8, 1.0},
+  };
+  Renderable quad{
+    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/plane.obj")},
+    .shader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"},
+    .transform{glm::vec3{0, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{5, 0, 5}},
+    .color{0.1, 0.9, 0.8, 1.0},
+  };
+  std::vector<std::reference_wrapper<Renderable>> renderables = {cube1, cube2, quad};
+
+  ws::PerspectiveCamera3D cam;
+  ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
+  orbitingCamController.radius = 13.8f;
+  orbitingCamController.theta = 0.355f;
+
+  glEnable(GL_DEPTH_TEST);
+
+  while (!workshop.shouldStop()) {
     workshop.beginFrame();
+    const glm::vec2 winSize = workshop.getWindowSize();
 
     ImGui::Begin("Main");
     static bool shouldShowImGuiDemo = false;
@@ -29,8 +67,27 @@ int main()
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::End();
 
+    orbitingCamController.update(0.01f);
+    cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
+
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    for (auto& objRef : renderables) {
+      const auto& obj = objRef.get();
+      obj.shader.bind();
+      obj.mesh.bind();
+
+      obj.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
+      obj.shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+      obj.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+      obj.shader.setVector4("u_Color", obj.color);
+
+      obj.mesh.draw();
+
+      obj.mesh.unbind();
+      obj.shader.unbind();
+    }
 
     workshop.endFrame();
   }
