@@ -14,4 +14,4 @@ target_link_libraries(${TARGET} PRIVATE
   Workshop
 )
 
-target_compile_features(${TARGET} PRIVATE cxx_std_20)
+target_compile_features(${TARGET} PRIVATE cxx_std_23)

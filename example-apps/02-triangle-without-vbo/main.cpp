@@ -13,11 +13,11 @@
 // #include <tiny_obj_loader.h>
 // #include <vivid/vivid.h>
 
-#include <iostream>
+#include <print>
 
 int main()
 {
-  std::cout << "Hi!\n";
+  std::println("Hi!");
   ws::Workshop workshop{800, 600, "Workshop App"};
 
   const char *vertexShader = R"(
@@ -77,5 +77,6 @@ void main () { outColor = vec4 (fragColor, 1.0); }
     workshop.endFrame();
   }
 
+  std::println("Bye!");
   return 0;
 }
