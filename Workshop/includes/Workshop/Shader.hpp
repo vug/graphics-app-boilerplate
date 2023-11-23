@@ -33,6 +33,7 @@ class Shader {
   void setFloat(const char* name, const float value) const;
   void setVector2(const char* name, const glm::vec2& value) const;
   void setVector3(const char* name, const glm::vec3& value) const;
+  void setVector4(const char* name, const glm::vec4& value) const;
   void setMatrix3(const char* name, const glm::mat3& value) const;
   void setMatrix4(const char* name, const glm::mat4& value) const;
   void blockBinding(const char* name, uint32_t binding) const;

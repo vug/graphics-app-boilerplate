@@ -235,6 +235,11 @@ void Shader::setVector3(const char* name, const glm::vec3& value) const {
   glUniform3fv(location, 1, glm::value_ptr(value));
 }
 
+void Shader::setVector4(const char* name, const glm::vec4& value) const {
+  const int location = glGetUniformLocation(id, name);
+  glUniform4fv(location, 1, glm::value_ptr(value));
+}
+
 void Shader::setMatrix3(const char* name, const glm::mat3& value) const {
   const int location = glGetUniformLocation(id, name);
   glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(value));
