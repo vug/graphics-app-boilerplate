@@ -18,6 +18,7 @@ add_subdirectory(example-apps/02-triangle-without-vbo)
 add_subdirectory(example-apps/03-cuda-start)
 add_subdirectory(example-apps/04-cuda-mandelbrot)
 add_subdirectory(example-apps/05-margolus-automata-sand)
+add_subdirectory(example-apps/06-learnopengl-stencil-testing)
 
 file(GLOB_RECURSE ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/assets/*)
 set(WORKSHOP_ASSETS ${ASSETS} PARENT_SCOPE)
