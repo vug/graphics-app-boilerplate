@@ -19,7 +19,7 @@ struct Renderable {
   ws::Mesh mesh;
   ws::Shader shader;
   ws::Transform transform;
-  glm::vec4 color;
+  glm::vec4 color{1, 1, 1, 1};
   ws::Texture texture;
 };
 
@@ -32,21 +32,21 @@ int main()
     .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")},
     .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
     .transform{glm::vec3{-1, 0.5, -1}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
-    .color{0.9, 0.8, 0.1, 1.0},
+    //.color{0.9, 0.8, 0.1, 1.0},
     .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/marble.jpg"},
   };
   Renderable cube2{
     .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")},
     .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
     .transform{glm::vec3{2, 0.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
-    .color{0.9, 0.1, 0.8, 1.0},
+    //.color{0.9, 0.1, 0.8, 1.0},
     .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/marble.jpg"},
   };
   Renderable quad{
-    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/plane.obj")},
+    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/quad.obj")},
     .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
     .transform{glm::vec3{0, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{10, 0, 10}},
-    .color{0.1, 0.9, 0.8, 1.0},
+    //.color{0.1, 0.9, 0.8, 1.0},
     .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/metal.png"},
   };
   std::vector<std::reference_wrapper<Renderable>> renderables = {cube1, cube2, quad};
