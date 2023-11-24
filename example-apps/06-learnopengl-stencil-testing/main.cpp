@@ -14,6 +14,7 @@
 #include <glm/vec3.hpp>
 
 #include <print>
+#include <ranges>
 
 struct Renderable {
   ws::Mesh mesh;
@@ -21,6 +22,7 @@ struct Renderable {
   ws::Transform transform;
   glm::vec4 color{1, 1, 1, 1};
   ws::Texture texture;
+  bool shouldHighlight{false};
 };
 
 int main()
@@ -28,12 +30,16 @@ int main()
   std::println("Hi!");
   ws::Workshop workshop{2048, 1536, "Workshop App"};
 
+
+  ws::Shader outlineShader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"};
+  glm::vec4 outlineColor{0.85, 0.65, 0.15, 1};
   Renderable cube1{
     .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")},
     .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
     .transform{glm::vec3{-1, 0.5, -1}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
     //.color{0.9, 0.8, 0.1, 1.0},
     .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/marble.jpg"},
+    .shouldHighlight{true},
   };
   Renderable cube2{
     .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")},
@@ -41,6 +47,7 @@ int main()
     .transform{glm::vec3{2, 0.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
     //.color{0.9, 0.1, 0.8, 1.0},
     .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/marble.jpg"},
+    .shouldHighlight{true},
   };
   Renderable quad{
     .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/quad.obj")},
@@ -49,7 +56,7 @@ int main()
     //.color{0.1, 0.9, 0.8, 1.0},
     .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/metal.png"},
   };
-  std::vector<std::reference_wrapper<Renderable>> renderables = {cube1, cube2, quad};
+  std::vector<std::reference_wrapper<Renderable>> renderables = {cube1, quad, cube2};
 
   ws::PerspectiveCamera3D cam;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
@@ -57,7 +64,9 @@ int main()
   orbitingCamController.theta = 0.355f;
 
   glEnable(GL_DEPTH_TEST);
-
+  glEnable(GL_STENCIL_TEST);
+  glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+  
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
     const glm::vec2 winSize = workshop.getWindowSize();
@@ -76,10 +85,14 @@ int main()
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
+    glStencilFunc(GL_ALWAYS, 1, 0xFF);
     for (auto& objRef : renderables) {
       const auto& obj = objRef.get();
+      glStencilMask(obj.shouldHighlight ? 0xFF : 0x00); // write into stencil buffer only for highlighted objects
+
       obj.shader.bind();
       obj.mesh.bind();
       obj.texture.bind();
@@ -95,6 +108,28 @@ int main()
       obj.mesh.unbind();
       obj.shader.unbind();
     }
+
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glStencilMask(0x00);
+    glDisable(GL_DEPTH_TEST);
+    for (auto& objRef : renderables | std::views::filter(&Renderable::shouldHighlight)) {
+      const auto& obj = objRef.get();
+      outlineShader.bind();
+      obj.mesh.bind();
+
+      glm::mat4 scaledUp = glm::scale(obj.transform.getWorldFromObjectMatrix(), glm::vec3{1.1, 1.1, 1.1});
+      outlineShader.setMatrix4("u_WorldFromObject", scaledUp);
+      outlineShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+      outlineShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+      outlineShader.setVector4("u_Color", outlineColor);
+
+      obj.mesh.draw();
+
+      obj.mesh.unbind();
+      outlineShader.unbind();
+    }
+    glStencilMask(0xFF);
+    glEnable(GL_DEPTH_TEST);
 
     workshop.endFrame();
   }

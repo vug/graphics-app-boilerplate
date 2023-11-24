@@ -32,6 +32,7 @@ Workshop::Workshop(int width, int height, const std::string& name) {
   if (useMSAA)
     glfwWindowHint(GLFW_SAMPLES, 8);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // default
+  glfwWindowHint(GLFW_STENCIL_BITS, 8);  // default
 
   window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
   if (!window) {
