@@ -54,6 +54,7 @@ class Texture {
   static void activateTexture(uint32_t no = 0);
 
   uint32_t getId() const { return id; }
+  bool isValid() const { return id != INVALID; }
   void bind() const;
   void unbind() const;
   // should already be bound
