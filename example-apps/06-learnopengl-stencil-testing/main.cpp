@@ -2,6 +2,7 @@
 #include <Workshop/Camera.hpp>
 #include <Workshop/Model.hpp>
 #include <Workshop/Shader.hpp>
+#include <Workshop/Texture.hpp>
 #include <Workshop/Transform.hpp>
 #include <Workshop/Workshop.hpp>
 
@@ -19,30 +20,34 @@ struct Renderable {
   ws::Shader shader;
   ws::Transform transform;
   glm::vec4 color;
+  ws::Texture texture;
 };
 
 int main()
 {
   std::println("Hi!");
-  ws::Workshop workshop{800, 600, "Workshop App"};
+  ws::Workshop workshop{2048, 1536, "Workshop App"};
 
   Renderable cube1{
     .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")},
-    .shader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"},
-    .transform{glm::vec3{-1, 1, -1}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
+    .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
+    .transform{glm::vec3{-1, 0.5, -1}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
     .color{0.9, 0.8, 0.1, 1.0},
+    .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/marble.jpg"},
   };
   Renderable cube2{
     .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")},
-    .shader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"},
-    .transform{glm::vec3{2, 1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
+    .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
+    .transform{glm::vec3{2, 0.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
     .color{0.9, 0.1, 0.8, 1.0},
+    .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/marble.jpg"},
   };
   Renderable quad{
     .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/plane.obj")},
-    .shader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"},
-    .transform{glm::vec3{0, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{5, 0, 5}},
+    .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
+    .transform{glm::vec3{0, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{10, 0, 10}},
     .color{0.1, 0.9, 0.8, 1.0},
+    .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/metal.png"},
   };
   std::vector<std::reference_wrapper<Renderable>> renderables = {cube1, cube2, quad};
 
@@ -77,6 +82,7 @@ int main()
       const auto& obj = objRef.get();
       obj.shader.bind();
       obj.mesh.bind();
+      obj.texture.bind();
 
       obj.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
       obj.shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
@@ -85,6 +91,7 @@ int main()
 
       obj.mesh.draw();
 
+      obj.texture.unbind();
       obj.mesh.unbind();
       obj.shader.unbind();
     }
