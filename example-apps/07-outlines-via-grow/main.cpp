@@ -1,5 +1,6 @@
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
+#include <Workshop/Framebuffer.hpp>
 #include <Workshop/Model.hpp>
 #include <Workshop/Shader.hpp>
 #include <Workshop/Texture.hpp>
@@ -63,11 +64,16 @@ int main()
   orbitingCamController.radius = 13.8f;
   orbitingCamController.theta = 0.355f;
 
+  ws::Framebuffer outlineA{};
+  ws::Framebuffer outlineB{};
+
   glEnable(GL_DEPTH_TEST);
   
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
-    const glm::vec2 winSize = workshop.getWindowSize();
+    const glm::uvec2 winSize = workshop.getWindowSize();
+    outlineA.resizeIfNeeded(winSize.x, winSize.y);
+    outlineB.resizeIfNeeded(winSize.x, winSize.y);
 
     ImGui::Begin("Main");
     static bool shouldShowImGuiDemo = false;
@@ -104,6 +110,9 @@ int main()
       obj.shader.unbind();
     }
 
+    outlineA.bind();
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
     for (auto& objRef : renderables | std::views::filter(&Renderable::shouldHighlight)) {
       const auto& obj = objRef.get();
@@ -121,6 +130,12 @@ int main()
       outlineShader.unbind();
     }
     glEnable(GL_DEPTH_TEST);
+    outlineA.unbind();
+
+    ImGui::Begin("Texture Viewer");
+    const auto& tex = outlineA.getFirstColorAttachment();
+    ImGui::Image((void*)(intptr_t)tex.getId(), ImVec2{tex.specs.width / 4.f, tex.specs.height / 4.f}, {0, 1}, {1, 0});
+    ImGui::End();
 
     workshop.endFrame();
   }
