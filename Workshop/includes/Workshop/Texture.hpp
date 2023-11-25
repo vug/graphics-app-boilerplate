@@ -17,8 +17,9 @@ class Texture {
     RGBA16f,
     RGB32f,
     RGBA32f,
-    Depth32,
+    Depth32f,
     Depth24Stencil8,
+    Depth32fStencil8,
   };
 
   enum class Filter {
@@ -49,6 +50,10 @@ class Texture {
   Texture();
   Texture(const Specs& specs);
   Texture(const std::filesystem::path& file);
+  Texture(const Texture& other) = delete;
+  Texture& operator=(const Texture& other) = delete;
+  Texture(Texture&& other) = default;
+  Texture& operator=(Texture&& other) = default;
   ~Texture();
 
   static void activateTexture(uint32_t no = 0);

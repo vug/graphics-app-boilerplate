@@ -20,10 +20,20 @@ Texture::GlSpecs Texture::getGlSpecs() const {
       gs.format = GL_RGBA;
       gs.type = GL_UNSIGNED_BYTE;
       break;
+    case Format::Depth32f:
+      gs.internalFormat = GL_DEPTH_COMPONENT32F;
+      gs.format = GL_DEPTH_COMPONENT;
+      gs.type = GL_FLOAT;
+      break;
     case Format::Depth24Stencil8:
       gs.internalFormat = GL_DEPTH24_STENCIL8;
       gs.format = GL_DEPTH_STENCIL;
       gs.type = GL_UNSIGNED_INT_24_8;
+      break;
+    case Format::Depth32fStencil8:
+      gs.internalFormat = GL_DEPTH32F_STENCIL8;
+      gs.format = GL_DEPTH_STENCIL;
+      gs.type = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
       break;
     case Format::R32f:
       gs.internalFormat = GL_R32F;

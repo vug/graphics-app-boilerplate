@@ -4,17 +4,24 @@
 
 #include <cassert>
 #include <cstdio>
+#include <ranges>
 
 namespace ws {
 Framebuffer::Framebuffer(uint32_t w, uint32_t h)
     : fbo([this]() { uint32_t id; glGenFramebuffers(1, &id); glBindFramebuffer(GL_FRAMEBUFFER, id); return id; }()),
       width(w),
       height(h),
-      texColor{{width, height, Texture::Format::RGB8, Texture::Filter::Nearest, Texture::Wrap::Repeat}},
-      texDepthStencil{{width, height, Texture::Format::Depth24Stencil8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}} {
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColor.getId(), 0);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texDepthStencil.getId(), 0);
+      depthStencilAttachment{{width, height, Texture::Format::Depth32fStencil8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}} {
+  // couldn't use initialize colorAttachments member without triggering Texture copy-constructor. list-initialization was especially hard
+  colorAttachments.emplace_back(Texture::Specs{width, height, Texture::Format::RGB8, Texture::Filter::Nearest, Texture::Wrap::Repeat});
 
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorAttachments[0].getId(), 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthStencilAttachment.getId(), 0);
+
+  assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
+  assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT);
+  assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT);
+  assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_UNSUPPORTED);
   assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 
   unbind();
@@ -35,8 +42,13 @@ void Framebuffer::unbind() const {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-Texture& Framebuffer::getColorAttachment() {
-  return texColor;
+std::vector<Texture>& Framebuffer::getColorAttachments() {
+  return colorAttachments;
+}
+
+Texture& Framebuffer::getFirstColorAttachment() {
+  assert(colorAttachments.size() >= 1);
+  return colorAttachments.front();
 }
 
 void Framebuffer::resizeIfNeeded(uint32_t w, uint32_t h) {
@@ -44,7 +56,9 @@ void Framebuffer::resizeIfNeeded(uint32_t w, uint32_t h) {
     return;
   width = w;
   height = h;
-  texColor.resize(width, height);
-  texDepthStencil.resize(width, height);
+  for (auto& colorAttachment : colorAttachments)
+    colorAttachment.resize(width, height);
+  if (depthStencilAttachment.isValid())
+    depthStencilAttachment.resize(width, height);
 }
 }  // namespace ws
