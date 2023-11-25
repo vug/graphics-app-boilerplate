@@ -32,10 +32,16 @@ int main()
   ws::Workshop workshop{2048, 1536, "Workshop App"};
 
 
-  ws::Shader outlineShader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"};
+  ws::Shader solidColorShader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"};
   glm::vec4 outlineColor{0.85, 0.65, 0.15, 1};
+
+  ws::Shader fullscreenShader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"};
+  uint32_t fullscreenVao;
+  glGenVertexArrays(1, &fullscreenVao);
+  ws::Shader outlineShader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_outline.frag"};
+
   Renderable cube1{
-    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")},
+    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj")},
     .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
     .transform{glm::vec3{-1, 0.5, -1}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
     //.color{0.9, 0.8, 0.1, 1.0},
@@ -68,6 +74,8 @@ int main()
   ws::Framebuffer outlineB{};
 
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // Needed for displaying textures with alpha < 1
   
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
@@ -88,9 +96,9 @@ int main()
     orbitingCamController.update(0.01f);
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
+    // Pass 1: Draw scene to screen
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     for (auto& objRef : renderables) {
       const auto& obj = objRef.get();
 
@@ -110,31 +118,68 @@ int main()
       obj.shader.unbind();
     }
 
+
+    // Pass 2: Draw highlighted objects with solid color offscreen
     outlineA.bind();
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
     for (auto& objRef : renderables | std::views::filter(&Renderable::shouldHighlight)) {
       const auto& obj = objRef.get();
-      outlineShader.bind();
+      solidColorShader.bind();
       obj.mesh.bind();
 
-      outlineShader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
-      outlineShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-      outlineShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      outlineShader.setVector4("u_Color", outlineColor);
+      solidColorShader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
+      solidColorShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+      solidColorShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+      solidColorShader.setVector4("u_Color", outlineColor);
 
       obj.mesh.draw();
 
       obj.mesh.unbind();
-      outlineShader.unbind();
+      solidColorShader.unbind();
     }
     glEnable(GL_DEPTH_TEST);
     outlineA.unbind();
 
+
+    // Pass 3: Out-grow highlight solid color area
+    outlineB.bind();
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+    outlineShader.bind();
+    glBindVertexArray(fullscreenVao);
+
+    outlineA.getFirstColorAttachment().bind();
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    outlineA.getFirstColorAttachment().unbind();
+
+    glBindVertexArray(0);
+    outlineShader.unbind();
+    glEnable(GL_DEPTH_TEST);
+    outlineB.unbind();
+
+
+    // Pass 4: Draw highlights as overlay to screen
+    glDisable(GL_DEPTH_TEST);
+    fullscreenShader.bind();
+    outlineB.getFirstColorAttachment().bind();
+
+    glBindVertexArray(fullscreenVao);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+
+    outlineB.getFirstColorAttachment().unbind();
+    fullscreenShader.unbind();
+    glEnable(GL_DEPTH_TEST);
+
+
     ImGui::Begin("Texture Viewer");
-    const auto& tex = outlineA.getFirstColorAttachment();
-    ImGui::Image((void*)(intptr_t)tex.getId(), ImVec2{tex.specs.width / 4.f, tex.specs.height / 4.f}, {0, 1}, {1, 0});
+    const auto& texA = outlineA.getFirstColorAttachment();
+    ImGui::Image((void*)(intptr_t)texA.getId(), ImVec2{texA.specs.width / 4.f, texA.specs.height / 4.f}, {0, 1}, {1, 0});
+    const auto& texB = outlineB.getFirstColorAttachment();
+    ImGui::Image((void*)(intptr_t)texB.getId(), ImVec2{texB.specs.width / 4.f, texB.specs.height / 4.f}, {0, 1}, {1, 0});
     ImGui::End();
 
     workshop.endFrame();

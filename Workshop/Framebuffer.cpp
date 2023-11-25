@@ -13,7 +13,7 @@ Framebuffer::Framebuffer(uint32_t w, uint32_t h)
       height(h),
       depthStencilAttachment{{width, height, Texture::Format::Depth32fStencil8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}} {
   // couldn't use initialize colorAttachments member without triggering Texture copy-constructor. list-initialization was especially hard
-  colorAttachments.emplace_back(Texture::Specs{width, height, Texture::Format::RGB8, Texture::Filter::Nearest, Texture::Wrap::Repeat});
+  colorAttachments.emplace_back(Texture::Specs{width, height, Texture::Format::RGBA8, Texture::Filter::Nearest, Texture::Wrap::Repeat});
 
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorAttachments[0].getId(), 0);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthStencilAttachment.getId(), 0);

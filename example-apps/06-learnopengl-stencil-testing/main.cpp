@@ -34,7 +34,7 @@ int main()
   ws::Shader outlineShader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"};
   glm::vec4 outlineColor{0.85, 0.65, 0.15, 1};
   Renderable cube1{
-    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")},
+    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj")},
     .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
     .transform{glm::vec3{-1, 0.5, -1}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
     //.color{0.9, 0.8, 0.1, 1.0},
