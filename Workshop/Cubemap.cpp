@@ -32,6 +32,10 @@ Cubemap::Cubemap(const path& right, const path& left, const path& top, const pat
   unbind();
 }
 
+Cubemap::~Cubemap() {
+  glDeleteTextures(1, &id);
+}
+
 void Cubemap::bind() const {
   glBindTexture(GL_TEXTURE_CUBE_MAP, id);
 }
