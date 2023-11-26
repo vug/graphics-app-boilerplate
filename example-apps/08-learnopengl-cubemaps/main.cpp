@@ -1,5 +1,6 @@
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
+#include <Workshop/Cubemap.hpp>
 #include <Workshop/Model.hpp>
 #include <Workshop/Shader.hpp>
 #include <Workshop/Workshop.hpp>
@@ -11,8 +12,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vec3.hpp>
 
-#include <stb_image.h>
-
 #include <print>
 
 int main()
@@ -20,29 +19,8 @@ int main()
   std::println("Hi!");
   ws::Workshop workshop{800, 600, "Workshop App"};
 
-  unsigned int textureID;
-  {
-    const std::filesystem::path base = ws::ASSETS_FOLDER / "images/LearnOpenGL/skybox";
-    std::vector<std::filesystem::path> textures_faces = {"right.jpg", "left.jpg", "top.jpg", "bottom.jpg", "front.jpg", "back.jpg"};
-
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
-    int width, height, nrChannels;
-    for (unsigned int i = 0; i < textures_faces.size(); i++) {
-      unsigned char* data = stbi_load((base / textures_faces[i]).string().c_str(), &width, &height, &nrChannels, 0);
-      assert(data);
-      glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-      stbi_image_free(data);
-    }
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    
-    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-  }
+  const std::filesystem::path base = ws::ASSETS_FOLDER / "images/LearnOpenGL/skybox";
+  ws::Cubemap cubemap{base / "right.jpg", base / "left.jpg", base / "top.jpg", base / "bottom.jpg", base / "front.jpg", base / "back.jpg"};
   ws::Shader skyboxShader{ws::ASSETS_FOLDER / "shaders/skybox.vert", ws::ASSETS_FOLDER / "shaders/skybox.frag"};
   ws::Mesh cube{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")};
 
@@ -79,7 +57,7 @@ int main()
     skyboxShader.setMatrix4("u_ViewFromWorld", viewWithoutTranslation);
     skyboxShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap.getId());
     cube.bind();
     cube.draw();
     cube.unbind();
