@@ -14,15 +14,25 @@
 
 #include <print>
 
+class Skybox {
+ public:
+  ws::Mesh mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")};
+  ws::Shader shader{ws::ASSETS_FOLDER / "shaders/skybox.vert", ws::ASSETS_FOLDER / "shaders/skybox.frag"};
+  ws::Cubemap cubemap;
+
+  using path = std::filesystem::path;
+  Skybox(const path& right, const path& left, const path& top, const path& bottom, const path& front, const path& back)
+      : cubemap{right, left, top, bottom, front, back} {}
+};
+
 int main()
 {
   std::println("Hi!");
   ws::Workshop workshop{800, 600, "Workshop App"};
 
   const std::filesystem::path base = ws::ASSETS_FOLDER / "images/LearnOpenGL/skybox";
-  ws::Cubemap cubemap{base / "right.jpg", base / "left.jpg", base / "top.jpg", base / "bottom.jpg", base / "front.jpg", base / "back.jpg"};
-  ws::Shader skyboxShader{ws::ASSETS_FOLDER / "shaders/skybox.vert", ws::ASSETS_FOLDER / "shaders/skybox.frag"};
-  ws::Mesh cube{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")};
+  Skybox skybox{base / "right.jpg", base / "left.jpg", base / "top.jpg", base / "bottom.jpg", base / "front.jpg", base / "back.jpg"};
+  
 
   ws::PerspectiveCamera3D cam;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
@@ -51,18 +61,18 @@ int main()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glDisable(GL_DEPTH_TEST);
-    skyboxShader.bind();
+    skybox.shader.bind();
     //skyboxShader.setMatrix4("u_WorldFromObject", cube.transform.getWorldFromObjectMatrix());
     const glm::mat4 viewWithoutTranslation = glm::mat4(glm::mat3(cam.getViewFromWorld()));
-    skyboxShader.setMatrix4("u_ViewFromWorld", viewWithoutTranslation);
-    skyboxShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+    skybox.shader.setMatrix4("u_ViewFromWorld", viewWithoutTranslation);
+    skybox.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap.getId());
-    cube.bind();
-    cube.draw();
-    cube.unbind();
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.cubemap.getId());
+    skybox.mesh.bind();
+    skybox.mesh.draw();
+    skybox.mesh.unbind();
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-    skyboxShader.unbind();
+    skybox.shader.unbind();
     glEnable(GL_DEPTH_TEST);
 
     workshop.endFrame();
