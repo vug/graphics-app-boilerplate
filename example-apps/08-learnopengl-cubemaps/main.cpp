@@ -16,16 +16,50 @@
 
 #include <print>
 
+const char* skyboxUnoptimizedVertexShader = R"(
+#version 460
+layout(location = 0) in vec3 a_Position;
+
+uniform mat4 u_ViewFromWorld;
+uniform mat4 u_ProjectionFromView;
+
+out vec3 v_TexCoords;
+
+void main() {
+    v_TexCoords = a_Position;
+    gl_Position = u_ProjectionFromView * u_ViewFromWorld * vec4(a_Position, 1.0);
+} 
+  )";
+
+const char* skyboxUnoptimizedFragmentShader = R"(
+#version 460
+
+in vec3 v_TexCoords;
+
+uniform samplerCube skybox;
+
+out vec4 FragColor;
+
+void main() {    
+    FragColor = texture(skybox, v_TexCoords);
+}
+)";
+
 class Skybox {
  public:
   ws::Mesh mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")};
-  ws::Shader shader{ws::ASSETS_FOLDER / "shaders/skybox.vert", ws::ASSETS_FOLDER / "shaders/skybox.frag"};
+  ws::Shader shader;
   ws::Cubemap cubemap;
 
   using path = std::filesystem::path;
-  Skybox(const path& right, const path& left, const path& top, const path& bottom, const path& front, const path& back)
-      : cubemap{right, left, top, bottom, front, back} {}
+  Skybox(const path& right, const path& left, const path& top, const path& bottom, const path& front, const path& back, bool optimized = true)
+      : shader{[optimized]() { 
+          if (optimized) return ws::Shader{ws::ASSETS_FOLDER / "shaders/skybox.vert", ws::ASSETS_FOLDER / "shaders/skybox.frag"}; 
+          else return ws::Shader{skyboxUnoptimizedVertexShader, skyboxUnoptimizedFragmentShader};
+        }()},
+    cubemap{right, left, top, bottom, front, back} {}
 };
+
 
 struct Renderable {
   ws::Mesh mesh;
@@ -45,6 +79,7 @@ int main()
 
   const std::filesystem::path base = ws::ASSETS_FOLDER / "images/LearnOpenGL/skybox";
   Skybox skybox{base / "right.jpg", base / "left.jpg", base / "top.jpg", base / "bottom.jpg", base / "front.jpg", base / "back.jpg"};
+  Skybox skyboxNotOptimized{base / "right.jpg", base / "left.jpg", base / "top.jpg", base / "bottom.jpg", base / "front.jpg", base / "back.jpg", false};
 
   Renderable box{
     .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")},
@@ -68,6 +103,9 @@ int main()
     const glm::uvec2 winSize = workshop.getWindowSize();
 
     ImGui::Begin("Main");
+    static bool shouldOptimize = true;
+    ImGui::Checkbox("Should Optimize?", &shouldOptimize);
+    ImGui::Separator();
     static bool shouldShowImGuiDemo = false;
     ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
     if (shouldShowImGuiDemo)
@@ -83,11 +121,32 @@ int main()
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Unoptimizied
-    glDepthMask(GL_FALSE);
-    drawSkybox(skybox, cam);
-    glDepthMask(GL_TRUE);
-    drawSceneWithCamera(renderables, cam);
+    // First draw skybox without writing into depth buffer
+    // Then draw scene objects
+    // Any pixel where a scene object appears will be overdrawn
+    auto drawAllUnoptimized = [&]() {
+      glDepthMask(GL_FALSE);
+      drawSkybox(skyboxNotOptimized, cam);
+      glDepthMask(GL_TRUE);
+
+      drawSceneWithCamera(renderables, cam);
+    };
+
+    // First draw the scene, store depth
+    // Then draw skybox only to pixels where no scene object has been drawn
+    auto drawAll = [&]() {
+      drawSceneWithCamera(renderables, cam);
+
+      // At a pixel, when no scene object is drawn the cleared depth value is 1
+      glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content, i.e. when 1, i.e. when no object drawn
+      drawSkybox(skybox, cam);
+      glDepthFunc(GL_LESS); // back to default
+    };
+
+    if (shouldOptimize)
+      drawAll();
+    else
+      drawAllUnoptimized();
 
     workshop.endFrame();
   }

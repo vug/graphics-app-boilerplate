@@ -9,7 +9,8 @@ out vec3 v_TexCoords;
 
 void main() {
     v_TexCoords = a_Position;
-    gl_Position = u_ProjectionFromView * u_ViewFromWorld * vec4(a_Position, 1.0);
-    //vec4 pos = u_ProjectionFromView * u_ViewFromWorld * vec4(a_Position, 1.0);
-    //gl_Position = pos.xyww;
+    vec4 pos = u_ProjectionFromView * u_ViewFromWorld * vec4(a_Position, 1.0);
+    // trick to make all depth values from skybox (a cube of size 1) equal to be 1
+    // pos.xyz will be divided by w and z will be depth
+    gl_Position = pos.xyww;
 }  
