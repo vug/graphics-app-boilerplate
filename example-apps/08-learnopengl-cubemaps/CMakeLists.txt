@@ -14,4 +14,5 @@ target_link_libraries(${TARGET} PRIVATE
   Workshop
 )
 
+target_compile_definitions(${TARGET} PRIVATE SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_features(${TARGET} PRIVATE cxx_std_23)

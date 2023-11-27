@@ -72,11 +72,12 @@ using Scene = std::vector<std::reference_wrapper<Renderable>>;
 void drawSkybox(const Skybox& skybox, const ws::ICamera& cam);
 void drawSceneWithCamera(const Scene& scene, const ws::ICamera& cam);
 
-int main()
-{
+int main() {
   std::println("Hi!");
   ws::Workshop workshop{2048, 1536, "Workshop App"};
 
+  const std::filesystem::path src{SOURCE_DIR};
+  std::println("source directory: {}", src.string());
   const std::filesystem::path base = ws::ASSETS_FOLDER / "images/LearnOpenGL/skybox";
   Skybox skybox{base / "right.jpg", base / "left.jpg", base / "top.jpg", base / "bottom.jpg", base / "front.jpg", base / "back.jpg"};
   Skybox skyboxNotOptimized{base / "right.jpg", base / "left.jpg", base / "top.jpg", base / "bottom.jpg", base / "front.jpg", base / "back.jpg", false};
