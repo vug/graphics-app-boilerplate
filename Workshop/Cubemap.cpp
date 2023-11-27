@@ -2,6 +2,8 @@
 
 #include <stb_image.h>
 
+#include <cassert>
+
 namespace ws {
 void Cubemap::loadFace(GLenum faceLabel, const path& path) {
   int width, height, nrChannels;
