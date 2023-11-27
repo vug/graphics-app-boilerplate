@@ -33,6 +33,10 @@ struct Renderable {
   ws::Transform transform;
   ws::Texture texture;
 };
+using Scene = std::vector<std::reference_wrapper<Renderable>>;
+
+void drawSkybox(const Skybox& skybox, const ws::ICamera& cam);
+void drawSceneWithCamera(const Scene& scene, const ws::ICamera& cam);
 
 int main()
 {
@@ -48,13 +52,15 @@ int main()
     .transform{glm::vec3{0, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{2, 2, 2}},
     .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg"},
   };
-  std::vector<std::reference_wrapper<Renderable>> renderables = {box};
+  Scene renderables = {box};
   
 
   ws::PerspectiveCamera3D cam;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
   orbitingCamController.radius = 13.8f;
   orbitingCamController.theta = 0.355f;
+
+  glEnable(GL_DEPTH_TEST);
 
   while (!workshop.shouldStop())
   {
@@ -77,45 +83,51 @@ int main()
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Draw Skybox
-    glDisable(GL_DEPTH_TEST);
-    skybox.shader.bind();
-    //skyboxShader.setMatrix4("u_WorldFromObject", cube.transform.getWorldFromObjectMatrix());
-    const glm::mat4 viewWithoutTranslation = glm::mat4(glm::mat3(cam.getViewFromWorld()));
-    skybox.shader.setMatrix4("u_ViewFromWorld", viewWithoutTranslation);
-    skybox.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.cubemap.getId());
-    skybox.mesh.bind();
-    skybox.mesh.draw();
-    skybox.mesh.unbind();
-    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-    skybox.shader.unbind();
-    glEnable(GL_DEPTH_TEST);
-
-    // Draw scene
-    for (auto& objRef : renderables) {
-      const auto& obj = objRef.get();
-
-      obj.shader.bind();
-      obj.mesh.bind();
-
-      ws::Texture::activateTexture(0);
-      obj.texture.bind();
-      obj.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
-      obj.shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-      obj.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-
-      obj.mesh.draw();
-
-      obj.texture.unbind();
-      obj.mesh.unbind();
-      obj.shader.unbind();
-    }
+    // Unoptimizied
+    glDepthMask(GL_FALSE);
+    drawSkybox(skybox, cam);
+    glDepthMask(GL_TRUE);
+    drawSceneWithCamera(renderables, cam);
 
     workshop.endFrame();
   }
 
   std::println("Bye!");
   return 0;
+}
+
+void drawSceneWithCamera(const Scene& scene, const ws::ICamera& cam) {
+  for (auto& objRef : scene) {
+    const auto& obj = objRef.get();
+
+    obj.shader.bind();
+    obj.mesh.bind();
+
+    ws::Texture::activateTexture(0);
+    obj.texture.bind();
+    obj.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
+    obj.shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+    obj.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+
+    obj.mesh.draw();
+
+    obj.texture.unbind();
+    obj.mesh.unbind();
+    obj.shader.unbind();
+  }
+}
+
+void drawSkybox(const Skybox& skybox, const ws::ICamera& cam) {
+  skybox.shader.bind();
+  // skyboxShader.setMatrix4("u_WorldFromObject", cube.transform.getWorldFromObjectMatrix());
+  const glm::mat4 viewWithoutTranslation = glm::mat4(glm::mat3(cam.getViewFromWorld()));
+  skybox.shader.setMatrix4("u_ViewFromWorld", viewWithoutTranslation);
+  skybox.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.cubemap.getId());
+  skybox.mesh.bind();
+  skybox.mesh.draw();
+  skybox.mesh.unbind();
+  glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+  skybox.shader.unbind();
 }
