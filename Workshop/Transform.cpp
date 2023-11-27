@@ -46,4 +46,8 @@ glm::quat rotateTowards(glm::quat q1, glm::quat q2, float maxAngle) {
   const float m = maxAngle / angle;
   return glm::mix(q1, q2, m);
 }
+
+glm::mat4 removeTranslation(const glm::mat4 mat) {
+  return glm::mat4(glm::mat3(mat));
+}
 }

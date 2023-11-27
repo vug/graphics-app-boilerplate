@@ -120,7 +120,7 @@ void drawSceneWithCamera(const Scene& scene, const ws::ICamera& cam) {
 void drawSkybox(const Skybox& skybox, const ws::ICamera& cam) {
   skybox.shader.bind();
   // skyboxShader.setMatrix4("u_WorldFromObject", cube.transform.getWorldFromObjectMatrix());
-  const glm::mat4 viewWithoutTranslation = glm::mat4(glm::mat3(cam.getViewFromWorld()));
+  const glm::mat4 viewWithoutTranslation = ws::removeTranslation(cam.getViewFromWorld());
   skybox.shader.setMatrix4("u_ViewFromWorld", viewWithoutTranslation);
   skybox.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
   glActiveTexture(GL_TEXTURE0);

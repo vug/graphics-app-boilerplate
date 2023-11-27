@@ -21,4 +21,5 @@ class Transform {
 };
 
 glm::quat rotateTowards(glm::quat q1, glm::quat q2, float maxAngle);
+glm::mat4 removeTranslation(const glm::mat4 mat);
 }
