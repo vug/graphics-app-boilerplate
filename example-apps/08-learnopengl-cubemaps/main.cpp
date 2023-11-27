@@ -16,34 +16,7 @@
 
 #include <print>
 
-const char* skyboxUnoptimizedVertexShader = R"(
-#version 460
-layout(location = 0) in vec3 a_Position;
-
-uniform mat4 u_ViewFromWorld;
-uniform mat4 u_ProjectionFromView;
-
-out vec3 v_TexCoords;
-
-void main() {
-    v_TexCoords = a_Position;
-    gl_Position = u_ProjectionFromView * u_ViewFromWorld * vec4(a_Position, 1.0);
-} 
-  )";
-
-const char* skyboxUnoptimizedFragmentShader = R"(
-#version 460
-
-in vec3 v_TexCoords;
-
-uniform samplerCube skybox;
-
-out vec4 FragColor;
-
-void main() {    
-    FragColor = texture(skybox, v_TexCoords);
-}
-)";
+const std::filesystem::path src{SOURCE_DIR};
 
 class Skybox {
  public:
@@ -55,7 +28,7 @@ class Skybox {
   Skybox(const path& right, const path& left, const path& top, const path& bottom, const path& front, const path& back, bool optimized = true)
       : shader{[optimized]() { 
           if (optimized) return ws::Shader{ws::ASSETS_FOLDER / "shaders/skybox.vert", ws::ASSETS_FOLDER / "shaders/skybox.frag"}; 
-          else return ws::Shader{skyboxUnoptimizedVertexShader, skyboxUnoptimizedFragmentShader};
+          else return ws::Shader{src / "skybox_not_optimized.vert", src / "skybox_not_optimized.frag"};
         }()},
     cubemap{right, left, top, bottom, front, back} {}
 };
@@ -76,8 +49,6 @@ int main() {
   std::println("Hi!");
   ws::Workshop workshop{2048, 1536, "Workshop App"};
 
-  const std::filesystem::path src{SOURCE_DIR};
-  std::println("source directory: {}", src.string());
   const std::filesystem::path base = ws::ASSETS_FOLDER / "images/LearnOpenGL/skybox";
   Skybox skybox{base / "right.jpg", base / "left.jpg", base / "top.jpg", base / "bottom.jpg", base / "front.jpg", base / "back.jpg"};
   Skybox skyboxNotOptimized{base / "right.jpg", base / "left.jpg", base / "top.jpg", base / "bottom.jpg", base / "front.jpg", base / "back.jpg", false};
