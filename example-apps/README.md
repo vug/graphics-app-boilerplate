@@ -1,5 +1,19 @@
 # Hi!
 
+# 08 - LearnOpenGL - Cubemaps
+
+Implementation of [LearnOpenGL \- Cubemaps](https://learnopengl.com/Advanced-OpenGL/Cubemaps) in graphics-app-boilerplate.
+
+Two ways of drawing a skybox via cubemap:
+* First draw skybox, then draw scene. Some pixels will be drawn twice
+* First draw the scene, store depth, draw skybox after, only for unoccupied pixels
+
+Also introduces a reflective+refractive shader to use the environment map to create glassy refractive and metallic reflective surfaces (still unlit)
+
+![image](screenshots/08-learnopengl-cubemaps.png)
+
+Observe that the "refraction" just displays the skybox on the surface of the object. So, if the container is behind the teapot, it's not visible. This is not true transparency. 
+
 # 07 - Outlines via "Growth"
 
 An alternative to the previous app. This time the outline is done via
