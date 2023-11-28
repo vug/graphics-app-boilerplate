@@ -100,9 +100,11 @@ Texture::Texture(const Specs& specs)
 Texture::Texture(const std::filesystem::path& file)
     : Texture{
           [&file]() {
+            assert(std::filesystem::exists(file));
             Specs specs;
             int width, height, nrChannels;
             unsigned char* data = stbi_load(file.string().c_str(), &width, &height, &nrChannels, 0);
+            assert(data);
             specs.width = width;
             specs.height = height;
             assert(nrChannels == 3);
