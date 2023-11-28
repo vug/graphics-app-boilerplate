@@ -16,7 +16,7 @@
 
 #include <print>
 
-const std::filesystem::path src{SOURCE_DIR};
+const std::filesystem::path SRC{SOURCE_DIR};
 
 class Skybox {
  public:
@@ -28,22 +28,25 @@ class Skybox {
   Skybox(const path& right, const path& left, const path& top, const path& bottom, const path& front, const path& back, bool optimized = true)
       : shader{[optimized]() { 
           if (optimized) return ws::Shader{ws::ASSETS_FOLDER / "shaders/skybox.vert", ws::ASSETS_FOLDER / "shaders/skybox.frag"}; 
-          else return ws::Shader{src / "skybox_not_optimized.vert", src / "skybox_not_optimized.frag"};
+          else return ws::Shader{SRC / "skybox_not_optimized.vert", SRC / "skybox_not_optimized.frag"};
         }()},
     cubemap{right, left, top, bottom, front, back} {}
 };
 
 
 struct Renderable {
+  std::string name;
   ws::Mesh mesh;
   ws::Shader shader;
   ws::Transform transform;
   ws::Texture texture;
+  glm::vec4 color{1, 1, 1, 1};
+  float refRefMix = 0.25f;
 };
 using Scene = std::vector<std::reference_wrapper<Renderable>>;
 
 void drawSkybox(const Skybox& skybox, const ws::ICamera& cam);
-void drawSceneWithCamera(const Scene& scene, const ws::ICamera& cam);
+void drawSceneWithCamera(const Scene& scene, const ws::ICamera& cam, const Skybox& skybox);
 
 int main() {
   std::println("Hi!");
@@ -53,14 +56,30 @@ int main() {
   Skybox skybox{base / "right.jpg", base / "left.jpg", base / "top.jpg", base / "bottom.jpg", base / "front.jpg", base / "back.jpg"};
   Skybox skyboxNotOptimized{base / "right.jpg", base / "left.jpg", base / "top.jpg", base / "bottom.jpg", base / "front.jpg", base / "back.jpg", false};
 
-  Renderable box{
+  Renderable box {
+    .name = "Box",
     .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")},
     .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
     .transform{glm::vec3{0, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{2, 2, 2}},
     .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg"},
   };
-  Scene renderables = {box};
-  
+  Renderable glassyMonkey {
+    .name = "Monkey",
+    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne_smooth.obj")},
+    .shader{SRC / "reflective.vert", SRC / "reflective.frag"},
+    .transform{glm::vec3{3, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
+    .color{1, 1, 0, 1},
+    .refRefMix{0.25},
+  };
+  Renderable glassyTeapot {
+    .name = "Teapot",
+    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/teapot-4k.obj")},
+    .shader{SRC / "reflective.vert", SRC / "reflective.frag"},
+    .transform{glm::vec3{0, 1.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
+    .color{0, 1, 1, 1},
+    .refRefMix{0.75},
+  };
+  Scene renderables = {box, glassyMonkey, glassyTeapot};
 
   ws::PerspectiveCamera3D cam;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
@@ -101,13 +120,13 @@ int main() {
       drawSkybox(skyboxNotOptimized, cam);
       glDepthMask(GL_TRUE);
 
-      drawSceneWithCamera(renderables, cam);
+      drawSceneWithCamera(renderables, cam, skyboxNotOptimized);
     };
 
     // First draw the scene, store depth
     // Then draw skybox only to pixels where no scene object has been drawn
     auto drawAll = [&]() {
-      drawSceneWithCamera(renderables, cam);
+      drawSceneWithCamera(renderables, cam, skybox);
 
       // At a pixel, when no scene object is drawn the cleared depth value is 1
       glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content, i.e. when 1, i.e. when no object drawn
@@ -115,10 +134,12 @@ int main() {
       glDepthFunc(GL_LESS); // back to default
     };
 
+    ImGui::Begin("Materials");
     if (shouldOptimize)
       drawAll();
     else
       drawAllUnoptimized();
+    ImGui::End();
 
     workshop.endFrame();
   }
@@ -127,22 +148,31 @@ int main() {
   return 0;
 }
 
-void drawSceneWithCamera(const Scene& scene, const ws::ICamera& cam) {
+void drawSceneWithCamera(const Scene& scene, const ws::ICamera& cam, const Skybox& skybox) {
   for (auto& objRef : scene) {
-    const auto& obj = objRef.get();
+    auto& obj = objRef.get();
 
     obj.shader.bind();
     obj.mesh.bind();
 
-    ws::Texture::activateTexture(0);
-    obj.texture.bind();
-    obj.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
+    glBindTextureUnit(0, obj.texture.getId());
+    glBindTextureUnit(1, skybox.cubemap.getId());
+    // Camera uniforms
+    obj.shader.setVector3("u_CameraPos", cam.getPosition());
     obj.shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
     obj.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+    // Scene uniforms
+    // Object uniforms
+    obj.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
+    // Material uniforms
+    ImGui::SliderFloat(std::format("{} Mix", obj.name).c_str(), &obj.refRefMix, 0, 1);
+    obj.shader.setFloat("u_RefRefMix", obj.refRefMix);
+    obj.shader.setVector4("u_Color", obj.color);
 
     obj.mesh.draw();
 
-    obj.texture.unbind();
+    glBindTextureUnit(0, 0);
+    glBindTextureUnit(1, 0);
     obj.mesh.unbind();
     obj.shader.unbind();
   }
