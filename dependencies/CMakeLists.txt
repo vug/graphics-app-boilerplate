@@ -89,3 +89,6 @@ add_subdirectory(vivid)
 
 # git submodule add https://github.com/fmtlib/fmt
 add_subdirectory(fmt)
+
+# git submodule add https://github.com/google/googletest.git
+add_subdirectory(googletest)

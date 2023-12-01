@@ -13,6 +13,7 @@ project(GraphicsAppBoilerplate
 
 add_subdirectory(dependencies)
 add_subdirectory(Workshop)
+add_subdirectory(Workshop/test)
 add_subdirectory(example-apps/01-clear)
 add_subdirectory(example-apps/02-triangle-without-vbo)
 add_subdirectory(example-apps/03-cuda-start)

@@ -28,6 +28,7 @@ target_link_libraries(${TARGET} PUBLIC
   glad_gl_core_46
   glfw
   glm
+  GTest::gtest_main
   imgui
   implot
   stb
