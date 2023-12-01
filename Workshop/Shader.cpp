@@ -279,7 +279,6 @@ void Shader::makeNamedStringsFromFolder(const std::filesystem::path& shaderLibFo
     std::string shaderRelPathStr = shaderRelPath.string();
     std::replace(shaderRelPathStr.begin(), shaderRelPathStr.end(), '\\', '/'); 
     std::string namedString{fmt::format("/lib/{}", shaderRelPathStr)};
-    fmt::println("Making namedString: {}...", namedString);
     Shader::makeNamedStringFromFile(namedString, shaderFullPath);
   }
 }

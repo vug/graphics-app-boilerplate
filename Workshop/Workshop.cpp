@@ -51,7 +51,6 @@ Workshop::Workshop(int width, int height, const std::string& name) {
   const int version = gladLoadGL(glfwGetProcAddress);
   if (version == 0)
     throw("Failed to initialize OpenGL context");
-  printf("Loaded OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
