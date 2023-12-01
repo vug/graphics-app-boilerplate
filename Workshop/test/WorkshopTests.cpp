@@ -8,6 +8,13 @@ TEST(AppSkeletonTest, NoExceptionsBeginEnd) {
   EXPECT_NO_THROW(workshop.reset(new ws::Workshop{800, 600, "Workshop App"}));
   EXPECT_NO_THROW(workshop->beginFrame());
   EXPECT_NO_THROW(workshop->endFrame());
+
+}
+
+TEST_F(WorkshopTest, OpenGLVersion) {
+  const int version = gladLoadGL(glfwGetProcAddress);
+  ASSERT_EQ(GLAD_VERSION_MAJOR(version), 4);
+  ASSERT_EQ(GLAD_VERSION_MINOR(version), 6);
 }
 
 // Test glClear actually clears the screen with the color given in glClearColor
@@ -23,17 +30,14 @@ TEST_F(WorkshopTest, ClearColorDepth) {
   EXPECT_EQ(data[3], 255);
 }
 
-// Test Workshop::getWindowSize returns initial window size
-TEST_F(WorkshopTest, WindowInitialSize) {
+// Test Workshop::getWindowSize returns correct initial window size and size after a resize
+TEST_F(WorkshopTest, WindowInitialAndResizedSize) {
   auto winSize = workshop.getWindowSize();
   EXPECT_EQ(winSize.x, 800);
   EXPECT_EQ(winSize.y, 600);
-}
 
-// Test Workshop::getWindowSize returns correct window size after a resize
-TEST_F(WorkshopTest, WindowResizedSize) {
   glfwSetWindowSize(workshop.getGLFWwindow(), 1024, 768);
-  auto winSize = workshop.getWindowSize();
+  winSize = workshop.getWindowSize();
   EXPECT_EQ(winSize.x, 1024);
   EXPECT_EQ(winSize.y, 768);
 }
