@@ -3,7 +3,9 @@ set(TARGET Tests)
 enable_testing()
 
 add_executable(${TARGET}
-  tests.cpp
+  WorkshopTest.hpp
+  WorkshopTests.cpp
+  TextureTests.cpp
 )
 
 target_link_libraries(${TARGET} PRIVATE

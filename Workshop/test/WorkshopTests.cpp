@@ -1,10 +1,4 @@
-#include <gtest/gtest.h>
-
-#include <Workshop/Workshop.hpp>
-
-#include <glad/gl.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#include "WorkshopTest.hpp"
 
 // Make sure that Workshop Constructor and {begin, end}Frame methods won't throw
 TEST(AppSkeletonTest, NoExceptionsBeginEnd) {
@@ -15,22 +9,6 @@ TEST(AppSkeletonTest, NoExceptionsBeginEnd) {
   EXPECT_NO_THROW(workshop->beginFrame());
   EXPECT_NO_THROW(workshop->endFrame());
 }
-
-class WorkshopTest : public testing::Test {
- protected:
-  ws::Workshop workshop;
-
-  WorkshopTest()
-      : workshop{800, 600, "Workshop App"} {}
-
-  void SetUp() override {
-    workshop.beginFrame();
-  }
-
-  void TearDown() override {
-    workshop.endFrame();
-  }
-};
 
 // Test glClear actually clears the screen with the color given in glClearColor
 TEST_F(WorkshopTest, ClearColorDepth) {
