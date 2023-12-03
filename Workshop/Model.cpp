@@ -265,27 +265,6 @@ Mesh::Mesh(const DefaultMeshData& meshData)
   uploadData();
 }
 
-Mesh::Mesh(Mesh&& other)
-    : meshData(std::move(other.meshData)),
-      capacity(other.capacity),
-      vertexArray(std::move(other.vertexArray)),
-      vertexBuffer(std::move(other.vertexBuffer)),
-      indexBuffer(std::move(other.indexBuffer)) {
-  other.capacity = 0;
-  fmt::println("Moved Mesh with {} vertices via MoveCstor.", meshData.indices.size());
-}
-
-Mesh& Mesh::operator=(Mesh&& other) {
-  meshData = std::move(other.meshData);
-  capacity = other.capacity;
-  vertexArray = std::move(other.vertexArray);
-  vertexBuffer = std::move(other.vertexBuffer);
-  indexBuffer = std::move(other.indexBuffer);
-  other.capacity = 0;
-  fmt::println("Moved Mesh with {} vertices via MoveAssign.", meshData.indices.size());
-  return *this;
-}
-
 Mesh::~Mesh() {
   if (vertexBuffer != INVALID) {
     glDeleteBuffers(1, &vertexBuffer);
@@ -310,7 +289,7 @@ void Mesh::createBuffers() {
 
   static const std::vector<int32_t> sizes = {3, 2, 3, 4, 4};
   size_t offset = 0;
-  for (size_t ix = 0; ix < sizes.size(); ++ix) {
+  for (uint32_t ix = 0; ix < sizes.size(); ++ix) {
     glVertexAttribPointer(ix, sizes[ix], GL_FLOAT, GL_FALSE, sizeof(DefaultVertex), (void*)offset);
     glEnableVertexAttribArray(ix);
     offset += sizes[ix] * sizeof(float);
