@@ -24,7 +24,7 @@ class Cubemap {
   void unbind() const;
 
  private:
-  uint32_t id = INVALID;
+  GlHandle id;
 
   void loadFace(GLenum faceLabel, const path& path);
 };

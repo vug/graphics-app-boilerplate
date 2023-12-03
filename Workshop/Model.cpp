@@ -268,26 +268,20 @@ Mesh::Mesh(const DefaultMeshData& meshData)
 Mesh::Mesh(Mesh&& other)
     : meshData(std::move(other.meshData)),
       capacity(other.capacity),
-      vertexArray(other.vertexArray),
-      vertexBuffer(other.vertexBuffer),
-      indexBuffer(other.indexBuffer) {
+      vertexArray(std::move(other.vertexArray)),
+      vertexBuffer(std::move(other.vertexBuffer)),
+      indexBuffer(std::move(other.indexBuffer)) {
   other.capacity = 0;
-  other.vertexArray = INVALID;
-  other.vertexBuffer = INVALID;
-  other.indexBuffer = INVALID;
   fmt::println("Moved Mesh with {} vertices via MoveCstor.", meshData.indices.size());
 }
 
 Mesh& Mesh::operator=(Mesh&& other) {
   meshData = std::move(other.meshData);
   capacity = other.capacity;
-  vertexArray = other.vertexArray;
-  vertexBuffer = other.vertexBuffer;
-  indexBuffer = other.indexBuffer;
+  vertexArray = std::move(other.vertexArray);
+  vertexBuffer = std::move(other.vertexBuffer);
+  indexBuffer = std::move(other.indexBuffer);
   other.capacity = 0;
-  other.vertexArray = INVALID;
-  other.vertexBuffer = INVALID;
-  other.indexBuffer = INVALID;
   fmt::println("Moved Mesh with {} vertices via MoveAssign.", meshData.indices.size());
   return *this;
 }

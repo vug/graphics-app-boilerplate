@@ -53,9 +53,9 @@ class Mesh {
   DefaultMeshData meshData;
   size_t capacity{};
 
-  uint32_t vertexArray{INVALID};
-  uint32_t vertexBuffer{INVALID};
-  uint32_t indexBuffer{INVALID};
+  GlHandle vertexArray;
+  GlHandle vertexBuffer;
+  GlHandle indexBuffer;
 
   // call after setting verts and idxs to upload them to GPU
   void uploadData();

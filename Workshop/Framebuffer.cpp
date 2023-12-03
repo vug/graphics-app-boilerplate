@@ -8,7 +8,7 @@
 
 namespace ws {
 Framebuffer::Framebuffer(uint32_t w, uint32_t h)
-    : fbo([this]() { uint32_t id; glGenFramebuffers(1, &id); glBindFramebuffer(GL_FRAMEBUFFER, id); return id; }()),
+    : id([this]() { uint32_t id; glGenFramebuffers(1, &id); glBindFramebuffer(GL_FRAMEBUFFER, id); return id; }()),
       width(w),
       height(h),
       depthStencilAttachment{{width, height, Texture::Format::Depth32fStencil8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}} {
@@ -31,11 +31,11 @@ Framebuffer::Framebuffer()
     : Framebuffer(1, 1) {}
 
 Framebuffer::~Framebuffer() {
-  glDeleteFramebuffers(1, &fbo);
+  glDeleteFramebuffers(1, &id);
 }
 
 void Framebuffer::bind() const {
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, id);
 }
 
 void Framebuffer::unbind() const {

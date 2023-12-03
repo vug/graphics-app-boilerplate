@@ -23,7 +23,7 @@ class Framebuffer {
   void resizeIfNeeded(uint32_t width, uint32_t height);
 
  private:
-  uint32_t fbo{INVALID};
+  GlHandle id;
   uint32_t width = 0;
   uint32_t height = 0;
   std::vector<Texture> colorAttachments;

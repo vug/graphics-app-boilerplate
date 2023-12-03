@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Common.hpp"
+
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
@@ -71,7 +73,7 @@ class Shader {
   std::filesystem::path vertexShader;
   std::filesystem::path fragmentShader;
   std::filesystem::path computeShader;
-  int32_t id{-1};
+  ws::GlHandle id;
 
 public:
   static void makeNamedStringFromFile(const std::string& name, const std::filesystem::path& fp);

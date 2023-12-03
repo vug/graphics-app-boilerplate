@@ -71,7 +71,7 @@ class Texture {
   Specs specs;
 
  private:
-  uint32_t id = INVALID;
+  GlHandle id = INVALID;
 
   struct GlSpecs {
     GLint internalFormat = -1;
