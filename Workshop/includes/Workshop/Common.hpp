@@ -28,6 +28,7 @@ class GlHandle {
     other.val_ = INVALID;
   }
   GlHandle& operator=(GlHandle&& other) noexcept {
+    // Note that usually below condition is `this == &other` but because we've overridden operator& we cannot compare addresses of objects themselves
     if (&val_ == &other.val_)
       return *this;
     val_ = other.val_;
@@ -40,16 +41,26 @@ class GlHandle {
     return val_;
   }
 
-  // I could have an implicit conversion from GlHandle to uint32_t* to be used in `func(uint32_t* arg)` as `func(zom)`
-  // But that would be confusing
-  //const uint32_t* ptr() const {
-  //  return &val_;
-  //}
-
   // Overloading the reference operator. See "rarely overloaded operators" in https://en.cppreference.com/w/cpp/language/operators
   // Now ampersand will return the address of val not this object's address
   uint32_t* operator&() {
     return &val_;
   }
+
+  // Potential definitions for quality operator
+  //bool operator==(uint32_t otherVal) {
+  //  return val_ == otherVal;
+  //}
+  //bool operator==(const GlHandle& other) {
+  //  return &val_ == &other.val_;
+  // OR
+  //  return val_ == other.val_;
+  //}
+
+  // I could have an implicit conversion from GlHandle to uint32_t* to be used in `func(uint32_t* arg)` as `func(zom)`
+  // But that would be confusing
+  //const uint32_t* ptr() const {
+  //  return &val_;
+  //}
 };
 }  // namespace ws
