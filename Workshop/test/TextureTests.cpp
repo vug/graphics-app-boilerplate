@@ -5,10 +5,13 @@
 TEST_F(WorkshopTest, glTextureGenDelete) {
   uint32_t id;
   glGenTextures(1, &id);
+  EXPECT_FALSE(glIsTexture(id));
+
   glBindTexture(GL_TEXTURE_2D, id);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 128, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-  EXPECT_TRUE(glIsTexture(id));
+  // Allocating texture is not needed for glIsTexture to return true
+  //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 128, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
   glBindTexture(GL_TEXTURE_2D, 0);
+  EXPECT_TRUE(glIsTexture(id));
 
   glDeleteTextures(1, &id);
   EXPECT_FALSE(glIsTexture(id));
@@ -41,4 +44,19 @@ TEST_F(WorkshopTest, TextureDestruction) {
     EXPECT_TRUE(glIsTexture(id));
   }
   EXPECT_FALSE(glIsTexture(id));
+}
+
+TEST_F(WorkshopTest, TextureMove) {
+  ws::Texture tex1{};
+  ASSERT_NE(tex1.getId(), ws::INVALID);
+
+  ws::Texture tex2 = std::move(tex1);
+  ASSERT_EQ(tex1.getId(), ws::INVALID);
+
+  uint32_t tex4Id;
+  {
+    ws::Texture tex4{};
+    tex4Id = tex4.getId();
+  }
+  ASSERT_FALSE(glIsTexture(tex4Id));
 }
