@@ -161,6 +161,7 @@ void Texture::resize(uint32_t width, uint32_t height) {
 }
 
 Texture::~Texture() {
+  // glDeleteTextures silently ignores 0's and names that do not correspond to existing textures.
   glDeleteTextures(1, &id);
 }
 }  // namespace ws

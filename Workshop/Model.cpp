@@ -266,18 +266,11 @@ Mesh::Mesh(const DefaultMeshData& meshData)
 }
 
 Mesh::~Mesh() {
-  if (vertexBuffer != INVALID) {
-    glDeleteBuffers(1, &vertexBuffer);
-    vertexBuffer = INVALID;
-  }
-  if (indexBuffer != INVALID) {
-    glDeleteBuffers(1, &indexBuffer);
-    indexBuffer = INVALID;
-  }
-  if (vertexArray != INVALID) {
-    glDeleteVertexArrays(1, &vertexArray);
-    vertexArray = ws::INVALID;
-  }
+  // "glDeleteBuffers silently ignores 0's and names that do not correspond to existing buffer objects."
+  glDeleteBuffers(1, &vertexBuffer);
+  glDeleteBuffers(1, &indexBuffer);
+  // "Unused names in arrays are silently ignored, as is the value zero."
+  glDeleteVertexArrays(1, &vertexArray);
 }
 
 void Mesh::createBuffers() {

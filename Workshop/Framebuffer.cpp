@@ -31,6 +31,7 @@ Framebuffer::Framebuffer()
     : Framebuffer(1, 1) {}
 
 Framebuffer::~Framebuffer() {
+  // "The name zero is reserved by the GL and is silently ignored, should it occur in framebuffers, as are other unused names."
   glDeleteFramebuffers(1, &id);
 }
 
