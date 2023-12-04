@@ -26,7 +26,7 @@ class Workshop {
   float getFrameDurationMs() const;
   float getFrameRate() const;
   bool getVSync() const;
-  void setVSync(bool shouldVSync);
+  void setVSync(bool should);
   ThreeButtonMouseState mouseState{};
   std::optional<std::function<void(const glm::vec2&)>> onMouseMove;
   std::optional<std::function<void(const MouseButton button, const glm::vec2& pos0, const glm::vec2& pos)>> onMouseDragBegin;

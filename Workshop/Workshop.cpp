@@ -149,8 +149,8 @@ bool Workshop::getVSync() const {
   return shouldVSync;
 }
 
-void Workshop::setVSync(bool shouldVSync) {
-  this->shouldVSync = shouldVSync;
+void Workshop::setVSync(bool should) {
+  shouldVSync = should;
   glfwSwapInterval(shouldVSync ? 1 : 0);
 }
 
