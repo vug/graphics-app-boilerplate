@@ -5,8 +5,9 @@ enable_testing()
 add_executable(${TARGET}
   WorkshopTest.hpp
   CommonTests.cpp
-  WorkshopTests.cpp
+  ShaderTests.cpp
   TextureTests.cpp
+  WorkshopTests.cpp
 )
 
 target_link_libraries(${TARGET} PRIVATE
