@@ -82,6 +82,7 @@ int main()
     const glm::uvec2 winSize = workshop.getWindowSize();
     outlineA.resizeIfNeeded(winSize.x, winSize.y);
     outlineB.resizeIfNeeded(winSize.x, winSize.y);
+    glViewport(0, 0, winSize.x, winSize.y);
 
     workshop.imGuiDrawAppWindow();
 
