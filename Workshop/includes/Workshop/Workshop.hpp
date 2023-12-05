@@ -32,6 +32,7 @@ class Workshop {
   std::optional<std::function<void(const MouseButton button, const glm::vec2& pos0, const glm::vec2& pos)>> onMouseDragBegin;
   std::optional<std::function<void(const MouseButton button, const glm::vec2& pos0, const glm::vec2& pos)>> onMouseDragging;
   std::optional<std::function<void(const MouseButton button, const glm::vec2& pos0, const glm::vec2& pos)>> onMouseDragEnd;
+  void imGuiDrawAppWindow();
 
  private:
   const char* glslVersion = "#version 460";

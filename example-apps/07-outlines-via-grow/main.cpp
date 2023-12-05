@@ -83,12 +83,9 @@ int main()
     outlineA.resizeIfNeeded(winSize.x, winSize.y);
     outlineB.resizeIfNeeded(winSize.x, winSize.y);
 
-    ImGui::Begin("Main");
-    static bool shouldShowImGuiDemo = false;
-    ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
-    if (shouldShowImGuiDemo)
-      ImGui::ShowDemoWindow();
+    workshop.imGuiDrawAppWindow();
 
+    ImGui::Begin("Main");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::End();

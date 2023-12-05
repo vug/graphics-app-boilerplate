@@ -151,12 +151,10 @@ void main () {
       cudaGraphicsGLRegisterImage(&texCuda, tex.getId(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
     }
 
+    workshop.imGuiDrawAppWindow();
+
     ImGui::Begin("Main");
-    ImGui::Text("Frame No: %6d, Frame Dur: %.2f, FPS: %.1f", workshop.getFrameNo(), workshop.getFrameDurationMs(), workshop.getFrameRate());
-    ImGui::Separator();
     static int maxIter = 100;
-    static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
-    ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::SliderInt("Max Iteration", &maxIter, 1, 200);
     static bool useDouble = true;
     ImGui::Checkbox("Use Double", &useDouble);
@@ -168,11 +166,6 @@ void main () {
     ImGui::Combo("Fractal", &model.fractalType, "Mandelbrot\0Julia");
     ImGui::InputDouble("z0/c real", &model.z0.x, 0.0001, 0.0, "%.4f");
     ImGui::InputDouble("z0/c imag", &model.z0.y, 0.0001, 0.0, "%.4f");
-    ImGui::Separator();
-    static bool shouldShowImGuiDemo = false;
-    ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
-    if (shouldShowImGuiDemo)
-      ImGui::ShowDemoWindow();
     ImGui::End();
 
     cudaGraphicsMapResources(1, &texCuda, 0);
@@ -190,7 +183,7 @@ void main () {
     cudaDestroySurfaceObject(surface);
     cudaGraphicsUnmapResources(1, &texCuda, 0);
 
-    glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
+    glClearColor(1, 0, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
     const auto winSize = workshop.getWindowSize();

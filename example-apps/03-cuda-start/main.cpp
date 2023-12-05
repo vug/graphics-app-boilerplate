@@ -159,19 +159,9 @@ void main () {
     //calcPixelsGpuToCpuToTex(tex, winSize);
     calcPixelsGlInterop(tex, winSize, workshop.getFrameNo());
 
-    ImGui::Begin("Main");
-    ImGui::Text("Frame No: %6d, Frame Dur: %.2f, FPS: %.1f", workshop.getFrameNo(), workshop.getFrameDurationMs(), workshop.getFrameRate());
-    ImGui::Separator();
-    static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
-    ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
-    ImGui::Separator();
-    static bool shouldShowImGuiDemo = false;
-    ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
-    if (shouldShowImGuiDemo)
-      ImGui::ShowDemoWindow();
-    ImGui::End();
+    workshop.imGuiDrawAppWindow();
 
-    glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
+    glClearColor(1, 0, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
     const auto winSize = workshop.getWindowSize();

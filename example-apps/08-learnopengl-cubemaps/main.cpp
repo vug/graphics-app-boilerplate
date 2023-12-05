@@ -93,23 +93,17 @@ int main() {
     workshop.beginFrame();
     const glm::uvec2 winSize = workshop.getWindowSize();
 
+    workshop.imGuiDrawAppWindow();
+
     ImGui::Begin("Main");
     static bool shouldOptimize = true;
     ImGui::Checkbox("Should Optimize?", &shouldOptimize);
-    ImGui::Separator();
-    static bool shouldShowImGuiDemo = false;
-    ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
-    if (shouldShowImGuiDemo)
-      ImGui::ShowDemoWindow();
-
-    static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
-    ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::End();
 
     orbitingCamController.update(0.01f);
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
-    glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
+    glClearColor(1, 0, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // First draw skybox without writing into depth buffer

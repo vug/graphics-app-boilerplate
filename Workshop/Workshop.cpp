@@ -154,6 +154,21 @@ void Workshop::setVSync(bool should) {
   glfwSwapInterval(shouldVSync ? 1 : 0);
 }
 
+void Workshop::imGuiDrawAppWindow() {
+  ImGui::Begin("Workshop");
+  ImGui::Text("Frame No: %6d, Frame Dur: %.2f, FPS: %.1f", getFrameNo(), getFrameDurationMs(), getFrameRate());
+  bool vSync = getVSync();
+  if (ImGui::Checkbox("VSync", &vSync))
+    setVSync(vSync);
+  ImGui::Separator();
+  static bool shouldShowImGuiDemo = false;
+  ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
+  ImGui::End();
+
+  if (shouldShowImGuiDemo)
+    ImGui::ShowDemoWindow();
+}
+
 void framebufferSizeCallback([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] int width, [[maybe_unused]] int height) {
   // glViewport(0, 0, width, height);
   void* ptr = glfwGetWindowUserPointer(window);

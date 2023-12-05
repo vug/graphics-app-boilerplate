@@ -52,16 +52,12 @@ void main () { outColor = vec4 (fragColor, 1.0); }
   uint32_t vao;
   glGenVertexArrays(1, &vao);
 
-  while (!workshop.shouldStop())
-  {
+  while (!workshop.shouldStop()) {
     workshop.beginFrame();
 
-    ImGui::Begin("Main");
-    static bool shouldShowImGuiDemo = false;
-    ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
-    if (shouldShowImGuiDemo)
-      ImGui::ShowDemoWindow();
+    workshop.imGuiDrawAppWindow();
 
+    ImGui::Begin("Main");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::End();
