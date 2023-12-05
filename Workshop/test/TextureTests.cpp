@@ -2,6 +2,9 @@
 
 #include <Workshop/Texture.hpp>
 
+#include <array>
+#include <vector>
+
 TEST_F(WorkshopTest, glTextureGenDelete) {
   uint32_t id;
   glGenTextures(1, &id);
@@ -59,4 +62,20 @@ TEST_F(WorkshopTest, TextureMove) {
     tex4Id = tex4.getId();
   }
   ASSERT_FALSE(glIsTexture(tex4Id));
+}
+
+
+std::vector<ws::Texture> makeVec() {
+  std::vector<ws::Texture> result;
+  result.push_back(ws::Texture{});
+  result.push_back(ws::Texture{});
+  return result;
+}
+
+TEST_F(WorkshopTest, TextureArrayInitialization) {
+  std::array<ws::Texture, 2> arr{ws::Texture{}, ws::Texture{}};
+  // std::vector<ws::Texture> arr{ws::Texture{}, ws::Texture{}}; // does not compile because of deleted copy constructor
+  std::vector<ws::Texture> vec = makeVec();
+  ASSERT_EQ(arr[0].getId() + 1, arr[1].getId());
+  ASSERT_EQ(vec[0].getId() + 1, vec[1].getId());
 }
