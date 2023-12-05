@@ -1,6 +1,7 @@
 #include "Workshop.hpp"
 
 #include "Workshop/Assets.hpp" // Only Assets.hpp needs to be included via Workshop/
+#include "OpenGL.hpp"
 #include "Shader.hpp"
 
 #include <glad/gl.h>
@@ -160,6 +161,8 @@ void Workshop::imGuiDrawAppWindow() {
   bool vSync = getVSync();
   if (ImGui::Checkbox("VSync", &vSync))
     setVSync(vSync);
+  if (ImGui::Button("OpenGL Features"))
+    printFeatures();
   ImGui::Separator();
   static bool shouldShowImGuiDemo = false;
   ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);

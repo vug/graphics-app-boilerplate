@@ -20,6 +20,7 @@ add_library(${TARGET} STATIC
   includes/Workshop/Camera.hpp Camera.cpp
   includes/Workshop/Lights.hpp Lights.cpp
   includes/Workshop/Input.hpp Input.cpp
+  includes/Workshop/OpenGL.hpp OpenGL.cpp
 )
 
 target_link_libraries(${TARGET} PUBLIC
