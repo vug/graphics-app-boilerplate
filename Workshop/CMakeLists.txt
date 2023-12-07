@@ -21,6 +21,7 @@ add_library(${TARGET} STATIC
   includes/Workshop/Lights.hpp Lights.cpp
   includes/Workshop/Input.hpp Input.cpp
   includes/Workshop/OpenGL.hpp OpenGL.cpp
+  includes/Workshop/UI.hpp UI.cpp
 )
 
 target_link_libraries(${TARGET} PUBLIC
