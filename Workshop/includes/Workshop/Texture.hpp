@@ -67,11 +67,13 @@ class Texture {
   // not type-safe
   void loadPixels(const void* data);
   void resize(uint32_t width, uint32_t height);
+  const std::string& getName() const { return name; }
 
   Specs specs;
 
  private:
   GlHandle id = INVALID;
+  std::string name;
 
   struct GlSpecs {
     GLint internalFormat = -1;

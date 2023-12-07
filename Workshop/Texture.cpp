@@ -85,7 +85,8 @@ Texture::Texture()
 
 Texture::Texture(const Specs& specs)
     : specs(specs),
-      id([]() { uint32_t texId; glGenTextures(1, &texId); return texId; }()) {
+      id([]() { uint32_t texId; glGenTextures(1, &texId); return texId; }()),
+      name{std::format("Texture[{}]", static_cast<uint32_t>(id))} {
   glBindTexture(GL_TEXTURE_2D, id);
 
   GlSpecs gs = getGlSpecs();
