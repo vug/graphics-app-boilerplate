@@ -5,6 +5,7 @@
 #include <Workshop/Shader.hpp>
 #include <Workshop/Texture.hpp>
 #include <Workshop/Transform.hpp>
+#include <Workshop/UI.hpp>
 #include <Workshop/Workshop.hpp>
 
 #include <glad/gl.h>
@@ -65,6 +66,7 @@ int main()
   };
   std::vector<std::reference_wrapper<Renderable>> renderables = {cube1, quad, cube2};
 
+
   ws::PerspectiveCamera3D cam;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
   orbitingCamController.radius = 13.8f;
@@ -72,6 +74,9 @@ int main()
 
   ws::Framebuffer outlineA{};
   ws::Framebuffer outlineB{};
+
+  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{outlineA.getFirstColorAttachment(), outlineB.getFirstColorAttachment()};
+  ws::TextureViewer textureViewer{texRefs};
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
@@ -172,13 +177,7 @@ int main()
     fullscreenShader.unbind();
     glEnable(GL_DEPTH_TEST);
 
-
-    ImGui::Begin("Texture Viewer");
-    const auto& texA = outlineA.getFirstColorAttachment();
-    ImGui::Image((void*)(intptr_t)texA.getId(), ImVec2{texA.specs.width / 4.f, texA.specs.height / 4.f}, {0, 1}, {1, 0});
-    const auto& texB = outlineB.getFirstColorAttachment();
-    ImGui::Image((void*)(intptr_t)texB.getId(), ImVec2{texB.specs.width / 4.f, texB.specs.height / 4.f}, {0, 1}, {1, 0});
-    ImGui::End();
+    textureViewer.draw();
 
     workshop.endFrame();
   }
