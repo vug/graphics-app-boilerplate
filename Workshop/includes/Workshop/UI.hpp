@@ -13,8 +13,5 @@ class TextureViewer {
  private:
   std::vector<std::reference_wrapper<ws::Texture>> textures;
   int ix{};
-
-  void drawCombo();
-  void drawTexture();
 };
 }
