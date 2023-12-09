@@ -14,6 +14,8 @@ TextureViewer::TextureViewer(const std::vector<std::reference_wrapper<ws::Textur
 }
 
 void TextureViewer::draw() {
+
+  ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
   ImGui::Begin("Texture Viewer", nullptr, ImGuiWindowFlags_NoScrollbar);
   auto items = textures 
     | std::views::transform([](const ws::Texture& tex) { return tex.getName().c_str(); }) 
@@ -46,15 +48,29 @@ void TextureViewer::draw() {
   ImVec2 uvExtend{zoomScale, zoomScale};
   const ImVec2 drag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Middle, 0);
   // one pixel of cursor move should pan the zoomed-in texture by one pixel
-  ImVec2 deltaOffset {-drag.x / imgSize.x * zoomScale, drag.y / imgSize.y * zoomScale};
-  // only update uvOffset when dragging ends
-  if (ImGui::IsMouseReleased(ImGuiMouseButton_Middle)) {
-    uvOffset.x += deltaOffset.x;
-    uvOffset.y += deltaOffset.y;
-    deltaOffset.x = 0;
-    deltaOffset.y = 0;
+  ImVec2 deltaOffset{-drag.x / imgSize.x * zoomScale, drag.y / imgSize.y * zoomScale};
+
+  // Only pan if drag operation starts while being hovered over the image
+  static bool dragStartedFromImage = false;
+  const ImVec2 pMin = ImGui::GetCursorScreenPos();
+  const ImVec2 pMax = {pMin.x + imgSize.x, pMin.y + imgSize.y};
+  const bool isHoveringOverImage = ImGui::IsMouseHoveringRect(pMin, pMax);
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle))
+    dragStartedFromImage = isHoveringOverImage;  
+
+  ImVec2 off = uvOffset;
+  if (dragStartedFromImage) {
+    off.x += deltaOffset.x;
+    off.y += deltaOffset.y;
+    // only update uvOffset when dragging ends
+    if (ImGui::IsMouseReleased(ImGuiMouseButton_Middle)) {
+      uvOffset.x += deltaOffset.x;
+      uvOffset.y += deltaOffset.y;
+      deltaOffset.x = 0;
+      deltaOffset.y = 0;
+      dragStartedFromImage = false;
+    }
   }
-  ImVec2 off{uvOffset.x + deltaOffset.x, uvOffset.y + deltaOffset.y};
   // top-left corner (uv0) cannot be behind (0, 0) and bottom-right corner (uv1) cannot be beyond (1, 1)
   off.x = std::min(std::max(0.f, off.x), 1.f - uvExtend.x);
   off.y = std::min(std::max(0.f, off.y), 1.f - uvExtend.y);
@@ -62,7 +78,7 @@ void TextureViewer::draw() {
   ImVec2 uv1 = {off.x + uvExtend.x, off.y + uvExtend.y};
   // flip the texture upside-down via following uv-coordinate transformation: (0, 0), (1, 1) -> (0, 1), (1, 0) 
   std::swap(uv0.y, uv1.y);
-
+  
   ImGui::Image((void*)(intptr_t)tex.getId(), imgSize, uv0, uv1, tintColor, {0.5, 0.5, 0.5, 1.0});
   ImGui::End();
 }
