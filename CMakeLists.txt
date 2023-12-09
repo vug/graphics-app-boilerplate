@@ -22,6 +22,7 @@ add_subdirectory(example-apps/05-margolus-automata-sand)
 add_subdirectory(example-apps/06-learnopengl-stencil-testing)
 add_subdirectory(example-apps/07-outlines-via-grow)
 add_subdirectory(example-apps/08-learnopengl-cubemaps)
+add_subdirectory(example-apps/09-learnopengl-shadow-mapping)
 
 file(GLOB_RECURSE ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/assets/*)
 set(WORKSHOP_ASSETS ${ASSETS} PARENT_SCOPE)
