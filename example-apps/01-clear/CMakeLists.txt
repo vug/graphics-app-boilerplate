@@ -8,7 +8,7 @@ else()
 endif()
 
 add_executable(${TARGET}
-  main.cpp "01-clear/main.cpp")
+  main.cpp)
 
 target_link_libraries(${TARGET} PRIVATE
   Workshop
