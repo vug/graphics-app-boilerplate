@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.18)
+# TODO: Use v3.28 when VS upgrades to it to use modules without experimental key
+cmake_minimum_required(VERSION 3.27)
 
 include(CheckLanguage)
 check_language(C)

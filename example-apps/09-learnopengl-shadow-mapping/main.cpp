@@ -7,15 +7,11 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vec3.hpp>
 
-// #include <implot.h>
-// #include <stb_image.h>
-// #include <tiny_obj_loader.h>
-// #include <vivid/vivid.h>
-
-#include <iostream>
+import std.core;
 
 int main() {
-  ws::Workshop workshop{800, 600, "Workshop App"};
+  std::println("Hi!");
+  ws::Workshop workshop{800, 600, "Shadow Maps"};
 
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
