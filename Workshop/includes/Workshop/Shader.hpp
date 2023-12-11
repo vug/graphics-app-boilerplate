@@ -29,6 +29,10 @@ class Shader {
   // Same for compute shaders
   Shader(const char* computeSource);
   Shader(std::filesystem::path computeShader);
+  Shader(const Shader& other) = delete;
+  Shader& operator=(const Shader& other) = delete;
+  Shader(Shader&& other) = default;
+  Shader& operator=(Shader&& other) = default;
   // Deallocate resources
   ~Shader();
 
