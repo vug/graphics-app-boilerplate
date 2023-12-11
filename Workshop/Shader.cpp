@@ -174,8 +174,7 @@ bool Shader::reload() {
 }
 
 Shader::~Shader() {
-  if (isValid())
-    detachShaders();
+  // No need to detach shaders glDeleteProgram will detach them. But also we delete shaders after compilation is completed. 
   glDeleteProgram(id);
 }
 
