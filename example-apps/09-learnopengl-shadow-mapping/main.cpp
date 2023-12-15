@@ -17,6 +17,13 @@
 import std.core;
 import std.filesystem;
 
+struct RenderableObject;
+struct CameraObject;
+//using RenderableObjectRef = std::reference_wrapper<RenderableObject>;
+//using CameraObjectRef = std::reference_wrapper<CameraObject>;
+//using VObject = std::variant<RenderableObjectRef, CameraObjectRef>;
+using VObjectPtr = std::variant<RenderableObject*, CameraObject*>;
+
 class AssetManager {
  public:
   std::unordered_map<std::string, ws::Mesh> meshes;
@@ -27,6 +34,9 @@ class AssetManager {
 struct Object {
   std::string name;
   ws::Transform transform;
+
+  VObjectPtr parent;
+  std::unordered_set<VObjectPtr> children;
 };
 
 struct RenderableObject : public Object {
@@ -39,11 +49,53 @@ struct CameraObject : public Object {
   ws::PerspectiveCamera3D camera;
 };
 
+void setParent(VObjectPtr child, VObjectPtr parent1) {
+  std::visit([&child](auto&& ptr) { ptr->children.insert(child); }, parent1);
+  std::visit([&parent1](auto&& ptr) { ptr->parent = parent1; }, child);
+}
+
 class Scene {
  public:
   std::vector<RenderableObject> renderables;
   std::vector<CameraObject> cameras;
 };
+
+// TODO: move to Common.hpp
+// helper type for the visitor #4
+template <class... Ts>
+struct overloaded : Ts... {
+  using Ts::operator()...;
+};
+// explicit deduction guide (not needed as of C++20)
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
+// TODO: Make a more generic traversal function that'll take an `overloaded` and the root
+void traverse(VObjectPtr node, int depth) {
+  const bool isNull = std::visit([](auto&& ptr) { return ptr == nullptr; }, node);
+  if (isNull)
+    return;
+
+  VObjectPtr parentNode = std::visit([](auto&& ptr) { return ptr->parent; }, node);
+  const std::string& parentName = std::visit([](auto&& ptr) { return ptr != nullptr ? ptr->name : "NO PARENT"; }, parentNode);
+
+  std::visit(overloaded{
+    [](auto arg) { throw "Unhandled VObjectPtr variant"; },
+    [&](RenderableObject* ptr) { 
+      RenderableObject& ref = *ptr;
+      std::println("{} parent {} RenderableObject name {} verts {} tr.pos.x {}", depth, parentName, ref.name, ref.mesh.meshData.vertices.size(), ref.transform.position.x);
+    },
+    [&](CameraObject* ptr) { 
+      CameraObject& ref = *ptr;
+      std::println("{} parent {} CameraObject name {} verts fov {} tr.pos.x {}", depth, parentName, ref.name, ref.camera.fov, ref.transform.position.x);
+    },
+  }, node);
+
+  const auto& children = std::visit([](auto&& ptr) { return ptr->children; }, node);
+  for (auto childPtr : children)
+    traverse(childPtr, depth + 1);
+}
+
 
 int main() {
   std::println("Hi!");
@@ -86,40 +138,36 @@ int main() {
     .renderables{ground, cube1, cube2, cube3},
     .cameras{cam1}
   };
-  cube1.parent = &ground;
+  setParent(&cube1, &ground);
+  setParent(&cube2, &ground);
+  setParent(&cube3, &cube2);
+  setParent(&cam1, &ground);
+
   ws::PerspectiveCamera3D& cam = scene.cameras[0].camera;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
   orbitingCamController.radius = 7.7f;
   orbitingCamController.theta = 0.5;
 
-  //std::vector<std::reference_wrapper<Object>> objects = {scene.renderables[0], scene.renderables[1], scene.renderables[2], scene.renderables[3], scene.cameras[0]};
-  //for (const auto& obj : objects) {
-  //  std::println("object name {}", obj.get().name);
-  //}
-  // 
-  //RenderableObject& r = reinterpret_cast<RenderableObject&>(objects[0].get());
-  //std::println("r name {} verts {}", r.name, r.mesh.meshData.vertices.size());
 
-  using RenderableObjectRef = std::reference_wrapper<RenderableObject>;
-  using CameraObjectRef = std::reference_wrapper<CameraObject>;
-  using VObject = std::variant<RenderableObjectRef, CameraObjectRef>;
-  std::vector<VObject> objects;
-  std::ranges::copy(scene.renderables, std::back_inserter(objects));
-  std::ranges::copy(scene.cameras, std::back_inserter(objects));
+  std::println("TRAVERSING HIERARCHY TREE...");
+  traverse(&ground, 0);
 
-  for (const auto& obj : objects) {
-    if (std::holds_alternative<RenderableObjectRef>(obj)) {
-      RenderableObject& ref = std::get<RenderableObjectRef>(obj).get();
+
+  std::vector<VObjectPtr> objects;
+  std::ranges::transform(scene.renderables, std::back_inserter(objects), [](auto& obj) { return &obj; });
+  std::ranges::transform(scene.cameras, std::back_inserter(objects), [](auto& obj) { return &obj; });
+  std::println("ITERATING OVER ALL OBJECTS VECTOR...");
+  for (auto objPtr : objects) {
+    if (std::holds_alternative<RenderableObject*>(objPtr)) {
+      RenderableObject& ref = *std::get<RenderableObject*>(objPtr);
       std::println("RenderableObject name {} verts {} tr.pos.x {}", ref.name, ref.mesh.meshData.vertices.size(), ref.transform.position.x);
-    }
-    else if (std::holds_alternative<CameraObjectRef>(obj)) {
-      CameraObject& ref = std::get<CameraObjectRef>(obj).get();
+    } else if (std::holds_alternative<CameraObject*>(objPtr)) {
+      CameraObject& ref = *std::get<CameraObject*>(objPtr);
       std::println("CameraObject name {} verts fov {} tr.pos.x {}", ref.name, ref.camera.fov, ref.transform.position.x);
     }
     else
       throw "unknown object type";
   }
-
 
   glEnable(GL_DEPTH_TEST);
 
