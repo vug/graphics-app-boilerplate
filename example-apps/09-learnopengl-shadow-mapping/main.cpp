@@ -19,10 +19,11 @@ import std.filesystem;
 
 struct RenderableObject;
 struct CameraObject;
+struct DummyObject;
 //using RenderableObjectRef = std::reference_wrapper<RenderableObject>;
 //using CameraObjectRef = std::reference_wrapper<CameraObject>;
 //using VObject = std::variant<RenderableObjectRef, CameraObjectRef>;
-using VObjectPtr = std::variant<RenderableObject*, CameraObject*>;
+using VObjectPtr = std::variant<DummyObject*, RenderableObject*, CameraObject*>;
 
 class AssetManager {
  public:
@@ -38,6 +39,8 @@ struct Object {
   VObjectPtr parent;
   std::unordered_set<VObjectPtr> children;
 };
+
+struct DummyObject : public Object {};
 
 struct RenderableObject : public Object {
   ws::Mesh& mesh;
@@ -56,6 +59,7 @@ void setParent(VObjectPtr child, VObjectPtr parent1) {
 
 class Scene {
  public:
+  DummyObject root{"SceneRoot", {glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{1, 1, 1}}};
   std::vector<RenderableObject> renderables;
   std::vector<CameraObject> cameras;
 };
@@ -77,10 +81,13 @@ void traverse(VObjectPtr node, int depth) {
     return;
 
   VObjectPtr parentNode = std::visit([](auto&& ptr) { return ptr->parent; }, node);
-  const std::string& parentName = std::visit([](auto&& ptr) { return ptr != nullptr ? ptr->name : "NO PARENT"; }, parentNode);
+  const std::string& parentName = std::visit([](auto&& ptr) { return ptr != nullptr ? ptr->name : "NO_PARENT"; }, parentNode);
 
   std::visit(overloaded{
     [](auto arg) { throw "Unhandled VObjectPtr variant"; },
+    [&](DummyObject* ptr) { 
+      std::println("{} parent {} DummyObject name {}", depth, parentName, ptr->name);
+    },
     [&](RenderableObject* ptr) { 
       RenderableObject& ref = *ptr;
       std::println("{} parent {} RenderableObject name {} verts {} tr.pos.x {}", depth, parentName, ref.name, ref.mesh.meshData.vertices.size(), ref.transform.position.x);
@@ -138,20 +145,19 @@ int main() {
     .renderables{ground, cube1, cube2, cube3},
     .cameras{cam1}
   };
-  setParent(&cube1, &ground);
-  setParent(&cube2, &ground);
-  setParent(&cube3, &cube2);
-  setParent(&cam1, &ground);
+  setParent(&ground, &scene.root);
+  setParent(&cube1, &scene.root);
+  setParent(&cube2, &scene.root);
+  setParent(&cube3, &scene.root);
+  setParent(&cam1, &scene.root);
 
   ws::PerspectiveCamera3D& cam = scene.cameras[0].camera;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
   orbitingCamController.radius = 7.7f;
   orbitingCamController.theta = 0.5;
 
-
   std::println("TRAVERSING HIERARCHY TREE...");
-  traverse(&ground, 0);
-
+  traverse(&scene.root, 0);
 
   std::vector<VObjectPtr> objects;
   std::ranges::transform(scene.renderables, std::back_inserter(objects), [](auto& obj) { return &obj; });
