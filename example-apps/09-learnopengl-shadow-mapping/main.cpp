@@ -25,35 +25,6 @@ class AssetManager {
   std::unordered_map<std::string, ws::Shader> shaders;
 };
 
-// TODO: Make a more generic traversal function that'll take an `overloaded` and the root
-void traverse(ws::VObjectPtr node, int depth) {
-  const bool isNull = std::visit([](auto&& ptr) { return ptr == nullptr; }, node);
-  if (isNull)
-    return;
-
-  ws::VObjectPtr parentNode = std::visit([](auto&& ptr) { return ptr->parent; }, node);
-  const std::string& parentName = std::visit([](auto&& ptr) { return ptr != nullptr ? ptr->name : "NO_PARENT"; }, parentNode);
-
-  std::visit(overloaded{
-    [](auto arg) { throw "Unhandled VObjectPtr variant"; },
-    [&](ws::DummyObject* ptr) { 
-      std::println("{} parent {} DummyObject name {}", depth, parentName, ptr->name);
-    },
-    [&](ws::RenderableObject* ptr) { 
-      ws::RenderableObject& ref = *ptr;
-      std::println("{} parent {} RenderableObject name {} verts {} tr.pos.x {}", depth, parentName, ref.name, ref.mesh.meshData.vertices.size(), ref.transform.position.x);
-    },
-    [&](ws::CameraObject* ptr) { 
-      ws::CameraObject& ref = *ptr;
-      std::println("{} parent {} CameraObject name {} verts fov {} tr.pos.x {}", depth, parentName, ref.name, ref.camera.fov, ref.transform.position.x);
-    },
-  }, node);
-
-  const auto& children = std::visit([](auto&& ptr) { return ptr->children; }, node);
-  for (auto childPtr : children)
-    traverse(childPtr, depth + 1);
-}
-
 
 int main() {
   std::println("Hi!");
@@ -108,7 +79,23 @@ int main() {
   orbitingCamController.theta = 0.5;
 
   std::println("TRAVERSING HIERARCHY TREE...");
-  traverse(&scene.root, 0);
+  traverse(&scene.root, 0, 
+    Overloaded{
+      [](auto arg) { throw "Unhandled VObjectPtr variant"; },
+      [&](ws::DummyObject* ptr) {
+        //std::println("{} parent {} DummyObject name {}", depth, parentName, ptr->name);
+        std::println("DummyObject name {}", ptr->name);
+      },
+      [&](ws::RenderableObject* ptr) {
+        ws::RenderableObject& ref = *ptr;
+        //std::println("{} parent {} RenderableObject name {} verts {} tr.pos.x {}", depth, parentName, ref.name, ref.mesh.meshData.vertices.size(), ref.transform.position.x);
+        std::println("RenderableObject name {} verts {} tr.pos.x {}", ref.name, ref.mesh.meshData.vertices.size(), ref.transform.position.x);
+      },
+      [&](ws::CameraObject* ptr) {
+        ws::CameraObject& ref = *ptr;
+        std::println("CameraObject name {} verts fov {} tr.pos.x {}", ref.name, ref.camera.fov, ref.transform.position.x);
+      },
+  });
 
   std::vector<ws::VObjectPtr> objects;
   std::ranges::transform(scene.renderables, std::back_inserter(objects), [](auto& obj) { return &obj; });
