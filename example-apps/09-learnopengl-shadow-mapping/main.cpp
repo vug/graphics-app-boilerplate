@@ -25,11 +25,6 @@ class AssetManager {
   std::unordered_map<std::string, ws::Shader> shaders;
 };
 
-void setParent(ws::VObjectPtr child, ws::VObjectPtr parent1) {
-  std::visit([&child](auto&& ptr) { ptr->children.insert(child); }, parent1);
-  std::visit([&parent1](auto&& ptr) { ptr->parent = parent1; }, child);
-}
-
 // TODO: Make a more generic traversal function that'll take an `overloaded` and the root
 void traverse(ws::VObjectPtr node, int depth) {
   const bool isNull = std::visit([](auto&& ptr) { return ptr == nullptr; }, node);
@@ -101,11 +96,11 @@ int main() {
     .renderables{ground, cube1, cube2, cube3},
     .cameras{cam1}
   };
-  setParent(&ground, &scene.root);
-  setParent(&cube1, &scene.root);
-  setParent(&cube2, &scene.root);
-  setParent(&cube3, &scene.root);
-  setParent(&cam1, &scene.root);
+  ws::setParent(&ground, &scene.root);
+  ws::setParent(&cube1, &scene.root);
+  ws::setParent(&cube2, &scene.root);
+  ws::setParent(&cube3, &scene.root);
+  ws::setParent(&cam1, &scene.root);
 
   ws::PerspectiveCamera3D& cam = scene.cameras[0].camera;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};

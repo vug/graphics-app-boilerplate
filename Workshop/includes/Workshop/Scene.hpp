@@ -40,6 +40,12 @@ struct CameraObject : public Object {
   ws::PerspectiveCamera3D camera;
 };
 
+// TODO: how can I move this into Object as a static member function
+void setParent(VObjectPtr child, VObjectPtr parent1) {
+  std::visit([&child](auto&& ptr) { ptr->children.insert(child); }, parent1);
+  std::visit([&parent1](auto&& ptr) { ptr->parent = parent1; }, child);
+}
+
 class Scene {
  public:
   DummyObject root{"SceneRoot", {glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{1, 1, 1}}};
