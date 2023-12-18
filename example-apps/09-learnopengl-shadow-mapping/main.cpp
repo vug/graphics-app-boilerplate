@@ -64,16 +64,6 @@ class Scene {
   std::vector<CameraObject> cameras;
 };
 
-// TODO: move to Common.hpp
-// helper type for the visitor #4
-template <class... Ts>
-struct overloaded : Ts... {
-  using Ts::operator()...;
-};
-// explicit deduction guide (not needed as of C++20)
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
-
 // TODO: Make a more generic traversal function that'll take an `overloaded` and the root
 void traverse(VObjectPtr node, int depth) {
   const bool isNull = std::visit([](auto&& ptr) { return ptr == nullptr; }, node);

@@ -3,6 +3,13 @@
 #include <concepts>
 #include <cstdint>
 
+
+// From https://en.cppreference.com/w/cpp/utility/variant/visit
+template <class... Ts>
+struct overloaded : Ts... {
+  using Ts::operator()...;
+};
+
 namespace ws {
 
 constexpr uint32_t INVALID = 0;
