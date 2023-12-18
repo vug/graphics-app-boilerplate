@@ -1,6 +1,7 @@
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
 #include <Workshop/Model.hpp>
+#include <Workshop/Scene.hpp>
 #include <Workshop/Shader.hpp>
 #include <Workshop/Texture.hpp>
 #include <Workshop/Transform.hpp>
@@ -17,14 +18,6 @@
 import std.core;
 import std.filesystem;
 
-struct RenderableObject;
-struct CameraObject;
-struct DummyObject;
-//using RenderableObjectRef = std::reference_wrapper<RenderableObject>;
-//using CameraObjectRef = std::reference_wrapper<CameraObject>;
-//using VObject = std::variant<RenderableObjectRef, CameraObjectRef>;
-using VObjectPtr = std::variant<DummyObject*, RenderableObject*, CameraObject*>;
-
 class AssetManager {
  public:
   std::unordered_map<std::string, ws::Mesh> meshes;
@@ -32,58 +25,31 @@ class AssetManager {
   std::unordered_map<std::string, ws::Shader> shaders;
 };
 
-struct Object {
-  std::string name;
-  ws::Transform transform;
-
-  VObjectPtr parent;
-  std::unordered_set<VObjectPtr> children;
-};
-
-struct DummyObject : public Object {};
-
-struct RenderableObject : public Object {
-  ws::Mesh& mesh;
-  ws::Shader& shader;
-  ws::Texture& texture;
-};
-
-struct CameraObject : public Object {
-  ws::PerspectiveCamera3D camera;
-};
-
-void setParent(VObjectPtr child, VObjectPtr parent1) {
+void setParent(ws::VObjectPtr child, ws::VObjectPtr parent1) {
   std::visit([&child](auto&& ptr) { ptr->children.insert(child); }, parent1);
   std::visit([&parent1](auto&& ptr) { ptr->parent = parent1; }, child);
 }
 
-class Scene {
- public:
-  DummyObject root{"SceneRoot", {glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{1, 1, 1}}};
-  std::vector<RenderableObject> renderables;
-  std::vector<CameraObject> cameras;
-};
-
 // TODO: Make a more generic traversal function that'll take an `overloaded` and the root
-void traverse(VObjectPtr node, int depth) {
+void traverse(ws::VObjectPtr node, int depth) {
   const bool isNull = std::visit([](auto&& ptr) { return ptr == nullptr; }, node);
   if (isNull)
     return;
 
-  VObjectPtr parentNode = std::visit([](auto&& ptr) { return ptr->parent; }, node);
+  ws::VObjectPtr parentNode = std::visit([](auto&& ptr) { return ptr->parent; }, node);
   const std::string& parentName = std::visit([](auto&& ptr) { return ptr != nullptr ? ptr->name : "NO_PARENT"; }, parentNode);
 
   std::visit(overloaded{
     [](auto arg) { throw "Unhandled VObjectPtr variant"; },
-    [&](DummyObject* ptr) { 
+    [&](ws::DummyObject* ptr) { 
       std::println("{} parent {} DummyObject name {}", depth, parentName, ptr->name);
     },
-    [&](RenderableObject* ptr) { 
-      RenderableObject& ref = *ptr;
+    [&](ws::RenderableObject* ptr) { 
+      ws::RenderableObject& ref = *ptr;
       std::println("{} parent {} RenderableObject name {} verts {} tr.pos.x {}", depth, parentName, ref.name, ref.mesh.meshData.vertices.size(), ref.transform.position.x);
     },
-    [&](CameraObject* ptr) { 
-      CameraObject& ref = *ptr;
+    [&](ws::CameraObject* ptr) { 
+      ws::CameraObject& ref = *ptr;
       std::println("{} parent {} CameraObject name {} verts fov {} tr.pos.x {}", depth, parentName, ref.name, ref.camera.fov, ref.transform.position.x);
     },
   }, node);
@@ -104,34 +70,34 @@ int main() {
   assetManager.textures.emplace("wood", ws::Texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
 
-  RenderableObject ground = {
-    Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{25.f, 1, 25.f}}},
+  ws::RenderableObject ground = {
+    ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{25.f, 1, 25.f}}},
     assetManager.meshes.at("quad"),
     assetManager.shaders["unlit"],
     assetManager.textures["wood"],
   };
-  RenderableObject cube1 = {
+  ws::RenderableObject cube1 = {
     {"Cube1", {glm::vec3{0, 1.5f, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
     assetManager.meshes.at("cube"),
     assetManager.shaders["unlit"],
     assetManager.textures["wood"],
   };
-  RenderableObject cube2 = {
-    Object{std::string{"Cube2"}, ws::Transform{glm::vec3{2.0f, 0.0f, 1.0f}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
+  ws::RenderableObject cube2 = {
+    ws::Object{std::string{"Cube2"}, ws::Transform{glm::vec3{2.0f, 0.0f, 1.0f}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
     assetManager.meshes.at("cube"),
     assetManager.shaders["unlit"],
     assetManager.textures["wood"],
   };
-  RenderableObject cube3 = {
-    Object{std::string{"Cube3"}, ws::Transform{glm::vec3{-1.f, 0, 2.f}, glm::normalize(glm::vec3{1.f, 0, 1.f}), glm::radians(60.f), glm::vec3{.5f, .5f, .5f}}},
+  ws::RenderableObject cube3 = {
+    ws::Object{std::string{"Cube3"}, ws::Transform{glm::vec3{-1.f, 0, 2.f}, glm::normalize(glm::vec3{1.f, 0, 1.f}), glm::radians(60.f), glm::vec3{.5f, .5f, .5f}}},
     assetManager.meshes.at("cube"),
     assetManager.shaders["unlit"],
     assetManager.textures["wood"],
   };
-  CameraObject cam1{
-    Object{std::string{"SceneCamera"}, ws::Transform{glm::vec3{0, 0, -5.f}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}}},
+  ws::CameraObject cam1{
+    ws::Object{std::string{"SceneCamera"}, ws::Transform{glm::vec3{0, 0, -5.f}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}}},
   };
-  Scene scene{
+  ws::Scene scene{
     .renderables{ground, cube1, cube2, cube3},
     .cameras{cam1}
   };
@@ -149,16 +115,16 @@ int main() {
   std::println("TRAVERSING HIERARCHY TREE...");
   traverse(&scene.root, 0);
 
-  std::vector<VObjectPtr> objects;
+  std::vector<ws::VObjectPtr> objects;
   std::ranges::transform(scene.renderables, std::back_inserter(objects), [](auto& obj) { return &obj; });
   std::ranges::transform(scene.cameras, std::back_inserter(objects), [](auto& obj) { return &obj; });
   std::println("ITERATING OVER ALL OBJECTS VECTOR...");
   for (auto objPtr : objects) {
-    if (std::holds_alternative<RenderableObject*>(objPtr)) {
-      RenderableObject& ref = *std::get<RenderableObject*>(objPtr);
+    if (std::holds_alternative<ws::RenderableObject*>(objPtr)) {
+      ws::RenderableObject& ref = *std::get<ws::RenderableObject*>(objPtr);
       std::println("RenderableObject name {} verts {} tr.pos.x {}", ref.name, ref.mesh.meshData.vertices.size(), ref.transform.position.x);
-    } else if (std::holds_alternative<CameraObject*>(objPtr)) {
-      CameraObject& ref = *std::get<CameraObject*>(objPtr);
+    } else if (std::holds_alternative<ws::CameraObject*>(objPtr)) {
+      ws::CameraObject& ref = *std::get<ws::CameraObject*>(objPtr);
       std::println("CameraObject name {} verts fov {} tr.pos.x {}", ref.name, ref.camera.fov, ref.transform.position.x);
     }
     else
