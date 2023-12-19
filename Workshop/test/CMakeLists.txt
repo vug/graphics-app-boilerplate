@@ -5,6 +5,7 @@ enable_testing()
 add_executable(${TARGET}
   WorkshopTest.hpp
   CommonTests.cpp
+  HierarchyTests.cpp
   ShaderTests.cpp
   TextureTests.cpp
   WorkshopTests.cpp

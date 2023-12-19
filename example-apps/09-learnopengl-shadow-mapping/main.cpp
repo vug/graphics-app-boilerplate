@@ -78,41 +78,6 @@ int main() {
   orbitingCamController.radius = 7.7f;
   orbitingCamController.theta = 0.5;
 
-  std::println("TRAVERSING HIERARCHY TREE...");
-  traverse(&scene.root, 0, 
-    Overloaded{
-      [](auto arg) { throw "Unhandled VObjectPtr variant"; },
-      [&](ws::DummyObject* ptr) {
-        //std::println("{} parent {} DummyObject name {}", depth, parentName, ptr->name);
-        std::println("DummyObject name {}", ptr->name);
-      },
-      [&](ws::RenderableObject* ptr) {
-        ws::RenderableObject& ref = *ptr;
-        //std::println("{} parent {} RenderableObject name {} verts {} tr.pos.x {}", depth, parentName, ref.name, ref.mesh.meshData.vertices.size(), ref.transform.position.x);
-        std::println("RenderableObject name {} verts {} tr.pos.x {}", ref.name, ref.mesh.meshData.vertices.size(), ref.transform.position.x);
-      },
-      [&](ws::CameraObject* ptr) {
-        ws::CameraObject& ref = *ptr;
-        std::println("CameraObject name {} verts fov {} tr.pos.x {}", ref.name, ref.camera.fov, ref.transform.position.x);
-      },
-  });
-
-  std::vector<ws::VObjectPtr> objects;
-  std::ranges::transform(scene.renderables, std::back_inserter(objects), [](auto& obj) { return &obj; });
-  std::ranges::transform(scene.cameras, std::back_inserter(objects), [](auto& obj) { return &obj; });
-  std::println("ITERATING OVER ALL OBJECTS VECTOR...");
-  for (auto objPtr : objects) {
-    if (std::holds_alternative<ws::RenderableObject*>(objPtr)) {
-      ws::RenderableObject& ref = *std::get<ws::RenderableObject*>(objPtr);
-      std::println("RenderableObject name {} verts {} tr.pos.x {}", ref.name, ref.mesh.meshData.vertices.size(), ref.transform.position.x);
-    } else if (std::holds_alternative<ws::CameraObject*>(objPtr)) {
-      ws::CameraObject& ref = *std::get<ws::CameraObject*>(objPtr);
-      std::println("CameraObject name {} verts fov {} tr.pos.x {}", ref.name, ref.camera.fov, ref.transform.position.x);
-    }
-    else
-      throw "unknown object type";
-  }
-
   glEnable(GL_DEPTH_TEST);
 
   while (!workshop.shouldStop()) {
