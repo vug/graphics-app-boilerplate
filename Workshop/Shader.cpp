@@ -261,8 +261,8 @@ void Shader::makeNamedStringFromFile(const std::string& name, const std::filesys
   ss << file.rdbuf();
   std::string content = ss.str();
   glNamedStringARB(GL_SHADER_INCLUDE_ARB,
-                   name.length(), name.data(),
-                   content.length(), content.data());
+                   static_cast<int32_t>(name.length()), name.data(),
+                   static_cast<int32_t>(content.length()), content.data());
 }
 
 void Shader::makeNamedStringsFromFolder(const std::filesystem::path& shaderLibFolder) {

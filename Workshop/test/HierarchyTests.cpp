@@ -50,7 +50,7 @@ TEST_F(WorkshopTest, HierarchyConstruction) {
   ws::setParent(&scene.renderables[3].get(), &scene.renderables[1].get());
 
   std::vector<std::string> objectNames;
-  auto getObjectNames = [&objectNames](ws::VObjectPtr node, int depth) {
+  auto getObjectNames = [&objectNames](ws::VObjectPtr node, [[maybe_unused]] int depth) {
     // this would be easier to read/write w/o Overloaded. (See childName below). Keeping it here for demonstration only.
     std::visit(Overloaded{
                    [&](ws::DummyObject* ptr) {
