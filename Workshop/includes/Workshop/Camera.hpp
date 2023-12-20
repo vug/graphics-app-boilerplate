@@ -7,6 +7,7 @@
 #include <functional>
 #include <numbers>
 
+#pragma warning(disable : 4250)
 namespace ws {
 class ICamera {
  public:
@@ -139,3 +140,4 @@ class ManualCamera3DViewController {
   void update(const glm::vec2& cursorPos, int glfwInputButton);
 };
 }  // namespace ws
+#pragma warning(default : 4250)
