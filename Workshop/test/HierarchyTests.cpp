@@ -7,7 +7,9 @@
 #include <Workshop/Texture.hpp>
 
 #include <print>
+#include <ranges>
 #include <string>
+#include <variant>
 #include <vector>
 
 // To run all tests
@@ -39,6 +41,9 @@ TEST_F(WorkshopTest, HierarchyConstruction) {
   ws::RenderableObject cube3 = {
       ws::Object{std::string{"Cube3"}, ws::Transform{glm::vec3{-1.f, 0, 2.f}, glm::normalize(glm::vec3{1.f, 0, 1.f}), glm::radians(60.f), glm::vec3{.5f, .5f, .5f}}},
       cube, unlit, wood};
+  ws::CameraObject camera{
+      ws::Object{std::string{"MainCamera"}, ws::Transform{glm::vec3{0, 0, -5}, glm::normalize(glm::vec3{0, 1, 0}), 0, glm::vec3{1, 1, 1}}},
+  };
 
   ws::Scene scene{
       .renderables{ground, cube1, cube2, cube3},
@@ -87,4 +92,23 @@ TEST_F(WorkshopTest, HierarchyConstruction) {
       {2, "Ground", "Cube2"},
   };
   ASSERT_EQ(parentChildPairNames, expectedPairNames);
+
+  std::vector<ws::VObjectPtr> allObjects{&ground, &cube1, &cube2, &cube3, &camera};
+  std::vector<std::string> allObjectNames;
+  std::vector<std::string> allObjectTypes;
+  for (auto objPtr : allObjects) {
+    const std::string name = std::visit([](auto&& ptr) { return ptr->name; }, objPtr);
+    allObjectNames.push_back(name);
+    // Unnecessary if condition but keeping it to demonstrate std::holds_alternative<>()
+    if (std::holds_alternative<ws::RenderableObject*>(objPtr))
+      allObjectTypes.push_back("RenderableObject");
+    else if (std::holds_alternative<ws::CameraObject*>(objPtr))
+      allObjectTypes.push_back("CameraObject");
+    else
+      allObjectTypes.push_back("UnknownObject");
+  }
+
+  std::vector<std::string> expectedAllObjectNames{"Ground", "Cube1", "Cube2", "Cube3", "MainCamera"};
+  std::vector<std::string> expectedAllObjectTypes{"RenderableObject", "RenderableObject", "RenderableObject", "RenderableObject", "CameraObject"};
+  ASSERT_EQ(allObjectNames, expectedAllObjectNames);
 }
