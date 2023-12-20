@@ -73,7 +73,7 @@ int main() {
   ws::setParent(&cube3, &scene.root);
   ws::setParent(&cam1, &scene.root);
 
-  ws::PerspectiveCamera3D& cam = scene.cameras[0].camera;
+  ws::PerspectiveCamera3D& cam = scene.cameras[0].get().camera;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
   orbitingCamController.radius = 7.7f;
   orbitingCamController.theta = 0.5;
@@ -99,17 +99,17 @@ int main() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     for (auto& renderable : scene.renderables) {
-      renderable.shader.bind();
-      renderable.mesh.bind();
-      glBindTextureUnit(0, renderable.texture.getId());
-      renderable.shader.setVector3("u_CameraPos", cam.getPosition());
-      renderable.shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-      renderable.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      renderable.shader.setMatrix4("u_WorldFromObject", renderable.transform.getWorldFromObjectMatrix());
-      renderable.mesh.draw();
+      renderable.get().shader.bind();
+      renderable.get().mesh.bind();
+      glBindTextureUnit(0, renderable.get().texture.getId());
+      renderable.get().shader.setVector3("u_CameraPos", cam.getPosition());
+      renderable.get().shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+      renderable.get().shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+      renderable.get().shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
+      renderable.get().mesh.draw();
       glBindTextureUnit(0, 0);
-      renderable.mesh.unbind();
-      renderable.shader.unbind();
+      renderable.get().mesh.unbind();
+      renderable.get().shader.unbind();
     }
 
     workshop.endFrame();
