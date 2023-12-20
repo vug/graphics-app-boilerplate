@@ -40,13 +40,13 @@ TEST_F(WorkshopTest, HierarchyConstruction) {
   };
 
   ws::Scene scene{
-    .renderables{std::move(ground), std::move(cube1), std::move(cube2), std::move(cube3)},
+    .renderables{ground, cube1, cube2, cube3},
   };
 
-  ws::setParent(&scene.renderables[0], &scene.root);
-  ws::setParent(&scene.renderables[1], &scene.renderables[0]);
-  ws::setParent(&scene.renderables[2], &scene.renderables[0]);
-  ws::setParent(&scene.renderables[3], &scene.renderables[1]);
+  ws::setParent(&scene.renderables[0].get(), &scene.root);
+  ws::setParent(&scene.renderables[1].get(), &scene.renderables[0].get());
+  ws::setParent(&scene.renderables[2].get(), &scene.renderables[0].get());
+  ws::setParent(&scene.renderables[3].get(), &scene.renderables[1].get());
 
   std::vector<std::string> objectNames;
 
@@ -55,11 +55,9 @@ TEST_F(WorkshopTest, HierarchyConstruction) {
       objectNames.push_back(ptr->name);
     },
     [&](ws::RenderableObject* ptr) {
-      ws::RenderableObject& ref = *ptr;
       objectNames.push_back(ptr->name);
     },
     [&](ws::CameraObject* ptr) {
-      ws::CameraObject& ref = *ptr;
       objectNames.push_back(ptr->name);
     },
     [](auto arg) { throw "Unhandled VObjectPtr variant"; },

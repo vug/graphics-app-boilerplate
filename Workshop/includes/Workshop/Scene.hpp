@@ -50,8 +50,8 @@ void setParent(VObjectPtr child, VObjectPtr parent1) {
 class Scene {
  public:
   DummyObject root{"SceneRoot", {glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{1, 1, 1}}};
-  std::vector<RenderableObject> renderables;
-  std::vector<CameraObject> cameras;
+  std::vector<std::reference_wrapper<RenderableObject>> renderables;
+  std::vector<std::reference_wrapper<CameraObject>> cameras;
 };
 
 template <class... Ts>
@@ -60,8 +60,8 @@ void traverse(ws::VObjectPtr node, int depth, Overloaded<Ts...> ovr) {
   if (isNull)
     return;
 
-  ws::VObjectPtr parentNode = std::visit([](auto&& ptr) { return ptr->parent; }, node);
-  const std::string& parentName = std::visit([](auto&& ptr) { return ptr != nullptr ? ptr->name : "NO_PARENT"; }, parentNode);
+  //ws::VObjectPtr parentNode = std::visit([](auto&& ptr) { return ptr->parent; }, node);
+  //const std::string& parentName = std::visit([](auto&& ptr) { return ptr != nullptr ? ptr->name : "NO_PARENT"; }, parentNode);
 
   std::visit(ovr, node);
 
