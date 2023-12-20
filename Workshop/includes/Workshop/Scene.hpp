@@ -55,50 +55,17 @@ class Scene {
   std::vector<std::reference_wrapper<CameraObject>> cameras;
 };
 
-using NodeProcessor = std::function<void(ws::VObjectPtr node, ws::VObjectPtr parentNode, int depth)>;
+using NodeProcessor = std::function<void(ws::VObjectPtr node, int depth)>;
 
 void traverse(ws::VObjectPtr node, int depth, NodeProcessor processNode) {
   const bool isNull = std::visit([](auto&& ptr) { return ptr == nullptr; }, node);
   if (isNull)
     return;
 
-  ws::VObjectPtr parentNode = std::visit([](auto&& ptr) { return ptr->parent; }, node);
-  const std::string& parentName = std::visit([](auto&& ptr) { return ptr != nullptr ? ptr->name : "NO_PARENT"; }, parentNode);
-
-  processNode(node, parentNode, depth);
+  processNode(node, depth);
 
   const auto& children = std::visit([](auto&& ptr) { return ptr->children; }, node);
   for (auto childPtr : children)
     traverse(childPtr, depth + 1, processNode);
 }
-
-// Not abstracted traverse that can utilize depth and parentNode
-//void traverse(ws::VObjectPtr node, int depth) {
-//  const bool isNull = std::visit([](auto&& ptr) { return ptr == nullptr; }, node);
-//  if (isNull)
-//    return;
-//
-//  ws::VObjectPtr parentNode = std::visit([](auto&& ptr) { return ptr->parent; }, node);
-//  const std::string& parentName = std::visit([](auto&& ptr) { return ptr != nullptr ? ptr->name : "NO_PARENT"; }, parentNode);
-//
-//  std::visit(Overloaded{
-//                 [](auto arg) { throw "Unhandled VObjectPtr variant"; },
-//                 [&](ws::DummyObject* ptr) {
-//                   std::println("{} parent {} DummyObject name {}", depth, parentName, ptr->name);
-//                 },
-//                 [&](ws::RenderableObject* ptr) {
-//                   ws::RenderableObject& ref = *ptr;
-//                   std::println("{} parent {} RenderableObject name {} verts {} tr.pos.x {}", depth, parentName, ref.name, ref.mesh.meshData.vertices.size(), ref.transform.position.x);
-//                 },
-//                 [&](ws::CameraObject* ptr) {
-//                   ws::CameraObject& ref = *ptr;
-//                   std::println("{} parent {} CameraObject name {} verts fov {} tr.pos.x {}", depth, parentName, ref.name, ref.camera.fov, ref.transform.position.x);
-//                 },
-//             },
-//             node);
-//
-//  const auto& children = std::visit([](auto&& ptr) { return ptr->children; }, node);
-//  for (auto childPtr : children)
-//    traverse(childPtr, depth + 1);
-//}
 }
