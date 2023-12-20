@@ -7,6 +7,7 @@
 #include "Texture.hpp"
 #include "Transform.hpp"
 
+#include <functional>
 #include <string>
 #include <variant>
 #include <unordered_set>
@@ -54,20 +55,21 @@ class Scene {
   std::vector<std::reference_wrapper<CameraObject>> cameras;
 };
 
-template <class... Ts>
-void traverse(ws::VObjectPtr node, int depth, Overloaded<Ts...> ovr) {
+using NodeProcessor = std::function<void(ws::VObjectPtr node, ws::VObjectPtr parentNode, int depth)>;
+
+void traverse(ws::VObjectPtr node, int depth, NodeProcessor processNode) {
   const bool isNull = std::visit([](auto&& ptr) { return ptr == nullptr; }, node);
   if (isNull)
     return;
 
-  //ws::VObjectPtr parentNode = std::visit([](auto&& ptr) { return ptr->parent; }, node);
-  //const std::string& parentName = std::visit([](auto&& ptr) { return ptr != nullptr ? ptr->name : "NO_PARENT"; }, parentNode);
+  ws::VObjectPtr parentNode = std::visit([](auto&& ptr) { return ptr->parent; }, node);
+  const std::string& parentName = std::visit([](auto&& ptr) { return ptr != nullptr ? ptr->name : "NO_PARENT"; }, parentNode);
 
-  std::visit(ovr, node);
+  processNode(node, parentNode, depth);
 
   const auto& children = std::visit([](auto&& ptr) { return ptr->children; }, node);
   for (auto childPtr : children)
-    traverse(childPtr, depth + 1, ovr);
+    traverse(childPtr, depth + 1, processNode);
 }
 
 // Not abstracted traverse that can utilize depth and parentNode
