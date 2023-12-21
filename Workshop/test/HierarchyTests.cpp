@@ -62,10 +62,10 @@ TEST_F(WorkshopTest, HierarchyConstruction) {
       .renderables{ground, cube1, cube2, cube3},
   };
 
-  ws::setParent(&scene.renderables[0].get(), &scene.root);
-  ws::setParent(&scene.renderables[1].get(), &scene.renderables[0].get());
-  ws::setParent(&scene.renderables[2].get(), &scene.renderables[0].get());
-  ws::setParent(&scene.renderables[3].get(), &scene.renderables[1].get());
+  ws::setParent(&ground, &scene.root);
+  ws::setParent(&cube1, &ground);
+  ws::setParent(&cube2, &ground);
+  ws::setParent(&cube3, &cube1);
 
   std::vector<std::string> objectNames;
   auto getObjectNames = [&objectNames](ws::VObjectPtr node, [[maybe_unused]] int depth) {
