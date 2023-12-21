@@ -6,7 +6,11 @@ glm::mat4 Object::getLocalTransformMatrix() {
 }
 
 glm::mat4 Object::getGlobalTransformMatrix() {
-  return glm::mat4(1);
+  const bool hasParent = std::visit([](auto&& ptr) { return ptr != nullptr; }, parent);
+  if (!hasParent)
+    return getLocalTransformMatrix();
+
+  return getLocalTransformMatrix() * std::visit([](auto&& ptr) { return ptr->getGlobalTransformMatrix(); }, parent);
 }
 
 void setParent(VObjectPtr child, VObjectPtr parent1) {

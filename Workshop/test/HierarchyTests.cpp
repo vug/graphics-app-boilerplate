@@ -125,15 +125,27 @@ TEST_F(WorkshopTest, HierarchyConstruction) {
   std::vector<std::string> expectedAllObjectTypes{"RenderableObject", "RenderableObject", "RenderableObject", "RenderableObject", "CameraObject"};
   ASSERT_EQ(allObjectNames, expectedAllObjectNames);
 
-  for (auto objPtr : allObjects) {
-    const std::string& name = std::visit([](auto&& ptr) { return ptr->name; }, objPtr);
+  //for (auto objPtr : allObjects) {
+  //  const std::string& name = std::visit([](auto&& ptr) { return ptr->name; }, objPtr);
 
-    const glm::mat4 localTransform = std::visit([](auto&& ptr) { return ptr->getLocalTransformMatrix(); }, objPtr);
-    std::println("localTransform of {}:", name);
-    printMat4(localTransform);
+  //  const glm::mat4 localTransform = std::visit([](auto&& ptr) { return ptr->getLocalTransformMatrix(); }, objPtr);
+  //  std::println("localTransform of {}:", name);
+  //  printMat4(localTransform);
 
-    const glm::mat4 globalTransform = std::visit([](auto&& ptr) { return ptr->getGlobalTransformMatrix(); }, objPtr);
-    std::println("globalTransform of {}:", name);
-    printMat4(globalTransform);
-  }
+  //  const glm::mat4 globalTransform = std::visit([](auto&& ptr) { return ptr->getGlobalTransformMatrix(); }, objPtr);
+  //  std::println("globalTransform of {}:", name);
+  //  printMat4(globalTransform);
+  //}
+
+  ASSERT_EQ(ground.getLocalTransformMatrix(), ground.transform.getWorldFromObjectMatrix());
+  ASSERT_EQ(ground.getGlobalTransformMatrix(), ground.transform.getWorldFromObjectMatrix());
+
+  ASSERT_EQ(cube1.getLocalTransformMatrix(), cube1.transform.getWorldFromObjectMatrix());
+  ASSERT_EQ(cube1.getGlobalTransformMatrix(), cube1.transform.getWorldFromObjectMatrix() * ground.transform.getWorldFromObjectMatrix());
+
+  ASSERT_EQ(cube2.getLocalTransformMatrix(), cube2.transform.getWorldFromObjectMatrix());
+  ASSERT_EQ(cube2.getGlobalTransformMatrix(), cube2.transform.getWorldFromObjectMatrix() * ground.transform.getWorldFromObjectMatrix());
+
+  ASSERT_EQ(cube3.getLocalTransformMatrix(), cube3.transform.getWorldFromObjectMatrix());
+  ASSERT_EQ(cube3.getGlobalTransformMatrix(), cube3.transform.getWorldFromObjectMatrix() * cube1.transform.getWorldFromObjectMatrix() * ground.transform.getWorldFromObjectMatrix());
 }
