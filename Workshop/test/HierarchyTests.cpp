@@ -12,6 +12,19 @@
 #include <variant>
 #include <vector>
 
+namespace rng = std::ranges;
+
+#include <array>
+
+void printMat4(const glm::mat4 mat) {
+  std::print("{} {} {} {}\n{} {} {} {}\n{} {} {} {}\n{} {} {} {}\n",
+               mat[0][0], mat[0][1], mat[0][2], mat[0][3],
+               mat[1][0], mat[1][1], mat[1][2], mat[1][3],
+               mat[2][0], mat[2][1], mat[2][2], mat[2][3],
+               mat[3][0], mat[3][1], mat[3][2], mat[3][3]
+  );
+}
+
 // To run all tests
 // cd C:\Users\veliu\repos\graphics-app-boilerplate\out\build\x64-Debug\Workshop\test
 // .\Tests.exe --gtest_filter=WorkshopTest.*
@@ -111,4 +124,16 @@ TEST_F(WorkshopTest, HierarchyConstruction) {
   std::vector<std::string> expectedAllObjectNames{"Ground", "Cube1", "Cube2", "Cube3", "MainCamera"};
   std::vector<std::string> expectedAllObjectTypes{"RenderableObject", "RenderableObject", "RenderableObject", "RenderableObject", "CameraObject"};
   ASSERT_EQ(allObjectNames, expectedAllObjectNames);
+
+  for (auto objPtr : allObjects) {
+    const std::string& name = std::visit([](auto&& ptr) { return ptr->name; }, objPtr);
+
+    const glm::mat4 localTransform = std::visit([](auto&& ptr) { return ptr->getLocalTransformMatrix(); }, objPtr);
+    std::println("localTransform of {}:", name);
+    printMat4(localTransform);
+
+    const glm::mat4 globalTransform = std::visit([](auto&& ptr) { return ptr->getGlobalTransformMatrix(); }, objPtr);
+    std::println("globalTransform of {}:", name);
+    printMat4(globalTransform);
+  }
 }

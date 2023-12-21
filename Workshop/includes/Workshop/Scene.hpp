@@ -28,6 +28,9 @@ struct Object {
 
   VObjectPtr parent;
   std::unordered_set<VObjectPtr> children;
+
+  glm::mat4 getLocalTransformMatrix();
+  glm::mat4 getGlobalTransformMatrix();
 };
 
 struct DummyObject : public Object {};
@@ -43,10 +46,7 @@ struct CameraObject : public Object {
 };
 
 // TODO: how can I move this into Object as a static member function
-void setParent(VObjectPtr child, VObjectPtr parent1) {
-  std::visit([&child](auto&& ptr) { ptr->children.insert(child); }, parent1);
-  std::visit([&parent1](auto&& ptr) { ptr->parent = parent1; }, child);
-}
+void setParent(VObjectPtr child, VObjectPtr parent1);
 
 class Scene {
  public:
@@ -56,16 +56,5 @@ class Scene {
 };
 
 using NodeProcessor = std::function<void(ws::VObjectPtr node, int depth)>;
-
-void traverse(ws::VObjectPtr node, int depth, NodeProcessor processNode) {
-  const bool isNull = std::visit([](auto&& ptr) { return ptr == nullptr; }, node);
-  if (isNull)
-    return;
-
-  processNode(node, depth);
-
-  const auto& children = std::visit([](auto&& ptr) { return ptr->children; }, node);
-  for (auto childPtr : children)
-    traverse(childPtr, depth + 1, processNode);
-}
+void traverse(ws::VObjectPtr node, int depth, NodeProcessor processNode);
 }
