@@ -247,10 +247,9 @@ inline const char* glMessageSeverityToString(GLenum severity) {
 void GLAPIENTRY OpenGLDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, [[maybe_unused]] GLsizei length, const char* message, const void* userParam) {
   // filter out non-significant error/warning codes
   if (
-      false
-      // id == 131169    //
+      id == 131218 // Program/shader state performance warning: Vertex shader in program 9 is being recompiled based on GL state.
+      // || id == 131169    //
       // || id == 131185 // Buffer object 2 (bound to GL_ELEMENT_ARRAY_BUFFER_ARB, usage hint is GL_STATIC_DRAW) will use VIDEO memory as the source for buffer object operations
-      // || id == 131218 // Program/shader state performance warning: Vertex shader in program 9 is being recompiled based on GL state.
       // || id == 131204 //
       // || id == 2      // INFO: API_ID_RECOMPILE_FRAGMENT_SHADER performance warning has been generated. Fragment shader recompiled due to state change. [ID: 2]
   )
