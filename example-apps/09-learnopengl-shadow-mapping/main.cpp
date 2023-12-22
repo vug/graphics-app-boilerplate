@@ -64,9 +64,12 @@ int main() {
   assetManager.textures.emplace("wood", ws::Texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("simpleDepth", ws::Shader{SRC / "shadow_mapping_depth.vert", SRC / "shadow_mapping_depth.frag"});
+  assetManager.shaders.emplace("depthViz", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", SRC / "depth_viz.frag"});
   // TODO: weirdly I need a move, can't emplace an FB directly
   auto fbo = ws::Framebuffer{};
   assetManager.framebuffers.emplace("shadowFBO", std::move(fbo));
+  uint32_t dummyVao;
+  glGenVertexArrays(1, &dummyVao);
 
   ws::RenderableObject ground = {
     ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{25.f, 1, 25.f}}},
@@ -173,8 +176,23 @@ int main() {
       assetManager.framebuffers.at("shadowFBO").unbind();
     };
 
+    auto visualizeDepth = [&]() {
+      glViewport(0, 0, winSize.x, winSize.y);
+      const ws::Shader& shader = assetManager.shaders.at("depthViz");
+      shader.bind();
+
+      shader.setFloat("near_plane", light.near);
+      shader.setFloat("far_plane", light.far);
+      glBindTextureUnit(0, assetManager.framebuffers.at("shadowFBO").getDepthAttachment().getId());
+      glBindVertexArray(dummyVao);
+      glDrawArrays(GL_TRIANGLES, 0, 6);
+      glBindVertexArray(0);
+      shader.unbind();
+    };
+
     drawShadowMap();
-    drawScene();
+    //drawScene();
+    visualizeDepth();
 
     textureViewer.draw();
 
