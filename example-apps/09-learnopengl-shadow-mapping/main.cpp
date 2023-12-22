@@ -18,11 +18,36 @@
 import std.core;
 import std.filesystem;
 
+const std::filesystem::path SRC{SOURCE_DIR};
+
 class AssetManager {
  public:
   std::unordered_map<std::string, ws::Mesh> meshes;
   std::unordered_map<std::string, ws::Texture> textures;
   std::unordered_map<std::string, ws::Shader> shaders;
+};
+
+struct DirectionalLight {
+  glm::vec3 position{};
+  glm::vec3 target{};
+  // Shadow Parameters
+  uint32_t shadowWidth = 1024;
+  uint32_t shadowHeight = 1024;
+  float side = 10.f;
+  float near = 1.0f;
+  float far = 7.5f;
+
+  glm::mat4 getProjection() const {
+    return glm::ortho(-side, side, -side, side, near, far);
+  }
+
+  glm::mat4 getView() const {
+    return glm::lookAt(position, target, glm::vec3{0, 1, 0});
+  }
+
+  glm::mat4 getLightSpaceMatrix() const {
+    return getProjection() * getView();
+  }
 };
 
 
@@ -35,6 +60,7 @@ int main() {
   assetManager.meshes.emplace("quad", ws::Mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/quad.obj")});
   assetManager.textures.emplace("wood", ws::Texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
+  assetManager.shaders.emplace("simpleDepth", ws::Shader{SRC / "shadow_mapping_depth.vert", SRC / "shadow_mapping_depth.frag"});
 
   ws::RenderableObject ground = {
     ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{25.f, 1, 25.f}}},
@@ -78,12 +104,14 @@ int main() {
   orbitingCamController.radius = 7.7f;
   orbitingCamController.theta = 0.5;
 
+  DirectionalLight light;
+  light.position = {-2.f, 4.f, -1.f};
+
   glEnable(GL_DEPTH_TEST);
 
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
     const glm::uvec2 winSize = workshop.getWindowSize();
-    glViewport(0, 0, winSize.x, winSize.y);
 
     workshop.imGuiDrawAppWindow();
 
@@ -98,21 +126,32 @@ int main() {
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (auto& renderable : scene.renderables) {
-      renderable.get().shader.bind();
-      renderable.get().mesh.bind();
-      glBindTextureUnit(0, renderable.get().texture.getId());
-      renderable.get().shader.setVector3("u_CameraPos", cam.getPosition());
-      renderable.get().shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-      renderable.get().shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      renderable.get().shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-      renderable.get().mesh.draw();
-      glBindTextureUnit(0, 0);
-      renderable.get().mesh.unbind();
-      renderable.get().shader.unbind();
-    }
+    auto drawScene = [&]() {
+      glViewport(0, 0, winSize.x, winSize.y);
+      for (auto& renderable : scene.renderables) {
+        renderable.get().shader.bind();
+        renderable.get().mesh.bind();
+        glBindTextureUnit(0, renderable.get().texture.getId());
+        renderable.get().shader.setVector3("u_CameraPos", cam.getPosition());
+        renderable.get().shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+        renderable.get().shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+        renderable.get().shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
+        renderable.get().mesh.draw();
+        glBindTextureUnit(0, 0);
+        renderable.get().mesh.unbind();
+        renderable.get().shader.unbind();
+      }
+    };
+
+    auto drawShadowMap = [&]() {
+      glViewport(0, 0, light.shadowWidth, light.shadowHeight);
+    };
+
+    drawScene();
 
     workshop.endFrame();
   }
+
+  std::println("Bye!");
   return 0;
 }
