@@ -1,10 +1,12 @@
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
+#include <Workshop/Framebuffer.hpp>
 #include <Workshop/Model.hpp>
 #include <Workshop/Scene.hpp>
 #include <Workshop/Shader.hpp>
 #include <Workshop/Texture.hpp>
 #include <Workshop/Transform.hpp>
+#include <Workshop/UI.hpp>
 #include <Workshop/Workshop.hpp>
 
 #include <glad/gl.h>
@@ -24,6 +26,7 @@ class AssetManager {
  public:
   std::unordered_map<std::string, ws::Mesh> meshes;
   std::unordered_map<std::string, ws::Texture> textures;
+  std::unordered_map<std::string, ws::Framebuffer> framebuffers;
   std::unordered_map<std::string, ws::Shader> shaders;
 };
 
@@ -61,6 +64,9 @@ int main() {
   assetManager.textures.emplace("wood", ws::Texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("simpleDepth", ws::Shader{SRC / "shadow_mapping_depth.vert", SRC / "shadow_mapping_depth.frag"});
+  // TODO: weirdly I need a move, can't emplace an FB directly
+  auto fbo = ws::Framebuffer{};
+  assetManager.framebuffers.emplace("shadowFBO", std::move(fbo));
 
   ws::RenderableObject ground = {
     ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{25.f, 1, 25.f}}},
@@ -106,6 +112,10 @@ int main() {
 
   DirectionalLight light;
   light.position = {-2.f, 4.f, -1.f};
+  assetManager.framebuffers.at("shadowFBO").resizeIfNeeded(light.shadowWidth, light.shadowHeight);
+
+  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{assetManager.framebuffers.at("shadowFBO").getFirstColorAttachment(), assetManager.framebuffers.at("shadowFBO").getDepthAttachment()};
+  ws::TextureViewer textureViewer{texRefs};
 
   glEnable(GL_DEPTH_TEST);
 
@@ -145,9 +155,28 @@ int main() {
 
     auto drawShadowMap = [&]() {
       glViewport(0, 0, light.shadowWidth, light.shadowHeight);
+      assetManager.framebuffers.at("shadowFBO").bind();
+      assetManager.shaders.at("simpleDepth").bind();
+      glClearColor(0, 0, 0, 1);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      // cam.getProjectionFromView() * cam.getViewFromWorld() to see from camera's perspective
+      assetManager.shaders.at("simpleDepth").setMatrix4("u_LightSpaceMatrix", light.getLightSpaceMatrix());
+
+      for (auto& renderable : scene.renderables) {
+        renderable.get().mesh.bind();
+        assetManager.shaders.at("simpleDepth").setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
+        renderable.get().mesh.draw();
+        renderable.get().mesh.unbind();
+      }
+
+      assetManager.shaders.at("simpleDepth").unbind();
+      assetManager.framebuffers.at("shadowFBO").unbind();
     };
 
+    drawShadowMap();
     drawScene();
+
+    textureViewer.draw();
 
     workshop.endFrame();
   }
