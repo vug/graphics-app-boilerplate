@@ -52,6 +52,10 @@ Texture& Framebuffer::getFirstColorAttachment() {
   return colorAttachments.front();
 }
 
+Texture& Framebuffer::getDepthAttachment() {
+  return depthStencilAttachment;
+}
+
 void Framebuffer::resizeIfNeeded(uint32_t w, uint32_t h) {
   if (width == w && height == h)
     return;

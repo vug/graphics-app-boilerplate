@@ -13,6 +13,10 @@ class Framebuffer {
   Framebuffer(uint32_t width, uint32_t height);
   // Default Framebuffer of size 1x1
   Framebuffer();
+  Framebuffer(const Framebuffer& other) = delete;
+  Framebuffer& operator=(const Framebuffer& other) = delete;
+  Framebuffer(Framebuffer&& other) = default;
+  Framebuffer& operator=(Framebuffer&& other) = default;
   ~Framebuffer();
 
   uint32_t getId() const { return id; }
@@ -20,6 +24,7 @@ class Framebuffer {
   void unbind() const;
   std::vector<Texture>& getColorAttachments();
   Texture& getFirstColorAttachment();
+  Texture& getDepthAttachment();
   // TODO: add recreateIfNeeded(uint32_t width, uint32_t height) method, for MSAA change
   void resizeIfNeeded(uint32_t width, uint32_t height);
 
