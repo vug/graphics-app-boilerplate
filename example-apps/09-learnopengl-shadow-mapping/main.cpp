@@ -64,6 +64,7 @@ int main() {
   assetManager.textures.emplace("wood", ws::Texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("simpleDepth", ws::Shader{SRC / "shadow_mapping_depth.vert", SRC / "shadow_mapping_depth.frag"});
+  assetManager.shaders.emplace("phongShadowed", ws::Shader{SRC / "phong_shadowed.vert", SRC / "phong_shadowed.frag"});
   assetManager.shaders.emplace("depthViz", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", SRC / "depth_viz.frag"});
   // TODO: weirdly I need a move, can't emplace an FB directly
   ws::Framebuffer fbo{1, 1, false};
@@ -72,27 +73,27 @@ int main() {
   glGenVertexArrays(1, &dummyVao);
 
   ws::RenderableObject ground = {
-    ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{25.f, 1, 25.f}}},
+    ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{25.f, 1, 25.f}}},
     assetManager.meshes.at("quad"),
-    assetManager.shaders["unlit"],
+    assetManager.shaders["phongShadowed"],
     assetManager.textures["wood"],
   };
   ws::RenderableObject cube1 = {
     {"Cube1", {glm::vec3{0, 1.5f, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
     assetManager.meshes.at("cube"),
-    assetManager.shaders["unlit"],
+    assetManager.shaders["phongShadowed"],
     assetManager.textures["wood"],
   };
   ws::RenderableObject cube2 = {
     ws::Object{std::string{"Cube2"}, ws::Transform{glm::vec3{2.0f, 0.0f, 1.0f}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
     assetManager.meshes.at("cube"),
-    assetManager.shaders["unlit"],
+    assetManager.shaders["phongShadowed"],
     assetManager.textures["wood"],
   };
   ws::RenderableObject cube3 = {
     ws::Object{std::string{"Cube3"}, ws::Transform{glm::vec3{-1.f, 0, 2.f}, glm::normalize(glm::vec3{1.f, 0, 1.f}), glm::radians(60.f), glm::vec3{.5f, .5f, .5f}}},
     assetManager.meshes.at("cube"),
-    assetManager.shaders["unlit"],
+    assetManager.shaders["phongShadowed"],
     assetManager.textures["wood"],
   };
   ws::CameraObject cam1{
@@ -142,26 +143,30 @@ int main() {
     auto drawScene = [&]() {
       glViewport(0, 0, winSize.x, winSize.y);
       for (auto& renderable : scene.renderables) {
-        renderable.get().shader.bind();
+        ws::Shader& shader = renderable.get().shader;
+        shader.bind();
         renderable.get().mesh.bind();
         glBindTextureUnit(0, renderable.get().texture.getId());
-        renderable.get().shader.setVector3("u_CameraPos", cam.getPosition());
-        renderable.get().shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-        renderable.get().shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-        renderable.get().shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
+        glBindTextureUnit(1, assetManager.framebuffers.at("shadowFBO").getDepthAttachment().getId());
+        shader.setVector3("u_CameraPos", cam.getPosition());
+        shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+        shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+        shader.setMatrix4("u_LightSpaceMatrix", light.getLightSpaceMatrix());
+        shader.setVector3("u_LightPos", light.position);
+        shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
         renderable.get().mesh.draw();
         glBindTextureUnit(0, 0);
+        glBindTextureUnit(1, 0);
         renderable.get().mesh.unbind();
-        renderable.get().shader.unbind();
+        shader.unbind();
       }
     };
 
     auto drawShadowMap = [&]() {
       glViewport(0, 0, light.shadowWidth, light.shadowHeight);
       assetManager.framebuffers.at("shadowFBO").bind();
+      glClear(GL_DEPTH_BUFFER_BIT);
       assetManager.shaders.at("simpleDepth").bind();
-      glClearColor(0, 0, 0, 1);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       // cam.getProjectionFromView() * cam.getViewFromWorld() to see from camera's perspective
       assetManager.shaders.at("simpleDepth").setMatrix4("u_LightSpaceMatrix", light.getLightSpaceMatrix());
 
@@ -191,8 +196,8 @@ int main() {
     };
 
     drawShadowMap();
-    //drawScene();
-    visualizeDepth();
+    drawScene();
+    //visualizeDepth();
 
     textureViewer.draw();
 

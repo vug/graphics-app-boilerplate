@@ -16,6 +16,9 @@ Framebuffer::Framebuffer(uint32_t w, uint32_t h, bool hasColor)
     // couldn't use initialize colorAttachments member without triggering Texture copy-constructor. list-initialization was especially hard
     colorAttachments.emplace_back(Texture::Specs{width, height, Texture::Format::RGBA8, Texture::Filter::Nearest, Texture::Wrap::Repeat});
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorAttachments[0].getId(), 0);
+  } else {
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
   }
 
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthStencilAttachment.getId(), 0);
