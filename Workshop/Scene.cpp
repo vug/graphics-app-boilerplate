@@ -20,8 +20,10 @@ void setParent(VObjectPtr child, VObjectPtr parent1) {
 
 void traverse(ws::VObjectPtr node, int depth, NodeProcessor processNode) {
   const bool isNull = std::visit([](auto&& ptr) { return ptr == nullptr; }, node);
-  if (isNull)
+  if (isNull) {
+    assert(false); // shouldn't encounter an null node while traversing
     return;
+  }
 
   processNode(node, depth);
 
