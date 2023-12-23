@@ -66,7 +66,7 @@ int main() {
   assetManager.shaders.emplace("simpleDepth", ws::Shader{SRC / "shadow_mapping_depth.vert", SRC / "shadow_mapping_depth.frag"});
   assetManager.shaders.emplace("depthViz", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", SRC / "depth_viz.frag"});
   // TODO: weirdly I need a move, can't emplace an FB directly
-  auto fbo = ws::Framebuffer{};
+  ws::Framebuffer fbo{1, 1, false};
   assetManager.framebuffers.emplace("shadowFBO", std::move(fbo));
   uint32_t dummyVao;
   glGenVertexArrays(1, &dummyVao);
@@ -117,7 +117,7 @@ int main() {
   light.position = {-2.f, 4.f, -1.f};
   assetManager.framebuffers.at("shadowFBO").resizeIfNeeded(light.shadowWidth, light.shadowHeight);
 
-  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{assetManager.framebuffers.at("shadowFBO").getFirstColorAttachment(), assetManager.framebuffers.at("shadowFBO").getDepthAttachment()};
+  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{assetManager.framebuffers.at("shadowFBO").getDepthAttachment()};
   ws::TextureViewer textureViewer{texRefs};
 
   glEnable(GL_DEPTH_TEST);
