@@ -20,7 +20,7 @@ void TextureViewer::draw() {
   auto items = textures 
     | std::views::transform([](const ws::Texture& tex) { return tex.getName().c_str(); }) 
     | std::ranges::to<std::vector<const char*>>();
-  ImGui::Combo("Texture", &ix, items.data(), 2);
+  ImGui::Combo("Texture", &ix, items.data(), items.size());
   const auto& tex = textures[ix].get();
   ImGui::Text("Name: %s, dim: (%d, %d)", tex.getName().c_str(), tex.specs.width, tex.specs.height);
   ImGui::Separator();
