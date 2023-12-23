@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Texture.hpp"
+#include "Scene.hpp"
 
 #include <vector>
 
@@ -13,5 +14,14 @@ class TextureViewer {
  private:
   std::vector<std::reference_wrapper<ws::Texture>> textures;
   int ix{};
+};
+
+class HierarchyWindow {
+ public:
+  HierarchyWindow(Scene& scene);
+  void draw();
+
+ private:
+  Scene& scene;
 };
 }

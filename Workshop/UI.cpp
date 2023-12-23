@@ -20,7 +20,7 @@ void TextureViewer::draw() {
   auto items = textures 
     | std::views::transform([](const ws::Texture& tex) { return tex.getName().c_str(); }) 
     | std::ranges::to<std::vector<const char*>>();
-  ImGui::Combo("Texture", &ix, items.data(), items.size());
+  ImGui::Combo("Texture", &ix, items.data(), static_cast<uint32_t>(items.size()));
   const auto& tex = textures[ix].get();
   ImGui::Text("Name: %s, dim: (%d, %d)", tex.getName().c_str(), tex.specs.width, tex.specs.height);
   ImGui::Separator();
@@ -83,4 +83,17 @@ void TextureViewer::draw() {
   ImGui::End();
 }
 
+
+HierarchyWindow::HierarchyWindow(Scene& scene)
+    : scene(scene) {}
+
+void HierarchyWindow::draw() {
+  ImGui::Begin("Hierarchy");
+
+  NodeProcessor drawHierarchy = [](VObjectPtr node, int depth) {
+    ImGui::Text("%s", std::visit([](auto&& ptr) {return ptr->name; }, node).c_str());
+  };
+  traverse(&scene.root, 0, drawHierarchy);
+  ImGui::End();
+}
 }
