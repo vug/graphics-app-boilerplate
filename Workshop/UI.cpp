@@ -90,27 +90,34 @@ HierarchyWindow::HierarchyWindow(Scene& scene)
 void HierarchyWindow::draw() {
   ImGui::Begin("Hierarchy");
 
-  struct Foo {};
+  struct NodeIdentifier {
+    std::string name;
+    int siblingId;
+  };
+  static NodeIdentifier selectedNode{"__NONE__", -1};
 
-  // ChildNo is relative to parent, and it is used to give object with same name a different id
+  // ChildNo is relative to parent. It is used to give objects with the same name different ImGui ids
   std::function<void(VObjectPtr, int, int)> drawTree = [&drawTree](VObjectPtr node, int depth, int siblingId) {
-    const bool isNull = std::visit([](auto&& ptr) { return ptr == nullptr; }, node);
-    if (isNull)
-      return;
-
     std::string nodeName = std::visit([](auto&& ptr) { return ptr->name; }, node);
     const auto& children = std::visit([](auto&& ptr) { return ptr->children; }, node);
     const bool hasChildren = !children.empty();
-    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
-    if(!hasChildren) flags |= ImGuiTreeNodeFlags_Leaf;
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;  // | ImGuiTreeNodeFlags_SpanAvailWidth;
+    if (!hasChildren)
+      flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+    if (selectedNode.name == nodeName && selectedNode.siblingId == siblingId)
+      flags |= ImGuiTreeNodeFlags_Selected;
 
-    // TreeNode works fine but puts arrow to leaves
-    if (ImGui::TreeNodeEx((void*)(intptr_t)siblingId, flags, nodeName.c_str())) {
+    // TreeNode works is easier to use but puts the arrow to leaves
+    const bool isOpen = ImGui::TreeNodeEx((void*)(intptr_t)siblingId, flags, nodeName.c_str());
+    if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+        selectedNode = {nodeName, siblingId};
+    if (isOpen) {
       int childNo = 1;
       for (auto childPtr : children)
         drawTree(childPtr, depth + 1, childNo++);
 
-      ImGui::TreePop();
+      if (hasChildren)
+        ImGui::TreePop();
     }
   };
 
