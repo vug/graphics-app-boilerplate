@@ -10,7 +10,7 @@ namespace ws {
 class Framebuffer {
  public:
   // Default Framebuffer of size (width, height) with one RGBA8 color and one 32f/8 depth-stencil attachments
-  Framebuffer(uint32_t width, uint32_t height);
+  Framebuffer(uint32_t width, uint32_t height, bool hasColor = true);
   // Default Framebuffer of size 1x1
   Framebuffer();
   Framebuffer(const Framebuffer& other) = delete;
