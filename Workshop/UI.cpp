@@ -90,10 +90,31 @@ HierarchyWindow::HierarchyWindow(Scene& scene)
 void HierarchyWindow::draw() {
   ImGui::Begin("Hierarchy");
 
-  NodeProcessor drawHierarchy = [](VObjectPtr node, int depth) {
-    ImGui::Text("%s", std::visit([](auto&& ptr) {return ptr->name; }, node).c_str());
+  struct Foo {};
+
+  // ChildNo is relative to parent, and it is used to give object with same name a different id
+  std::function<void(VObjectPtr, int, int)> drawTree = [&drawTree](VObjectPtr node, int depth, int siblingId) {
+    const bool isNull = std::visit([](auto&& ptr) { return ptr == nullptr; }, node);
+    if (isNull)
+      return;
+
+    std::string nodeName = std::visit([](auto&& ptr) { return ptr->name; }, node);
+    const auto& children = std::visit([](auto&& ptr) { return ptr->children; }, node);
+    const bool hasChildren = !children.empty();
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+    if(!hasChildren) flags |= ImGuiTreeNodeFlags_Leaf;
+
+    // TreeNode works fine but puts arrow to leaves
+    if (ImGui::TreeNodeEx((void*)(intptr_t)siblingId, flags, nodeName.c_str())) {
+      int childNo = 1;
+      for (auto childPtr : children)
+        drawTree(childPtr, depth + 1, childNo++);
+
+      ImGui::TreePop();
+    }
   };
-  traverse(&scene.root, 0, drawHierarchy);
+
+  drawTree(&scene.root, 0, 1);
   ImGui::End();
 }
 }
