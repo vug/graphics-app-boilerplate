@@ -19,7 +19,7 @@ class TextureViewer {
 class HierarchyWindow {
  public:
   HierarchyWindow(Scene& scene);
-  void draw();
+  VObjectPtr draw();
 
  private:
   Scene& scene;

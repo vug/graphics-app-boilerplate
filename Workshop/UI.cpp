@@ -87,30 +87,33 @@ void TextureViewer::draw() {
 HierarchyWindow::HierarchyWindow(Scene& scene)
     : scene(scene) {}
 
-void HierarchyWindow::draw() {
+VObjectPtr HierarchyWindow::draw() {
   ImGui::Begin("Hierarchy");
 
   struct NodeIdentifier {
     std::string name;
     int siblingId;
   };
-  static NodeIdentifier selectedNode{"__NONE__", -1};
+  static NodeIdentifier selectedNodeId{"__NONE__", -1};
+  static VObjectPtr selectedNode{};
 
   // ChildNo is relative to parent. It is used to give objects with the same name different ImGui ids
-  std::function<void(VObjectPtr, int, int)> drawTree = [&drawTree](VObjectPtr node, int depth, int siblingId) {
+  std::function<void(VObjectPtr, int, int)> drawTree = [&](VObjectPtr node, int depth, int siblingId) {
     std::string nodeName = std::visit([](auto&& ptr) { return ptr->name; }, node);
     const auto& children = std::visit([](auto&& ptr) { return ptr->children; }, node);
     const bool hasChildren = !children.empty();
     ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;  // | ImGuiTreeNodeFlags_SpanAvailWidth;
     if (!hasChildren)
       flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-    if (selectedNode.name == nodeName && selectedNode.siblingId == siblingId)
+    if (selectedNodeId.name == nodeName && selectedNodeId.siblingId == siblingId)
       flags |= ImGuiTreeNodeFlags_Selected;
 
     // TreeNode works is easier to use but puts the arrow to leaves
     const bool isOpen = ImGui::TreeNodeEx((void*)(intptr_t)siblingId, flags, nodeName.c_str());
-    if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
-        selectedNode = {nodeName, siblingId};
+    if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
+      selectedNodeId = {nodeName, siblingId};
+      selectedNode = node;
+    }
     if (isOpen) {
       int childNo = 1;
       for (auto childPtr : children)
@@ -122,6 +125,15 @@ void HierarchyWindow::draw() {
   };
 
   drawTree(&scene.root, 0, 1);
+
+  const bool isEmptyAreaClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered();
+  if (isEmptyAreaClicked) {
+    selectedNodeId = {"__NONE__", -1};
+    selectedNode = {};
+  }
+
   ImGui::End();
+
+  return selectedNode;
 }
 }
