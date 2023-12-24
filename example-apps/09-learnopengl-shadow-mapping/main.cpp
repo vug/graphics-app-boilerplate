@@ -156,6 +156,8 @@ int main() {
         shader.setMatrix4("u_LightSpaceMatrix", light.getLightSpaceMatrix());
         shader.setVector3("u_LightPos", light.position);
         shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
+        // TODO: not there yet. Positions and scale inheritence looks fine, but rotation is broken. Parent's rotation should rotate child's coordinate system.
+        //shader.setMatrix4("u_WorldFromObject", renderable.get().getGlobalTransformMatrix());
         renderable.get().mesh.draw();
         glBindTextureUnit(0, 0);
         glBindTextureUnit(1, 0);
