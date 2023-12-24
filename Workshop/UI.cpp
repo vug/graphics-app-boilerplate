@@ -151,9 +151,9 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
   ImGui::Text("%s", name.c_str());
 
   Transform& transform = std::visit([](auto&& objPtr) -> Transform& { return objPtr->transform; }, objPtr);
-  ImGui::Text("Position: %.1f %.1f, %.1f", transform.position.x, transform.position.y, transform.position.z);
-  ImGui::Text("Rotation: %.1f %.1f, %.1f, %.1f", transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w);
-  ImGui::Text("Scale: %.1f %.1f, %.1f", transform.scale.x, transform.scale.y, transform.scale.z);
+  ImGui::DragFloat3("Position", glm::value_ptr(transform.position));
+  ImGui::DragFloat4("Rotation", glm::value_ptr(transform.rotation));
+  ImGui::DragFloat3("Scale", glm::value_ptr(transform.scale));
 
   ImGui::End();
 }
