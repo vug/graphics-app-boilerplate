@@ -24,4 +24,9 @@ class HierarchyWindow {
  private:
   Scene& scene;
 };
+
+class InspectorWindow {
+ public:
+  void inspectObject(VObjectPtr objPtr);
+};
 }

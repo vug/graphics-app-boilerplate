@@ -121,6 +121,7 @@ int main() {
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{assetManager.framebuffers.at("shadowFBO").getDepthAttachment()};
   ws::TextureViewer textureViewer{texRefs};
   ws::HierarchyWindow hierarchyWindow{scene};
+  ws::InspectorWindow inspectorWindow{};
 
   glEnable(GL_DEPTH_TEST);
 
@@ -201,7 +202,8 @@ int main() {
     //visualizeDepth();
 
     textureViewer.draw();
-    hierarchyWindow.draw();
+    ws::VObjectPtr selectedObject = hierarchyWindow.draw();
+    inspectorWindow.inspectObject(selectedObject);
 
     workshop.endFrame();
   }
