@@ -220,12 +220,9 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
 
   Transform& transform = std::visit([](auto&& objPtr) -> Transform& { return objPtr->transform; }, objPtr);
   DrawVec3Control("Position", transform.position);
-  // TODO: Arrange euler angle order correctly. eulerAngles returns PitchYawRoll
-  glm::vec3 eulerDeg = glm::degrees(glm::eulerAngles(transform.rotation));
-  if (DrawVec3Control("Rotation YXZ", eulerDeg)) {
-    transform.rotation = glm::quat(glm::radians(eulerDeg));
-  }
-  //ImGui::DragFloat4("rot quat", glm::value_ptr(transform.rotation));
+  glm::vec3 eulerXyzDeg = glm::degrees(glm::eulerAngles(transform.rotation));
+  if (DrawVec3Control("Rotation", eulerXyzDeg))
+    transform.rotation = glm::quat(glm::radians(eulerXyzDeg));
   DrawVec3Control("Scale", transform.scale, 1);
 
   ImGui::End();
