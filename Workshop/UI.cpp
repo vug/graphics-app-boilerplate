@@ -225,6 +225,26 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
     transform.rotation = glm::quat(glm::radians(eulerXyzDeg));
   DrawVec3Control("Scale", transform.scale, 1);
 
+  std::visit(Overloaded{
+      [&](ws::DummyObject* ptr) {
+        ImGui::Text("Dummy");
+      },
+      [&](ws::RenderableObject* renderable) {
+        ImGui::Text("Renderable");
+        ImGui::Text("Mesh. VOA: %d, VBO: %d, IBO: %d", static_cast<uint32_t>(renderable->mesh.vertexArray), static_cast<uint32_t>(renderable->mesh.vertexBuffer), static_cast<uint32_t>(renderable->mesh.indexBuffer));
+        namespace views = std::ranges::views;
+        const auto shaderIds = std::ranges::to<std::string>(renderable->shader.getShaderIds() | views::transform([](int n) { return std::to_string(n) + " "; }) | views::join);
+        ImGui::Text("Shader. Program: %d, Shaders: %s", renderable->shader.getId(), shaderIds.c_str());
+        ImGui::Text("Texture. name: %s, id: %d", renderable->texture.getName().c_str(), renderable->texture.getId());
+      },
+      [&](ws::CameraObject* ptr) {
+        ImGui::Text("Camera");
+        
+      },
+      [](auto arg) { throw "Unhandled VObjectPtr variant"; },
+  },
+  objPtr);
+
   ImGui::End();
 }
 }
