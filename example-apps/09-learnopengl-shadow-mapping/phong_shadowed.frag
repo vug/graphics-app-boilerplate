@@ -12,6 +12,7 @@ layout(binding = 1) uniform sampler2D shadowMap;
 
 uniform vec3 u_LightPos;
 uniform vec3 u_CameraPos;
+uniform vec2 u_ShadowBias; // .x min bias, .y max bias
 
 out vec4 FragColor;
 
@@ -24,8 +25,15 @@ float ShadowCalculation(vec4 fragPosLightSpace) {
     float closestDepth = texture(shadowMap, projCoords.xy).r; 
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
+    // calculate bias (based on depth map resolution and slope)
+    vec3 normal = normalize(fs_in.Normal);
+    vec3 lightDir = normalize(u_LightPos - fs_in.FragPos);
+    const float biasMin = u_ShadowBias.x; // 0.005
+    const float biasMax = u_ShadowBias.y; // 0.05
+    float bias = max(biasMax * (1.0 - dot(normal, lightDir)), biasMin);
     // check whether current frag pos is in shadow
-    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
+    //float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
+    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
 
     return shadow;
 }
