@@ -1,10 +1,16 @@
 # Blender v2.93.1 OBJ File: ''
 # www.blender.org
 o Plane
+# quad on xz-plane
 v -0.5 0 -0.5
 v 0.5 0 -0.5
 v 0.5 0 0.5
 v -0.5 0 0.5
+# quad on xy-plane instead of xz
+#v -0.5 -0.5 0
+#v 0.5 -0.5 0
+#v 0.5 0.5 0
+#v -0.5 0.5 0
 vt 0 0
 vt 1 0
 vt 1 1

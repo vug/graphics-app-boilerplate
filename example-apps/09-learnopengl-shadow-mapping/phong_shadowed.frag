@@ -61,4 +61,5 @@ void main() {
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular) * u_LightIntensity) * color;    
     
     FragColor = vec4(lighting, 1.0);
+    //FragColor = gl_FrontFacing ? vec4(1, 0, 0, 1) : vec4(0, 0, 1, 1);
 }

@@ -75,6 +75,7 @@ int main() {
   glGenVertexArrays(1, &dummyVao);
 
   ws::RenderableObject ground = {
+    //ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{1, 0, 0}, glm::radians(-90.f), glm::vec3{25.f, 25.f, 1.f}}},
     ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{25.f, 1, 25.f}}},
     assetManager.meshes.at("quad"),
     assetManager.shaders["phongShadowed"],
@@ -118,6 +119,7 @@ int main() {
 
   DirectionalLight light;
   light.position = {-2.f, 4.f, -1.f};
+  light.intensity = 3;
   assetManager.framebuffers.at("shadowFBO").resizeIfNeeded(light.shadowWidth, light.shadowHeight);
 
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{assetManager.framebuffers.at("shadowFBO").getDepthAttachment()};
@@ -126,6 +128,9 @@ int main() {
   ws::InspectorWindow inspectorWindow{};
 
   glEnable(GL_DEPTH_TEST);
+  //glEnable(GL_CULL_FACE);
+  //glCullFace(GL_BACK);
+  //glFrontFace(GL_CCW);  
 
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
@@ -147,6 +152,8 @@ int main() {
     ImGui::DragScalar("Shadow Map Width", ImGuiDataType_U32, &light.shadowWidth, 1.0f, &minDim, &maxDim);
     ImGui::DragScalar("Shadow Map Height", ImGuiDataType_U32, &light.shadowHeight, 1.0f, &minDim, &maxDim);
     ImGui::DragFloat2("Shadow Bias", glm::value_ptr(light.shadowBias));
+    //static bool cullFrontFaces = false;
+    //ImGui::Checkbox("Cull Front Faces", &cullFrontFaces);
     ImGui::Separator();
     ImGui::End();
 
@@ -186,6 +193,7 @@ int main() {
     auto drawShadowMap = [&]() {
       glViewport(0, 0, light.shadowWidth, light.shadowHeight);
       assetManager.framebuffers.at("shadowFBO").bind();
+      //if (cullFrontFaces) glCullFace(GL_FRONT);
       glClear(GL_DEPTH_BUFFER_BIT);
       assetManager.shaders.at("simpleDepth").bind();
       // cam.getProjectionFromView() * cam.getViewFromWorld() to see from camera's perspective
@@ -199,6 +207,7 @@ int main() {
       }
 
       assetManager.shaders.at("simpleDepth").unbind();
+      //if (cullFrontFaces) glCullFace(GL_BACK);
       assetManager.framebuffers.at("shadowFBO").unbind();
     };
 
