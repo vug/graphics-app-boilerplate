@@ -226,7 +226,7 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
   DrawVec3Control("Scale", transform.scale, 1);
 
   std::visit(Overloaded{
-      [&](ws::DummyObject* ptr) {
+      [&]([[maybe_unused]] ws::DummyObject* ptr) {
         ImGui::Text("Dummy");
       },
       [&](ws::RenderableObject* renderable) {
@@ -237,9 +237,12 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
         ImGui::Text("Shader. Program: %d, Shaders: %s", renderable->shader.getId(), shaderIds.c_str());
         ImGui::Text("Texture. name: %s, id: %d", renderable->texture.getName().c_str(), renderable->texture.getId());
       },
-      [&](ws::CameraObject* ptr) {
+      [&](ws::CameraObject* cam) {
         ImGui::Text("Camera");
-        
+        ImGui::DragFloat("Near", &cam->camera.nearClip);
+        ImGui::DragFloat("Far", &cam->camera.farClip);
+        ImGui::DragFloat("Fov", &cam->camera.fov);
+        // TODO: add directional parameters
       },
       [](auto arg) { throw "Unhandled VObjectPtr variant"; },
   },

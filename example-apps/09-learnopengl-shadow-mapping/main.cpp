@@ -134,6 +134,10 @@ int main() {
     ImGui::Begin("Main");
     static glm::vec3 bgColor{144.f/255, 225.f/255, 236.f/255};
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
+    ImGui::Separator();
+    ImGui::DragFloat3("Light Pos", glm::value_ptr(light.position));
+    ImGui::DragFloat3("Light Target", glm::value_ptr(light.target));
+    ImGui::DragFloat("Light Side", &light.side);
     ImGui::End();
 
     orbitingCamController.update(0.01f);
