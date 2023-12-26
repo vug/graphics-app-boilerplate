@@ -11,6 +11,7 @@ layout(binding = 0) uniform sampler2D diffuseTexture;
 layout(binding = 1) uniform sampler2D shadowMap;
 
 uniform vec3 u_LightPos;
+uniform float u_LightIntensity;
 uniform vec3 u_CameraPos;
 uniform vec2 u_ShadowBias; // .x min bias, .y max bias
 
@@ -57,7 +58,7 @@ void main() {
     vec3 specular = spec * lightColor;    
     // calculate shadow
     float shadow = ShadowCalculation(fs_in.FragPosLightSpace);                      
-    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
+    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular) * u_LightIntensity) * color;    
     
     FragColor = vec4(lighting, 1.0);
 }

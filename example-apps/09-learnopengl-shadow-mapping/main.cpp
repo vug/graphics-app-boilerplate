@@ -33,6 +33,7 @@ class AssetManager {
 struct DirectionalLight {
   glm::vec3 position{};
   glm::vec3 target{};
+  float intensity = 1.0f;
   // Shadow Parameters
   uint32_t shadowWidth = 1024;
   uint32_t shadowHeight = 1024;
@@ -136,14 +137,17 @@ int main() {
     static glm::vec3 bgColor{144.f/255, 225.f/255, 236.f/255};
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
-    ImGui::DragFloat3("Light Pos", glm::value_ptr(light.position));
-    ImGui::DragFloat3("Light Target", glm::value_ptr(light.target));
-    ImGui::DragFloat("Light Side", &light.side);
+    ImGui::Text("Light");
+    ImGui::DragFloat3("Position", glm::value_ptr(light.position));
+    ImGui::DragFloat3("Target", glm::value_ptr(light.target));
+    ImGui::DragFloat("Intensity", &light.intensity);
+    ImGui::DragFloat("Shadow Frustrum Side", &light.side);
     uint32_t minDim = 16;
     uint32_t maxDim = 4096;
     ImGui::DragScalar("Shadow Map Width", ImGuiDataType_U32, &light.shadowWidth, 1.0f, &minDim, &maxDim);
     ImGui::DragScalar("Shadow Map Height", ImGuiDataType_U32, &light.shadowHeight, 1.0f, &minDim, &maxDim);
     ImGui::DragFloat2("Shadow Bias", glm::value_ptr(light.shadowBias));
+    ImGui::Separator();
     ImGui::End();
 
     assetManager.framebuffers.at("shadowFBO").resizeIfNeeded(light.shadowWidth, light.shadowHeight);
@@ -166,6 +170,7 @@ int main() {
         shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
         shader.setMatrix4("u_LightSpaceMatrix", light.getLightSpaceMatrix());
         shader.setVector3("u_LightPos", light.position);
+        shader.setFloat("u_LightIntensity", light.intensity);
         shader.setVector2("u_ShadowBias", light.shadowBias);
         shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
         // TODO: not there yet. Positions and scale inheritence looks fine, but rotation is broken. Parent's rotation should rotate child's coordinate system.
