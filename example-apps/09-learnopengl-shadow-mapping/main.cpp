@@ -69,9 +69,15 @@ int main() {
   assetManager.shaders.emplace("simpleDepth", ws::Shader{SRC / "shadow_mapping_depth.vert", SRC / "shadow_mapping_depth.frag"});
   assetManager.shaders.emplace("phongShadowed", ws::Shader{SRC / "phong_shadowed.vert", SRC / "phong_shadowed.frag"});
   assetManager.shaders.emplace("depthViz", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", SRC / "depth_viz.frag"});
+  float shadowBorderColor[] = {1.f, 0.f, 0.f, 0.f};
+  {
   // TODO: weirdly I need a move, can't emplace an FB directly
   ws::Framebuffer fbo{1, 1, false};
+    glTextureParameteri(fbo.getDepthAttachment().getId(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTextureParameteri(fbo.getDepthAttachment().getId(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTextureParameterfv(fbo.getDepthAttachment().getId(), GL_TEXTURE_BORDER_COLOR, shadowBorderColor);
   assetManager.framebuffers.emplace("shadowFBO", std::move(fbo));
+  }
   uint32_t dummyVao;
   glGenVertexArrays(1, &dummyVao);
 
@@ -118,6 +124,7 @@ int main() {
   ws::setParent(&cube2, &scene.root);
   ws::setParent(&cube3, &scene.root);
   ws::setParent(&cam1, &scene.root);
+  ws::setParent(&axes, &scene.root);
 
   ws::PerspectiveCamera3D& cam = scene.cameras[0].get().camera;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
@@ -159,6 +166,8 @@ int main() {
     ImGui::DragScalar("Shadow Map Width", ImGuiDataType_U32, &light.shadowWidth, 1.0f, &minDim, &maxDim);
     ImGui::DragScalar("Shadow Map Height", ImGuiDataType_U32, &light.shadowHeight, 1.0f, &minDim, &maxDim);
     ImGui::DragFloat2("Shadow Bias", glm::value_ptr(light.shadowBias));
+    if (ImGui::ColorEdit4("Shadow Border Color", shadowBorderColor))
+      glTextureParameterfv(assetManager.framebuffers.at("shadowFBO").getDepthAttachment().getId(), GL_TEXTURE_BORDER_COLOR, shadowBorderColor);
     //static bool cullFrontFaces = false;
     //ImGui::Checkbox("Cull Front Faces", &cullFrontFaces);
     ImGui::Separator();
