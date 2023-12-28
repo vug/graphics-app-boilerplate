@@ -14,10 +14,16 @@ uniform vec3 u_LightPos;
 uniform float u_LightIntensity;
 uniform vec3 u_CameraPos;
 uniform vec2 u_ShadowBias; // .x min bias, .y max bias
+uniform ivec2 u_ShadowToggles = ivec2(1, 1); // .x shadow=0 outside far plane, .y Percentage Closer Filtering (PCF)
 
 out vec4 FragColor;
 
 float ShadowCalculation(vec4 fragPosLightSpace) {
+    const float biasMin = u_ShadowBias.x; // 0.005
+    const float biasMax = u_ShadowBias.y; // 0.05
+    const bool shouldShadowZeroOutsideFarPlane = bool(u_ShadowToggles.x);
+    const bool shouldDoPcf = bool(u_ShadowToggles.y);
+
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // transform to [0,1] range
@@ -29,15 +35,29 @@ float ShadowCalculation(vec4 fragPosLightSpace) {
     // calculate bias (based on depth map resolution and slope)
     vec3 normal = normalize(fs_in.Normal);
     vec3 lightDir = normalize(u_LightPos - fs_in.FragPos);
-    const float biasMin = u_ShadowBias.x; // 0.005
-    const float biasMax = u_ShadowBias.y; // 0.05
     float bias = max(biasMax * (1.0 - dot(normal, lightDir)), biasMin);
+    
     // check whether current frag pos is in shadow
-    //float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
-    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+    float shadow = 0.0;
+    if (shouldDoPcf) {
+        vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+        for(int x = -1; x <= 1; ++x)
+        {
+            for(int y = -1; y <= 1; ++y)
+            {
+                float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
+                shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
+            }    
+        }
+        shadow /= 9.0;
+    }
+    else {
+      // shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
+      shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+    }
 
     // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
-    if(projCoords.z > 1.0)
+    if(shouldShadowZeroOutsideFarPlane && projCoords.z > 1.0)
         shadow = 0.0;
 
     return shadow;

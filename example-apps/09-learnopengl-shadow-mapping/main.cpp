@@ -168,6 +168,11 @@ int main() {
     ImGui::DragFloat2("Shadow Bias", glm::value_ptr(light.shadowBias));
     if (ImGui::ColorEdit4("Shadow Border Color", shadowBorderColor))
       glTextureParameterfv(assetManager.framebuffers.at("shadowFBO").getDepthAttachment().getId(), GL_TEXTURE_BORDER_COLOR, shadowBorderColor);
+    static bool shouldShadowZeroOutsideFarPlane = true;
+    ImGui::Checkbox("Shadow=0 outside far-plane", &shouldShadowZeroOutsideFarPlane);
+    static bool shouldDoPcf = true;
+    ImGui::Checkbox("Shadow PCF", &shouldDoPcf);
+    glm::ivec2 shadowToggles{shouldShadowZeroOutsideFarPlane, shouldDoPcf};
     //static bool cullFrontFaces = false;
     //ImGui::Checkbox("Cull Front Faces", &cullFrontFaces);
     ImGui::Separator();
@@ -195,6 +200,7 @@ int main() {
         shader.setVector3("u_LightPos", light.position);
         shader.setFloat("u_LightIntensity", light.intensity);
         shader.setVector2("u_ShadowBias", light.shadowBias);
+        shader.setIntVector2("u_ShadowToggles", shadowToggles);
         shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
         // TODO: not there yet. Positions and scale inheritence looks fine, but rotation is broken. Parent's rotation should rotate child's coordinate system.
         //shader.setMatrix4("u_WorldFromObject", renderable.get().getGlobalTransformMatrix());
