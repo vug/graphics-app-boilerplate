@@ -63,6 +63,7 @@ int main() {
   AssetManager assetManager;
   assetManager.meshes.emplace("cube", ws::Mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")});
   assetManager.meshes.emplace("quad", ws::Mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/quad.obj")});
+  assetManager.meshes.emplace("axes", ws::Mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/coordinate_axes.obj")});
   assetManager.textures.emplace("wood", ws::Texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("simpleDepth", ws::Shader{SRC / "shadow_mapping_depth.vert", SRC / "shadow_mapping_depth.frag"});
@@ -74,6 +75,12 @@ int main() {
   uint32_t dummyVao;
   glGenVertexArrays(1, &dummyVao);
 
+  ws::RenderableObject axes = {
+    ws::Object{std::string{"Axes"}, ws::Transform{glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{1, 1, 1}}},
+    assetManager.meshes.at("axes"),
+    assetManager.shaders["phongShadowed"],
+    assetManager.textures["wood"],
+  };
   ws::RenderableObject ground = {
     //ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{1, 0, 0}, glm::radians(-90.f), glm::vec3{25.f, 25.f, 1.f}}},
     ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{25.f, 1, 25.f}}},
@@ -103,7 +110,7 @@ int main() {
     ws::Object{std::string{"SceneCamera"}, ws::Transform{glm::vec3{0, 0, -5.f}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}}},
   };
   ws::Scene scene{
-    .renderables{ground, cube1, cube2, cube3},
+    .renderables{ground, cube1, cube2, cube3, axes},
     .cameras{cam1}
   };
   ws::setParent(&ground, &scene.root);
