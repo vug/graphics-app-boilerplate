@@ -39,6 +39,7 @@ class Shader {
   static void dispatchCompute(uint32_t x, uint32_t y, uint32_t z);
 
   void setInteger(const char* name, const int value) const;
+  void setIntVector2(const char* name, const glm::ivec2& value) const;
   void setFloat(const char* name, const float value) const;
   void setVector2(const char* name, const glm::vec2& value) const;
   void setVector3(const char* name, const glm::vec3& value) const;

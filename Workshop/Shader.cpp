@@ -219,6 +219,11 @@ void Shader::setInteger(const char* name, const int value) const {
   glUniform1i(location, value);
 }
 
+void Shader::setIntVector2(const char* name, const glm::ivec2& value) const {
+  const int location = glGetUniformLocation(id, name);
+  glUniform2iv(location, 1, glm::value_ptr(value));
+}
+
 void Shader::setFloat(const char* name, const float value) const {
   const int location = glGetUniformLocation(id, name);
   glUniform1f(location, value);
