@@ -7,21 +7,28 @@
 #include <ranges>
 
 namespace ws {
-Framebuffer::Framebuffer(uint32_t w, uint32_t h, bool hasColor)
-    : id([this]() { uint32_t id; glGenFramebuffers(1, &id); glBindFramebuffer(GL_FRAMEBUFFER, id); return id; }()),
-      width(w),
-      height(h),
-      depthStencilAttachment{Texture::Specs{width, height, Texture::Format::Depth32fStencil8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}} {
-  if (hasColor) {
-    // couldn't use initialize colorAttachments member without triggering Texture copy-constructor. list-initialization was especially hard
-    colorAttachments.emplace_back(Texture::Specs{width, height, Texture::Format::RGBA8, Texture::Filter::Nearest, Texture::Wrap::Repeat});
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorAttachments[0].getId(), 0);
-  } else {
+Framebuffer::Framebuffer(const std::vector<Texture::Specs>& colorSpecs, std::optional<Texture::Specs> depthStencilSpecs)
+    : id([this, &colorSpecs, &depthStencilSpecs]() { 
+        assert(!colorSpecs.empty() || depthStencilSpecs.has_value()); 
+        uint32_t id; glGenFramebuffers(1, &id); glBindFramebuffer(GL_FRAMEBUFFER, id); return id; }()),
+      width([this, &colorSpecs, &depthStencilSpecs]() { return !colorSpecs.empty() ? colorSpecs[0].width : depthStencilSpecs.value().width; }()),
+      height([this, &colorSpecs, &depthStencilSpecs]() { return !colorSpecs.empty() ? colorSpecs[0].height : depthStencilSpecs.value().height; }()) {
+  for (const auto& [ix, spec] : colorSpecs | std::views::enumerate) {
+    assert(spec.width == width);
+    assert(spec.height == height);
+    colorAttachments.emplace_back(spec);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + static_cast<uint32_t>(ix), GL_TEXTURE_2D, colorAttachments[ix].getId(), 0);
+  }
+  if (depthStencilSpecs.has_value()) {
+    assert(depthStencilSpecs.value().width == width);
+    assert(depthStencilSpecs.value().height == height);
+    depthStencilAttachment.emplace(depthStencilSpecs.value());
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthStencilAttachment.value().getId(), 0);
+  }
+  if (colorAttachments.empty()) {
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
   }
-
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthStencilAttachment.value().getId(), 0);
 
   assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
   assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT);
@@ -31,6 +38,12 @@ Framebuffer::Framebuffer(uint32_t w, uint32_t h, bool hasColor)
 
   unbind();
 }
+
+Framebuffer::Framebuffer(uint32_t w, uint32_t h, bool hasColor)
+    : Framebuffer(
+        hasColor ? std::vector<Texture::Specs>{Texture::Specs{w, h, Texture::Format::RGBA8, Texture::Filter::Nearest, Texture::Wrap::Repeat}} : std::vector<Texture::Specs>{},
+        Texture::Specs{w, h, Texture::Format::Depth32fStencil8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}
+      ) {}
 
 Framebuffer::Framebuffer()
     : Framebuffer(1, 1) {}
