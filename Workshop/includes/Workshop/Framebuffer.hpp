@@ -4,6 +4,7 @@
 #include "Texture.hpp"
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace ws {
@@ -33,6 +34,6 @@ class Framebuffer {
   uint32_t width = 0;
   uint32_t height = 0;
   std::vector<Texture> colorAttachments;
-  Texture depthStencilAttachment;
+  std::optional<Texture> depthStencilAttachment;
 };
 }  // namespace ws

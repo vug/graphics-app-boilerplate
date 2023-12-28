@@ -11,7 +11,7 @@ Framebuffer::Framebuffer(uint32_t w, uint32_t h, bool hasColor)
     : id([this]() { uint32_t id; glGenFramebuffers(1, &id); glBindFramebuffer(GL_FRAMEBUFFER, id); return id; }()),
       width(w),
       height(h),
-      depthStencilAttachment{{width, height, Texture::Format::Depth32fStencil8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}} {
+      depthStencilAttachment{Texture::Specs{width, height, Texture::Format::Depth32fStencil8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}} {
   if (hasColor) {
     // couldn't use initialize colorAttachments member without triggering Texture copy-constructor. list-initialization was especially hard
     colorAttachments.emplace_back(Texture::Specs{width, height, Texture::Format::RGBA8, Texture::Filter::Nearest, Texture::Wrap::Repeat});
@@ -21,7 +21,7 @@ Framebuffer::Framebuffer(uint32_t w, uint32_t h, bool hasColor)
     glReadBuffer(GL_NONE);
   }
 
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthStencilAttachment.getId(), 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthStencilAttachment.value().getId(), 0);
 
   assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
   assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT);
@@ -58,7 +58,9 @@ Texture& Framebuffer::getFirstColorAttachment() {
 }
 
 Texture& Framebuffer::getDepthAttachment() {
-  return depthStencilAttachment;
+  assert(depthStencilAttachment.has_value());
+
+  return depthStencilAttachment.value();
 }
 
 void Framebuffer::resizeIfNeeded(uint32_t w, uint32_t h) {
@@ -68,7 +70,7 @@ void Framebuffer::resizeIfNeeded(uint32_t w, uint32_t h) {
   height = h;
   for (auto& colorAttachment : colorAttachments)
     colorAttachment.resize(width, height);
-  if (depthStencilAttachment.isValid())
-    depthStencilAttachment.resize(width, height);
+  if (depthStencilAttachment.has_value() and depthStencilAttachment.value().isValid())
+    depthStencilAttachment.value().resize(width, height);
 }
 }  // namespace ws
