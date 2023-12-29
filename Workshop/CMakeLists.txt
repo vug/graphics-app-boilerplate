@@ -37,6 +37,7 @@ target_link_libraries(${TARGET} PUBLIC
   stb
   tinyobjloader
   vivid
+  xatlas
 )
 
 # to enable `#include <Workshop/Shader.h>` in projects that depend on Workshop

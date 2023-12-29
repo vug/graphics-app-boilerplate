@@ -30,3 +30,6 @@
 [submodule "dependencies/googletest"]
 	path = dependencies/googletest
 	url = https://github.com/google/googletest.git
+[submodule "dependencies/xatlas"]
+	path = dependencies/xatlas
+	url = https://github.com/jpcy/xatlas.git
