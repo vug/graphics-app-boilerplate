@@ -244,6 +244,7 @@ DefaultMeshData loadOBJ(const std::filesystem::path& filepath) {  // taken from 
         meshData.vertices.emplace_back(
             glm::vec3{attrib.vertices[3 * vId.posIx], attrib.vertices[3 * vId.posIx + 1], attrib.vertices[3 * vId.posIx + 2]},
             objIndex.texcoord_index >= 0 ? glm::vec2{attrib.texcoords[2 * vId.texIx], attrib.texcoords[2 * vId.texIx + 1]} : glm::vec2{},
+            glm::vec2{},
             glm::vec3{attrib.normals[3 * vId.nrmIx], attrib.normals[3 * vId.nrmIx + 1], attrib.normals[3 * vId.nrmIx + 2]},
             // when there is no color info in OBJ file tinyobjloader uses white
             glm::vec4{attrib.colors[3 * vId.posIx], attrib.colors[3 * vId.posIx + 1], attrib.colors[3 * vId.posIx + 2], 1});
@@ -280,7 +281,8 @@ void Mesh::createBuffers() {
 
   allocateBuffers();
 
-  static const std::vector<int32_t> sizes = {3, 2, 3, 4, 4};
+  // See DefaultVertex. {position, uv1, uv2, normal, color, custom}
+  static const std::vector<int32_t> sizes = {3, 2, 2, 3, 4, 4};
   size_t offset = 0;
   for (uint32_t ix = 0; ix < sizes.size(); ++ix) {
     glVertexAttribPointer(ix, sizes[ix], GL_FLOAT, GL_FALSE, sizeof(DefaultVertex), (void*)offset);

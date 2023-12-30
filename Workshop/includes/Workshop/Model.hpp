@@ -13,11 +13,12 @@ namespace ws {
 struct DefaultVertex {
   glm::vec3 position{0, 0, 0};
   glm::vec2 texCoord{0, 0};
+  glm::vec2 texCoord2{0, 0};
   glm::vec3 normal{0, 0, 0};
   glm::vec4 color{1, 1, 1, 1};
   glm::vec4 custom{0, 0, 0, 0};
   // tangent
-  // custom1 (glm::vec4), custom2 (glm::ivec4)
+  // custom2 (glm::ivec4)
 };
 
 template <typename TVertex>
