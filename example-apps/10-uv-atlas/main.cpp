@@ -1,4 +1,5 @@
 #include <Workshop/Assets.hpp>
+#include <Workshop/Camera.hpp>
 #include <Workshop/Model.hpp>
 #include <Workshop/Shader.hpp>
 #include <Workshop/Workshop.hpp>
@@ -14,15 +15,22 @@
 #include <print>
 #include <vector>
 
+const std::filesystem::path SRC{SOURCE_DIR};
+
 int main()
 {
   std::println("Hi!");
-  ws::Workshop workshop{1024, 768, "UV Atlas Generator"};
+  ws::Workshop workshop{1024, 1024, "UV Atlas Generator"};
+
+  ws::Shader debugShader{SRC / "debug.vert", SRC / "debug.frag"};
+  ws::PerspectiveCamera3D cam;
+  ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
 
   ws::Mesh cube1{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")};
   uint32_t numMeshes = 1;
 
   xatlas::Atlas* atlas = xatlas::Create();
+  
   uint32_t totalVertices = 0;
   uint32_t totalFaces = 0;
   // xatlas::SetProgressCallback(atlas, ProgressCallback, &stopwatch);
@@ -88,45 +96,18 @@ int main()
   const xatlas::Mesh& mesh = atlas->meshes[0];
   for (size_t ix = 0; ix < mesh.vertexCount; ++ix) {
     const xatlas::Vertex& v = mesh.vertexArray[ix];
+    cube1.meshData.vertices[v.xref].texCoord2 = {v.uv[0] / atlas->width, v.uv[1] / atlas->height};
     std::println("origIx -> atlasIx: {:2d} -> {:2d}, uv: ({:6.1f}, {:6.1f}), atlas: {}, chart: {}", v.xref, ix, v.uv[0], v.uv[1], v.atlasIndex, v.chartIndex);
   }
-
+  cube1.uploadData();
+  
   xatlas::Destroy(atlas);
 
-  const char *vertexShader = R"(
-#version 300 es
-#extension GL_EXT_separate_shader_objects : enable
-precision mediump float;
-
-layout (location = 0) out vec3 fragColor;
-
-vec2 positions[3] = vec2[](vec2 (0.0, -0.5), vec2 (0.5, 0.5), vec2 (-0.5, 0.5));
-vec3 colors[3] = vec3[](vec3 (1.0, 0.0, 0.0), vec3 (0.0, 1.0, 0.0), vec3 (0.0, 0.0, 1.0));
-void main ()
-{
-	gl_Position = vec4 (positions[gl_VertexID], 0.0, 1.0);
-	fragColor = colors[gl_VertexID];
-}
-  )";
-
-  const char *fragmentShader = R"(
-#version 300 es
-#extension GL_EXT_separate_shader_objects : enable
-precision mediump float;
-
-layout (location = 0) in vec3 fragColor;
-layout (location = 0) out vec4 outColor;
-
-void main () { outColor = vec4 (fragColor, 1.0); }
-  )";
-  ws::Shader shader{vertexShader, fragmentShader};
-
-  // VAO binding is needed in 4.6 was not needed in 3.1
-  uint32_t vao;
-  glGenVertexArrays(1, &vao);
+  glEnable(GL_DEPTH_TEST);
 
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
+    const glm::uvec2& winSize = workshop.getWindowSize();
 
     workshop.imGuiDrawAppWindow();
 
@@ -135,15 +116,18 @@ void main () { outColor = vec4 (fragColor, 1.0); }
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::End();
 
-    glBindVertexArray(vao);
+    orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
 
+    glViewport(0, 0, winSize.x, winSize.y);
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    shader.bind();
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    shader.unbind();
-
+    debugShader.bind();
+    debugShader.setMatrix4("u_WorldFromObject", glm::mat4(1));
+    debugShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+    debugShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+    cube1.draw();
+    debugShader.unbind();
 
     workshop.endFrame();
   }
