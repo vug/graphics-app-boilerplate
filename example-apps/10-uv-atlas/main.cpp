@@ -1,7 +1,9 @@
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
+#include <Workshop/Framebuffer.hpp>
 #include <Workshop/Model.hpp>
 #include <Workshop/Shader.hpp>
+#include <Workshop/UI.hpp>
 #include <Workshop/Workshop.hpp>
 
 #include <glad/gl.h>
@@ -94,6 +96,10 @@ int main()
     cube1.meshData.vertices[v.xref].texCoord2 = {v.uv[0] / atlas->width, v.uv[1] / atlas->height};
   }
   cube1.uploadData();
+  ws::Framebuffer atlasFbo = ws::Framebuffer::makeDefaultColorOnly(atlas->width, atlas->height);
+
+  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{atlasFbo.getFirstColorAttachment()};
+  ws::TextureViewer textureViewer{texRefs};
   
   glEnable(GL_DEPTH_TEST);
 
@@ -147,13 +153,20 @@ int main()
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    atlasFbo.bind();
+    glViewport(0, 0, atlas->width, atlas->height);
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
     debugShader.bind();
     debugShader.setMatrix4("u_WorldFromObject", glm::mat4(1));
     debugShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
     debugShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
     cube1.draw();
     debugShader.unbind();
+    atlasFbo.unbind();
 
+    textureViewer.draw();
     workshop.endFrame();
   }
 
