@@ -103,7 +103,7 @@ int main()
   ws::TextureViewer textureViewer{texRefs};
   
   glEnable(GL_DEPTH_TEST);
-
+  
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
     const glm::uvec2& winSize = workshop.getWindowSize();
@@ -152,6 +152,8 @@ int main()
 
     atlasFbo.bind();
     glViewport(0, 0, atlas->width, atlas->height);
+    glDisable(GL_CULL_FACE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
     debugShader.bind();
@@ -163,6 +165,9 @@ int main()
     atlasFbo.unbind();
 
     glViewport(0, 0, winSize.x, winSize.y);
+    glEnable(GL_CULL_FACE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glCullFace(GL_BACK);
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     solidColorShader.bind();
