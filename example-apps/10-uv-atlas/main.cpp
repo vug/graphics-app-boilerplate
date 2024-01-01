@@ -29,7 +29,7 @@ int main()
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
 
   ws::Mesh cube1{ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj")};
-  ws::Shader solidColorShader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"};
+  ws::Shader solidColorShader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"};
   uint32_t numMeshes = 1;
 
   xatlas::Atlas* atlas = xatlas::Create();
@@ -169,6 +169,7 @@ int main()
     solidColorShader.setMatrix4("u_WorldFromObject", glm::mat4(1));
     solidColorShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
     solidColorShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+    solidColorShader.setVector3("u_CameraPosition", cam.getPosition());
     cube1.draw();
     solidColorShader.unbind();
 
