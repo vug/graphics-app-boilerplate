@@ -28,7 +28,8 @@ int main()
   ws::PerspectiveCamera3D cam;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
 
-  ws::Mesh cube1{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")};
+  ws::Mesh cube1{ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj")};
+  ws::Shader solidColorShader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"};
   uint32_t numMeshes = 1;
 
   xatlas::Atlas* atlas = xatlas::Create();
@@ -149,15 +150,10 @@ int main()
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
 
-    glViewport(0, 0, winSize.x, winSize.y);
-    glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     atlasFbo.bind();
     glViewport(0, 0, atlas->width, atlas->height);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
-
     debugShader.bind();
     debugShader.setMatrix4("u_WorldFromObject", glm::mat4(1));
     debugShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
@@ -165,6 +161,16 @@ int main()
     cube1.draw();
     debugShader.unbind();
     atlasFbo.unbind();
+
+    glViewport(0, 0, winSize.x, winSize.y);
+    glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    solidColorShader.bind();
+    solidColorShader.setMatrix4("u_WorldFromObject", glm::mat4(1));
+    solidColorShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+    solidColorShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+    cube1.draw();
+    solidColorShader.unbind();
 
     textureViewer.draw();
     workshop.endFrame();
