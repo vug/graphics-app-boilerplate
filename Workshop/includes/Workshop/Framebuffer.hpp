@@ -21,6 +21,10 @@ class Framebuffer {
   Framebuffer& operator=(Framebuffer&& other) = default;
   ~Framebuffer();
 
+  // factories
+  static Framebuffer makeDefaultColorOnly(uint32_t width, uint32_t height);
+  static Framebuffer makeDefaultDepthOnly(uint32_t width, uint32_t height);
+
   uint32_t getId() const { return id; }
   void bind() const;
   void unbind() const;

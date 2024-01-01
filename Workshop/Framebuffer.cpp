@@ -53,6 +53,17 @@ Framebuffer::~Framebuffer() {
   glDeleteFramebuffers(1, &id);
 }
 
+Framebuffer Framebuffer::makeDefaultColorOnly(uint32_t width, uint32_t height) {
+  const Texture::Specs defaultColorSpec{width, height, Texture::Format::RGBA8, Texture::Filter::Nearest, Texture::Wrap::Repeat};
+  const std::vector<Texture::Specs> colorSpecs = {defaultColorSpec};
+  return Framebuffer(colorSpecs, {});
+}
+
+Framebuffer Framebuffer::makeDefaultDepthOnly(uint32_t width, uint32_t height) {
+  const Texture::Specs defaultDepthSpec{width, height, Texture::Format::Depth32fStencil8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder};
+  return Framebuffer({}, {defaultDepthSpec});
+}
+
 void Framebuffer::bind() const {
   glBindFramebuffer(GL_FRAMEBUFFER, id);
 }
