@@ -77,11 +77,6 @@ int main()
   // Generate atlas.
   std::println("Generating atlas");
   xatlas::Generate(atlas);
-  std::println("   {} charts", atlas->chartCount);
-  std::println("   {} atlases", atlas->atlasCount);
-  for (uint32_t i = 0; i < atlas->atlasCount; i++)
-    std::println("      {}: {:0.2f} utilization", i, atlas->utilization[i] * 100.0f);
-  std::println("   ({}, {}) resolution", atlas->width, atlas->height);
 
   //totalVertices = 0;
   //for (uint32_t i = 0; i < atlas->meshCount; i++) {
@@ -97,12 +92,9 @@ int main()
   for (size_t ix = 0; ix < mesh.vertexCount; ++ix) {
     const xatlas::Vertex& v = mesh.vertexArray[ix];
     cube1.meshData.vertices[v.xref].texCoord2 = {v.uv[0] / atlas->width, v.uv[1] / atlas->height};
-    std::println("origIx -> atlasIx: {:2d} -> {:2d}, uv: ({:6.1f}, {:6.1f}), atlas: {}, chart: {}", v.xref, ix, v.uv[0], v.uv[1], v.atlasIndex, v.chartIndex);
   }
   cube1.uploadData();
   
-  xatlas::Destroy(atlas);
-
   glEnable(GL_DEPTH_TEST);
 
   while (!workshop.shouldStop()) {
@@ -114,6 +106,39 @@ int main()
     ImGui::Begin("Main");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
+    ImGui::Separator();
+    ImGui::Text("Atlas Info");
+    ImGui::Text("Size: (%d, %d)", atlas->width, atlas->height);
+    ImGui::Text("#charts: %d, #atlases: %d", atlas->chartCount, atlas->atlasCount);
+    for (uint32_t i = 0; i < atlas->atlasCount; i++)
+      ImGui::Text("Atlas utilization: atlas[%d]: %.2f", i, atlas->utilization[i] * 100.0f);
+    const ImVec2 tableOuterSize{0.f, 200.f};
+    if (ImGui::BeginTable("Vertices", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY, tableOuterSize)) {
+      ImGui::TableSetupColumn("origIx");
+      ImGui::TableSetupColumn("atlasIx");
+      ImGui::TableSetupColumn("texCoord");
+      ImGui::TableSetupColumn("uv");
+      ImGui::TableSetupColumn("atlas");
+      ImGui::TableSetupColumn("chart");
+      ImGui::TableHeadersRow();
+      for (size_t ix = 0; ix < mesh.vertexCount; ++ix) {
+        const xatlas::Vertex& v = mesh.vertexArray[ix];
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("%3d", v.xref);        
+        ImGui::TableNextColumn();
+        ImGui::Text("%3d", ix);
+        ImGui::TableNextColumn();
+        ImGui::Text("(%6.1f, %6.1f)", v.uv[0], v.uv[1]);
+        ImGui::TableNextColumn();
+        ImGui::Text("(%1.3f, %1.3f)", v.uv[0] / atlas->width, v.uv[1] / atlas->height);
+        ImGui::TableNextColumn();
+        ImGui::Text("%d", v.atlasIndex);
+        ImGui::TableNextColumn();
+        ImGui::Text("%d", v.chartIndex);
+      }
+      ImGui::EndTable();
+    }
     ImGui::End();
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
@@ -132,6 +157,7 @@ int main()
     workshop.endFrame();
   }
 
+  xatlas::Destroy(atlas);
   std::println("Bye!");
   return 0;
 }
