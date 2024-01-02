@@ -41,18 +41,33 @@ int main()
   assetManager.meshes.emplace("torus", ws::loadOBJ(ws::ASSETS_FOLDER / "models/torus.obj"));
   assetManager.textures.emplace("uv_grid", ws::ASSETS_FOLDER / "images/Wikipedia/UV_checker_Map_byValle.jpg");
   assetManager.textures.emplace("wood", ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg");
+  assetManager.textures.emplace("metal", ws::ASSETS_FOLDER / "images/LearnOpenGL/metal.png");
   ws::Texture whiteTex{ws::Texture::Specs{1, 1, ws::Texture::Format::RGB8, ws::Texture::Filter::Linear}};
   std::vector<uint32_t> whiteTexPixels = {0xFFFFFF};
   whiteTex.loadPixels(whiteTexPixels.data());
   assetManager.textures.emplace("white", std::move(whiteTex));
   ws::Shader mainShader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"};
 
-  ws::Scene scene;
+  ws::RenderableObject ground = {
+      {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{10.f, 0.1f, 10.f}}},
+      assetManager.meshes.at("cube"),
+      mainShader,
+      assetManager.textures["metal"],
+  };
   ws::RenderableObject monkey1 = {
       {"Monkey1", {glm::vec3{0, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
       assetManager.meshes.at("monkey"),
       mainShader,
       assetManager.textures["uv_grid"],
+  };
+  ws::RenderableObject monkey2 = {
+      {"Monkey2", {glm::vec3{3, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
+      assetManager.meshes.at("monkey"),
+      mainShader,
+      assetManager.textures["wood"],
+  };
+  ws::Scene scene{
+    .renderables{ground, monkey1, monkey2},
   };
 
   uint32_t numMeshes = 1;
@@ -196,24 +211,30 @@ int main()
     debugShader.setMatrix4("u_WorldFromObject", glm::mat4(1));
     debugShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
     debugShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+    cube1.bind();
     cube1.draw();
+    cube1.unbind();
     debugShader.unbind();
     atlasFbo.unbind();
 
     glViewport(0, 0, winSize.x, winSize.y);
     glEnable(GL_CULL_FACE);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glCullFace(GL_BACK);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     mainShader.bind();
-    mainShader.setMatrix4("u_WorldFromObject", glm::mat4(1));
     mainShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
     mainShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
     mainShader.setVector3("u_CameraPosition", cam.getPosition());
-    glBindTextureUnit(0, assetManager.textures.at("uv_grid").getId());
     glBindTextureUnit(1, assetManager.textures.at("white").getId());
-    cube1.draw();
+    for (auto& renderable : scene.renderables) {
+      mainShader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
+      glBindTextureUnit(0, renderable.get().texture.getId());
+      renderable.get().mesh.bind();
+      renderable.get().mesh.draw();
+      renderable.get().mesh.unbind();
+    }
     mainShader.unbind();
 
     textureViewer.draw();
