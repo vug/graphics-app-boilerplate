@@ -39,7 +39,22 @@ int main()
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
   assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
   assetManager.meshes.emplace("torus", ws::loadOBJ(ws::ASSETS_FOLDER / "models/torus.obj"));
+  assetManager.textures.emplace("uv_grid", ws::ASSETS_FOLDER / "images/Wikipedia/UV_checker_Map_byValle.jpg");
+  assetManager.textures.emplace("wood", ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg");
+  ws::Texture whiteTex{ws::Texture::Specs{1, 1, ws::Texture::Format::RGB8, ws::Texture::Filter::Linear}};
+  std::vector<uint32_t> whiteTexPixels = {0xFFFFFF};
+  whiteTex.loadPixels(whiteTexPixels.data());
+  assetManager.textures.emplace("white", std::move(whiteTex));
   ws::Shader mainShader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"};
+
+  ws::Scene scene;
+  ws::RenderableObject monkey1 = {
+      {"Monkey1", {glm::vec3{0, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
+      assetManager.meshes.at("monkey"),
+      mainShader,
+      assetManager.textures["uv_grid"],
+  };
+
   uint32_t numMeshes = 1;
 
   xatlas::Atlas* atlas = xatlas::Create();
@@ -169,6 +184,7 @@ int main()
     ImGui::End();
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
+    cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
     atlasFbo.bind();
     glViewport(0, 0, atlas->width, atlas->height);
@@ -195,6 +211,8 @@ int main()
     mainShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
     mainShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
     mainShader.setVector3("u_CameraPosition", cam.getPosition());
+    glBindTextureUnit(0, assetManager.textures.at("uv_grid").getId());
+    glBindTextureUnit(1, assetManager.textures.at("white").getId());
     cube1.draw();
     mainShader.unbind();
 

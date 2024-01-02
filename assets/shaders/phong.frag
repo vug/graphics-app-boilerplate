@@ -68,6 +68,9 @@ vec3 illuminate(DirectionalLight light, vec3 position, vec3 normal, vec3 eyePos,
 uniform vec3 u_CameraPosition = vec3(0, 0, -5);
 uniform PointLight pointLight = PointLight(vec3(0, 0, 3), vec3(1, 1, 1), 1.0f);
 uniform DirectionalLight directionalLight = DirectionalLight(vec3(1, 1, 1), vec3(-1, -1, -1), vec3(1, 1, 1), 0.5f);
+// Material uniforms
+layout(binding = 0) uniform sampler2D diffuseTexture;
+layout(binding = 1) uniform sampler2D specularTexture;
 
 out vec4 FragColor;
 
@@ -76,8 +79,14 @@ void main() {
 
   const vec3 surfPos = vertexData.worldPosition;
   const vec3 normal = normalize(vertexData.worldNormal);
-  vec3 directionalIllumination = illuminate(directionalLight, surfPos, normal, u_CameraPosition, specCoeff);
-  vec3 pointIllumination = illuminate(pointLight, surfPos, normal, u_CameraPosition, specCoeff);
-  //FragColor = vec4(1, 0, 0, 1);
-  FragColor = vec4(pointIllumination, 1) + vec4(directionalIllumination, 1);
+  vec3 diffuseColor = texture(diffuseTexture, vertexData.texCoord).rgb;
+  vec3 specularColor = texture(specularTexture, vertexData.texCoord).rgb;
+
+  vec3 directionalDiffuse = illuminateDiffuse(directionalLight, normal);
+  vec3 directionalSpecular = illuminateSpecular(directionalLight, surfPos, normal, u_CameraPosition, specCoeff);
+
+  vec3 pointDiffuse = illuminateDiffuse(pointLight, surfPos, normal);
+  vec3 pointSpecular = illuminateSpecular(pointLight, surfPos, normal, u_CameraPosition, specCoeff);
+  vec3 color = diffuseColor * (directionalDiffuse + pointDiffuse) + specularColor * (directionalSpecular + pointSpecular);
+  FragColor = vec4(color, 1);
 }
