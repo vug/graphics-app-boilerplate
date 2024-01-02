@@ -29,11 +29,13 @@ class AssetManager {
 int main()
 {
   std::println("Hi!");
-  ws::Workshop workshop{1024, 1024, "UV Atlas Generator"};
+  ws::Workshop workshop{1920, 1080, "UV Atlas Generation - Lightmapping"};
 
   ws::Shader debugShader{SRC / "debug.vert", SRC / "debug.frag"};
   ws::PerspectiveCamera3D cam;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
+  orbitingCamController.radius = 10.f;
+  orbitingCamController.theta = 0.3f;
 
   AssetManager assetManager;
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
@@ -49,26 +51,43 @@ int main()
   ws::Shader mainShader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"};
 
   ws::RenderableObject ground = {
-      {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{10.f, 0.1f, 10.f}}},
+      {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, 0.1f, 20.f}}},
       assetManager.meshes.at("cube"),
       mainShader,
-      assetManager.textures["metal"],
+      assetManager.textures["white"],
   };
   ws::RenderableObject monkey1 = {
-      {"Monkey1", {glm::vec3{0, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
+      {"Monkey1", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey"),
       mainShader,
       assetManager.textures["uv_grid"],
   };
   ws::RenderableObject monkey2 = {
-      {"Monkey2", {glm::vec3{3, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
+      {"Monkey2", {glm::vec3{4, 0, 1}, glm::vec3{0, 1, 0}, glm::radians(55.f), glm::vec3{1.f, 1.f, 1.f}}},
       assetManager.meshes.at("monkey"),
       mainShader,
       assetManager.textures["wood"],
   };
-  ws::Scene scene{
-    .renderables{ground, monkey1, monkey2},
+  ws::RenderableObject box = {
+      {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
+      assetManager.meshes.at("cube"),
+      mainShader,
+      assetManager.textures["wood"],
   };
+  ws::RenderableObject torus = {
+      {"Torus", {glm::vec3{1.5, 2, 3}, glm::vec3{0, 1, 1}, glm::radians(30.f), glm::vec3{1.f, 1.f, 1.f}}},
+      assetManager.meshes.at("torus"),
+      mainShader,
+      assetManager.textures["metal"],
+  };
+  ws::Scene scene{
+    .renderables{ground, monkey1, monkey2, box, torus},
+  };
+  ws::setParent(&ground, &scene.root);
+  ws::setParent(&monkey1, &scene.root);
+  ws::setParent(&monkey2, &scene.root);
+  ws::setParent(&box, &scene.root);
+  ws::setParent(&torus, &scene.root);
 
   uint32_t numMeshes = 1;
 
@@ -146,6 +165,8 @@ int main()
 
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{atlasFbo.getFirstColorAttachment()};
   ws::TextureViewer textureViewer{texRefs};
+  ws::HierarchyWindow hierarchyWindow{scene};
+  ws::InspectorWindow inspectorWindow{};
   
   glEnable(GL_DEPTH_TEST);
   
@@ -238,6 +259,8 @@ int main()
     mainShader.unbind();
 
     textureViewer.draw();
+    ws::VObjectPtr selectedObject = hierarchyWindow.draw();
+    inspectorWindow.inspectObject(selectedObject);
     workshop.endFrame();
   }
 
