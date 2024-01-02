@@ -8,14 +8,16 @@ struct VertexData {
   vec2 texCoord;
   vec2 texCoord2;
 };
-
 in VertexData v;
+
+layout(binding = 0) uniform sampler2D mainTex;
 
 out vec4 FragColor;
 
 void main() {
   const vec3 objectNormal = normalize(v.objectNormal);
   const vec3 worldNormal = normalize(v.worldNormal);
+  const vec3 texColor = texture(mainTex, v.texCoord).rgb;
 
   // objectPos
   //FragColor = vec4(v.objectPosition, 1);
@@ -30,5 +32,7 @@ void main() {
   // worldNorm
   //FragColor = vec4(worldNormal * 0.5 + 0.5, 1);
   // front-back faces
-  FragColor = gl_FrontFacing ? vec4(1, 0, 0, 1) : vec4(0, 0, 1, 1);
+  //FragColor = gl_FrontFacing ? vec4(1, 0, 0, 1) : vec4(0, 0, 1, 1);
+  // original texture
+  FragColor = vec4(texColor, 1);
 }

@@ -51,7 +51,7 @@ int main() {
       {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
       assetManager.meshes.at("cube"),
       mainShader,
-      assetManager.textures["white"],
+      assetManager.textures["wood"],
       whiteTex,
   };
   ws::RenderableObject monkey1 = {
@@ -274,7 +274,7 @@ int main() {
     atlasFbo.bind();
     glViewport(0, 0, atlas->width, atlas->height);
     glDisable(GL_CULL_FACE);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
     debugShader.bind();
@@ -282,6 +282,7 @@ int main() {
     debugShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
     debugShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
     for (auto& renderable : scene.renderables) {
+      glBindTextureUnit(0, renderable.get().texture.getId());
       const ws::Mesh& mesh = renderable.get().mesh;
       mesh.bind();
       mesh.draw();
