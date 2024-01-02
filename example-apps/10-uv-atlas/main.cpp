@@ -2,6 +2,7 @@
 #include <Workshop/Camera.hpp>
 #include <Workshop/Framebuffer.hpp>
 #include <Workshop/Model.hpp>
+#include <Workshop/Scene.hpp>
 #include <Workshop/Shader.hpp>
 #include <Workshop/UI.hpp>
 #include <Workshop/Workshop.hpp>
@@ -19,6 +20,12 @@
 
 const std::filesystem::path SRC{SOURCE_DIR};
 
+class AssetManager {
+ public:
+  std::unordered_map<std::string, ws::Mesh> meshes;
+  std::unordered_map<std::string, ws::Texture> textures;
+};
+
 int main()
 {
   std::println("Hi!");
@@ -28,8 +35,11 @@ int main()
   ws::PerspectiveCamera3D cam;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
 
-  ws::Mesh cube1{ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj")};
-  ws::Shader solidColorShader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"};
+  AssetManager assetManager;
+  assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
+  assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
+  assetManager.meshes.emplace("torus", ws::loadOBJ(ws::ASSETS_FOLDER / "models/torus.obj"));
+  ws::Shader mainShader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"};
   uint32_t numMeshes = 1;
 
   xatlas::Atlas* atlas = xatlas::Create();
@@ -37,6 +47,8 @@ int main()
   uint32_t totalVertices = 0;
   uint32_t totalFaces = 0;
   // xatlas::SetProgressCallback(atlas, ProgressCallback, &stopwatch);
+
+  ws::Mesh& cube1 = assetManager.meshes.at("monkey");
 
   xatlas::MeshDecl meshDecl;
   std::vector<float> positions;
@@ -91,13 +103,16 @@ int main()
   //std::println("   {} total vertices", totalVertices);
   //std::println("%.2f seconds (%g ms) elapsed total\n", globalStopwatch.elapsed() / 1000.0, globalStopwatch.elapsed());
 
-  const xatlas::Mesh& mesh = atlas->meshes[0];
-  for (size_t ix = 0; ix < mesh.vertexCount; ++ix) {
-    const xatlas::Vertex& v = mesh.vertexArray[ix];
-    cube1.meshData.vertices[v.xref].texCoord2 = {v.uv[0] / atlas->width, v.uv[1] / atlas->height};
-  }
-  cube1.uploadData();
-  ws::Framebuffer atlasFbo = ws::Framebuffer::makeDefaultColorOnly(atlas->width, atlas->height);
+  auto copyUV2 = [](xatlas::Atlas* atlas, ws::Mesh& sceneMesh) {
+    const xatlas::Mesh& mesh = atlas->meshes[0];
+    for (size_t ix = 0; ix < mesh.vertexCount; ++ix) {
+      const xatlas::Vertex& v = mesh.vertexArray[ix];
+      sceneMesh.meshData.vertices[v.xref].texCoord2 = {v.uv[0] / atlas->width, v.uv[1] / atlas->height};
+    }
+    sceneMesh.uploadData();
+  };
+  copyUV2(atlas, cube1);
+  ws::Framebuffer atlasFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{atlasFbo.getFirstColorAttachment()};
   ws::TextureViewer textureViewer{texRefs};
@@ -107,6 +122,7 @@ int main()
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
     const glm::uvec2& winSize = workshop.getWindowSize();
+    atlasFbo.resizeIfNeeded(atlas->width, atlas->height);
 
     workshop.imGuiDrawAppWindow();
 
@@ -114,6 +130,10 @@ int main()
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
+    if (ImGui::Button("Recalculate UV Atlas and Upload to UV2s")) {
+      xatlas::Generate(atlas);
+      copyUV2(atlas, cube1);
+    }
     ImGui::Text("Atlas Info");
     ImGui::Text("Size: (%d, %d)", atlas->width, atlas->height);
     ImGui::Text("#charts: %d, #atlases: %d", atlas->chartCount, atlas->atlasCount);
@@ -128,8 +148,8 @@ int main()
       ImGui::TableSetupColumn("atlas");
       ImGui::TableSetupColumn("chart");
       ImGui::TableHeadersRow();
-      for (size_t ix = 0; ix < mesh.vertexCount; ++ix) {
-        const xatlas::Vertex& v = mesh.vertexArray[ix];
+      for (size_t ix = 0; ix < atlas->meshes[0].vertexCount; ++ix) {
+        const xatlas::Vertex& v = atlas->meshes[0].vertexArray[ix];
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("%3d", v.xref);        
@@ -170,13 +190,13 @@ int main()
     glCullFace(GL_BACK);
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    solidColorShader.bind();
-    solidColorShader.setMatrix4("u_WorldFromObject", glm::mat4(1));
-    solidColorShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-    solidColorShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-    solidColorShader.setVector3("u_CameraPosition", cam.getPosition());
+    mainShader.bind();
+    mainShader.setMatrix4("u_WorldFromObject", glm::mat4(1));
+    mainShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+    mainShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+    mainShader.setVector3("u_CameraPosition", cam.getPosition());
     cube1.draw();
-    solidColorShader.unbind();
+    mainShader.unbind();
 
     textureViewer.draw();
     workshop.endFrame();
