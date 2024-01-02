@@ -39,6 +39,7 @@ struct RenderableObject : public Object {
   ws::Mesh& mesh;
   ws::Shader& shader;
   ws::Texture& texture;
+  ws::Texture& texture2;
 };
 
 struct CameraObject : public Object {
