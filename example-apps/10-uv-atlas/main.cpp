@@ -13,6 +13,8 @@
 #include <imgui.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vec3.hpp>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image_write.h>
 #include <xatlas.h>
 
 #include <print>
@@ -92,12 +94,10 @@ int main() {
   ws::setParent(&box, &scene.root);
   ws::setParent(&torus, &scene.root);
 
-  uint32_t numMeshes = 1;
-
   xatlas::Atlas* atlas = xatlas::Create();
   
   auto calcXAtlasMeshDecl = [](const ws::Mesh& wsMesh, const ws::Transform& transform) {
-  xatlas::MeshDecl meshDecl;
+    xatlas::MeshDecl meshDecl;
     
     size_t numVertices = wsMesh.meshData.vertices.size();
     float* positions = new float[numVertices * 3];
@@ -121,20 +121,20 @@ int main() {
         normals[3 * ix + 0] = v.normal.x;
         normals[3 * ix + 1] = v.normal.y;
         normals[3 * ix + 2] = v.normal.z;      
-  }
+      }
       texCoords[2 * ix + 0] = v.texCoord.x;
       texCoords[2 * ix + 1] = v.texCoord.y;
     }
     meshDecl.vertexCount = static_cast<uint32_t>(wsMesh.meshData.vertices.size());
     meshDecl.vertexPositionData = positions;
-  meshDecl.vertexPositionStride = sizeof(float) * 3;
+    meshDecl.vertexPositionStride = sizeof(float) * 3;
     meshDecl.vertexNormalData = normals;
-  meshDecl.vertexNormalStride = sizeof(float) * 3;
+    meshDecl.vertexNormalStride = sizeof(float) * 3;
     meshDecl.vertexUvData = texCoords;
-  meshDecl.vertexUvStride = sizeof(float) * 2;
+    meshDecl.vertexUvStride = sizeof(float) * 2;
     meshDecl.indexCount = static_cast<uint32_t>(wsMesh.meshData.indices.size());
     meshDecl.indexData = wsMesh.meshData.indices.data();
-  meshDecl.indexFormat = xatlas::IndexFormat::UInt32;
+    meshDecl.indexFormat = xatlas::IndexFormat::UInt32;
     return meshDecl;
   };
 
@@ -146,20 +146,17 @@ int main() {
   for (auto& r : scene.renderables) {
     xatlas::MeshDecl meshDecl = calcXAtlasMeshDecl(r.get().mesh, r.get().transform);
     assert(meshDecl.indexCount == static_cast<uint32_t>(r.get().mesh.meshData.indices.size()));
-  xatlas::AddMeshError error = xatlas::AddMesh(atlas, meshDecl, numMeshes);
-  if (error != xatlas::AddMeshError::Success) {
-    xatlas::Destroy(atlas);
-    std::println("rError adding mesh {}", xatlas::StringForEnum(error));
-    return EXIT_FAILURE;
-  }
-  totalVertices += meshDecl.vertexCount;
+    xatlas::AddMeshError error = xatlas::AddMesh(atlas, meshDecl, numMeshes);
+    if (error != xatlas::AddMeshError::Success) {
+      xatlas::Destroy(atlas);
+      std::println("rError adding mesh {}", xatlas::StringForEnum(error));
+      return EXIT_FAILURE;
+    }
+    totalVertices += meshDecl.vertexCount;
     totalFaces += meshDecl.faceCount > 0 ? meshDecl.faceCount : meshDecl.indexCount / 3; // Assume triangles if MeshDecl::faceCount not specified.
   }
   std::println("{} total vertices, {} total faces", totalVertices, totalFaces);
 
-  std::println("   {} total vertices", totalVertices);
-  std::println("   {} total faces", totalFaces);
-  // Generate atlas.
   std::println("Generating atlas");
   xatlas::Generate(atlas);
 
@@ -227,6 +224,18 @@ int main() {
       for (uint32_t ix = 0; ix < atlas->meshCount; ++ix)
         copyUV2(atlas, ix, scene.renderables[ix].get().mesh);
     }
+    if (ImGui::Button("Save xatlas generated image") && atlas->image)
+      stbi_write_png("uv_atlas_xatlas.png", atlas->width, atlas->height, 4, atlas->image, sizeof(uint32_t) * atlas->width);
+    ImGui::SameLine();
+    if (ImGui::Button("Save my Uv Atlas Image")) {
+      const ws::Texture& tex = atlasFbo.getFirstColorAttachment();
+      const uint32_t w = tex.specs.width, h = tex.specs.height;
+      uint32_t* pixels = new uint32_t[w * h];
+      glGetTextureSubImage(tex.getId(), 0, 0, 0, 0, w, h, 1, GL_RGBA, GL_UNSIGNED_BYTE, sizeof(uint32_t) * w * h, pixels);
+      stbi_write_png("uv_atlas_vug.png", w, h, 4, pixels, sizeof(uint32_t) * w);
+      delete[] pixels;
+    }
+      
     ImGui::Text("Atlas Info");
     ImGui::Text("Size: (%d, %d)", atlas->width, atlas->height);
     ImGui::Text("# meshes: %d", atlas->meshCount);
