@@ -108,7 +108,8 @@ Texture::Texture(const std::filesystem::path& file)
             assert(data);
             specs.width = width;
             specs.height = height;
-            assert(nrChannels == 3);
+            specs.format = nrChannels == 4 ? Format::RGBA8 : Format::RGB8; 
+            assert(nrChannels == 4 || nrChannels == 3);
             specs.wrap = Wrap::Repeat;
             specs.data = data;
             return specs;
