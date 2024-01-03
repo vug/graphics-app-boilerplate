@@ -33,7 +33,6 @@ int main() {
   std::println("Hi!");
   ws::Workshop workshop{1920, 1080, "UV Atlas Generation - Lightmapping"};
 
-
   AssetManager assetManager;
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
   assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
@@ -222,9 +221,9 @@ int main() {
     static xatlas::PackOptions packOptions;
     ImGui::Text("Pack Options");
     ImGui::SliderScalar("Max Chart Size", ImGuiDataType_U32, &packOptions.maxChartSize, &n0, &n1000);
-    ImGui::SliderScalar("Padding", ImGuiDataType_U32, &packOptions.padding, &n1000, &n2);
+    ImGui::SliderScalar("Padding", ImGuiDataType_U32, &packOptions.padding, &n0, &n5);
     ImGui::SliderFloat("Texels per Unit", &packOptions.texelsPerUnit, 0, 64);
-    ImGui::SliderScalar("Resolution", ImGuiDataType_U32, &packOptions.padding, &n0, &n64);
+    ImGui::SliderScalar("Resolution", ImGuiDataType_U32, &packOptions.resolution, &n0, &n64);
     ImGui::Checkbox("Leave space for bilinear filtering", &packOptions.bilinear);
     ImGui::Checkbox("Align charts to 4x4 blocks", &packOptions.blockAlign);
     ImGui::Checkbox("Brute Force", &packOptions.bruteForce);
@@ -361,7 +360,7 @@ int main() {
       shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
       shader.setVector3("u_CameraPosition", cam.getPosition());
-    glBindTextureUnit(1, assetManager.textures.at("white").getId());
+      glBindTextureUnit(1, assetManager.textures.at("white").getId());
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       glBindTextureUnit(0, renderable.get().texture.getId());
       renderable.get().mesh.bind();
