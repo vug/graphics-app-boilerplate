@@ -1,6 +1,7 @@
 #version 460
 
 in vec2 v_TexCoords;
+in vec2 v_TexCoords2;
 
 uniform sampler2D mainTex;
 uniform vec4 u_Color = vec4(1.0, 1.0, 1.0, 1.0);
