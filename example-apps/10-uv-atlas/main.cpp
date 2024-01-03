@@ -246,42 +246,49 @@ int main() {
       stbi_write_png("uv_atlas_vug.png", w, h, 4, pixels, sizeof(uint32_t) * w);
       delete[] pixels;
     }
-    #define FOPEN(_file, _filename, _mode) { if (fopen_s(&_file, _filename, _mode) != 0) _file = NULL; }
-    if (ImGui::Button("Export Scene to OBJ")) {
-      // Write meshes.
-      const char* modelFilename = "example_output.obj";
-      printf("Writing '%s'...\n", modelFilename);
-      FILE* file;
-      FOPEN(file, modelFilename, "w");
-      if (file) {
-        uint32_t firstVertex = 0;
-        for (uint32_t i = 0; i < atlas->meshCount; i++) {
-          const xatlas::Mesh& mesh = atlas->meshes[i];
-          //const ws::Mesh& wsMesh = scene.renderables[i].get().mesh;
-          for (uint32_t v = 0; v < mesh.vertexCount; v++) {
-            const xatlas::Vertex& vertex = mesh.vertexArray[v];
-            const float* vertexPosArr = (const float*)meshDeclarations[i].vertexPositionData;
-            fprintf(file, "v %g %g %g\n", vertexPosArr[vertex.xref * 3 + 0], vertexPosArr[vertex.xref * 3 + 1], vertexPosArr[vertex.xref * 3 + 2]);
-            //const ws::DefaultVertex& wsVertex = wsMesh.meshData.vertices[vertex.xref];
-            //fprintf(file, "v %g %g %g\n", wsVertex.position.x, wsVertex.position.y, wsVertex.position.z);
-            const float* vertexNormalArr = (const float*)meshDeclarations[i].vertexNormalData;
-            fprintf(file, "vn %g %g %g\n", vertexNormalArr[3 * vertex.xref + 0], vertexNormalArr[3 * vertex.xref + 1], vertexNormalArr[3 * vertex.xref + 2]);
-            //fprintf(file, "vn %g %g %g\n", wsVertex.normal.x, wsVertex.normal.y, wsVertex.normal.z);
-            fprintf(file, "vt %g %g\n", vertex.uv[0] / atlas->width, vertex.uv[1] / atlas->height);
-          }
-          fprintf(file, "o %s\n", scene.renderables[i].get().name.c_str());
-          fprintf(file, "s off\n");
-          for (uint32_t f = 0; f < mesh.indexCount; f += 3) {
-            fprintf(file, "f ");
-            for (uint32_t j = 0; j < 3; j++) {
-              const uint32_t index = firstVertex + mesh.indexArray[f + j] + 1;  // 1-indexed
-              fprintf(file, "%d/%d/%d%c", index, index, index, j == 2 ? '\n' : ' ');
-            }
-          }
-          firstVertex += mesh.vertexCount;
+    if (ImGui::Button("Export whole scene in world-space into single OBJ w/baked UV2")) {
+      const char* modelFilename = "baked_scene.obj";
+      std::println("Writing '{}'...", modelFilename);
+      std::FILE* file;
+      fopen_s(&file, modelFilename, "w");
+      assert(file != nullptr);
+      uint32_t firstVertex = 0;
+      for (uint32_t i = 0; i < atlas->meshCount; i++) {
+        const xatlas::Mesh& mesh = atlas->meshes[i];
+        //const ws::Mesh& wsMesh = scene.renderables[i].get().mesh;
+        for (uint32_t v = 0; v < mesh.vertexCount; v++) {
+          const xatlas::Vertex& vertex = mesh.vertexArray[v];
+          const float* vertexPosArr = (const float*)meshDeclarations[i].vertexPositionData;
+          std::println(file, "v {:g} {:g} {:g}", vertexPosArr[vertex.xref * 3 + 0], vertexPosArr[vertex.xref * 3 + 1], vertexPosArr[vertex.xref * 3 + 2]);
+          //const ws::DefaultVertex& wsVertex = wsMesh.meshData.vertices[vertex.xref];
+          //fprintf(file, "v %g %g %g\n", wsVertex.position.x, wsVertex.position.y, wsVertex.position.z);
+          const float* vertexNormalArr = (const float*)meshDeclarations[i].vertexNormalData;
+          std::println(file, "vn {:g} {:g} {:g}", vertexNormalArr[3 * vertex.xref + 0], vertexNormalArr[3 * vertex.xref + 1], vertexNormalArr[3 * vertex.xref + 2]);
+          //fprintf(file, "vn %g %g %g\n", wsVertex.normal.x, wsVertex.normal.y, wsVertex.normal.z);
+          std::println(file, "vt {:g} {:g}", vertex.uv[0] / atlas->width, vertex.uv[1] / atlas->height);
         }
-        fclose(file);
-      }    
+        std::println(file, "o {}", scene.renderables[i].get().name.c_str());
+        std::println(file, "s off");
+        for (uint32_t f = 0; f < mesh.indexCount; f += 3) {
+          std::print(file, "f ");
+          for (uint32_t j = 0; j < 3; j++) {
+            const uint32_t index = firstVertex + mesh.indexArray[f + j] + 1;  // 1-indexed
+            std::print(file, "{:d}/{:d}/{:d}{:c}", index, index, index, j == 2 ? '\n' : ' ');
+          }
+        }
+        firstVertex += mesh.vertexCount;
+      }
+      std::fclose(file);    
+    }
+    if (ImGui::Button("Export every object in object-space into OBJs with w/baked UV2")) {
+      for (auto& r : scene.renderables) {
+        const std::string modelFilename = std::format("{}_baked_uv2s.obj", r.get().name);
+        std::FILE* file;
+        fopen_s(&file, modelFilename.c_str(), "w");
+        assert(file != nullptr);
+
+        std::fclose(file);
+      }
     }
       
     ImGui::Text("Atlas Info");
