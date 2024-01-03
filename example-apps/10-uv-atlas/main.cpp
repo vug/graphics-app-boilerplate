@@ -110,7 +110,7 @@ int main() {
         positions[3 * ix + 0] = worldPos.x;
         positions[3 * ix + 1] = worldPos.y;
         positions[3 * ix + 2] = worldPos.z;
-        glm::vec3 worldNormal = glm::mat3(glm::transpose(glm::inverse(transform.getWorldFromObjectMatrix()))) * v.normal;
+        glm::vec3 worldNormal = glm::normalize(glm::transpose(glm::inverse(transform.getWorldFromObjectMatrix())) * glm::vec4(v.normal, 1));
         normals[3 * ix + 0] = worldNormal.x;
         normals[3 * ix + 1] = worldNormal.y;
         normals[3 * ix + 2] = worldNormal.z;      
@@ -142,9 +142,10 @@ int main() {
   uint32_t totalVertices = 0;
   uint32_t totalFaces = 0;
 
+  std::vector<xatlas::MeshDecl> meshDeclarations;
   // xatlas::SetProgressCallback(atlas, ProgressCallback, &stopwatch);
   for (auto& r : scene.renderables) {
-    xatlas::MeshDecl meshDecl = calcXAtlasMeshDecl(r.get().mesh, r.get().transform);
+    xatlas::MeshDecl& meshDecl = meshDeclarations.emplace_back(calcXAtlasMeshDecl(r.get().mesh, r.get().transform));
     assert(meshDecl.indexCount == static_cast<uint32_t>(r.get().mesh.meshData.indices.size()));
     xatlas::AddMeshError error = xatlas::AddMesh(atlas, meshDecl, numMeshes);
     if (error != xatlas::AddMeshError::Success) {
@@ -234,6 +235,43 @@ int main() {
       glGetTextureSubImage(tex.getId(), 0, 0, 0, 0, w, h, 1, GL_RGBA, GL_UNSIGNED_BYTE, sizeof(uint32_t) * w * h, pixels);
       stbi_write_png("uv_atlas_vug.png", w, h, 4, pixels, sizeof(uint32_t) * w);
       delete[] pixels;
+    }
+    #define FOPEN(_file, _filename, _mode) { if (fopen_s(&_file, _filename, _mode) != 0) _file = NULL; }
+    if (ImGui::Button("Export Scene to OBJ")) {
+      // Write meshes.
+      const char* modelFilename = "example_output.obj";
+      printf("Writing '%s'...\n", modelFilename);
+      FILE* file;
+      FOPEN(file, modelFilename, "w");
+      if (file) {
+        uint32_t firstVertex = 0;
+        for (uint32_t i = 0; i < atlas->meshCount; i++) {
+          const xatlas::Mesh& mesh = atlas->meshes[i];
+          const ws::Mesh& wsMesh = scene.renderables[i].get().mesh;
+          for (uint32_t v = 0; v < mesh.vertexCount; v++) {
+            const xatlas::Vertex& vertex = mesh.vertexArray[v];
+            const float* vertexPosArr = (const float*)meshDeclarations[i].vertexPositionData;
+            fprintf(file, "v %g %g %g\n", vertexPosArr[vertex.xref * 3 + 0], vertexPosArr[vertex.xref * 3 + 1], vertexPosArr[vertex.xref * 3 + 2]);
+            //const ws::DefaultVertex& wsVertex = wsMesh.meshData.vertices[vertex.xref];
+            //fprintf(file, "v %g %g %g\n", wsVertex.position.x, wsVertex.position.y, wsVertex.position.z);
+            const float* vertexNormalArr = (const float*)meshDeclarations[i].vertexNormalData;
+            fprintf(file, "vn %g %g %g\n", vertexNormalArr[3 * vertex.xref + 0], vertexNormalArr[3 * vertex.xref + 1], vertexNormalArr[3 * vertex.xref + 2]);
+            //fprintf(file, "vn %g %g %g\n", wsVertex.normal.x, wsVertex.normal.y, wsVertex.normal.z);
+            fprintf(file, "vt %g %g\n", vertex.uv[0] / atlas->width, vertex.uv[1] / atlas->height);
+          }
+          fprintf(file, "o %s\n", scene.renderables[i].get().name.c_str());
+          fprintf(file, "s off\n");
+          for (uint32_t f = 0; f < mesh.indexCount; f += 3) {
+            fprintf(file, "f ");
+            for (uint32_t j = 0; j < 3; j++) {
+              const uint32_t index = firstVertex + mesh.indexArray[f + j] + 1;  // 1-indexed
+              fprintf(file, "%d/%d/%d%c", index, index, index, j == 2 ? '\n' : ' ');
+            }
+          }
+          firstVertex += mesh.vertexCount;
+        }
+        fclose(file);
+      }    
     }
       
     ImGui::Text("Atlas Info");
