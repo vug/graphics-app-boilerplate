@@ -247,7 +247,7 @@ int main() {
         uint32_t firstVertex = 0;
         for (uint32_t i = 0; i < atlas->meshCount; i++) {
           const xatlas::Mesh& mesh = atlas->meshes[i];
-          const ws::Mesh& wsMesh = scene.renderables[i].get().mesh;
+          //const ws::Mesh& wsMesh = scene.renderables[i].get().mesh;
           for (uint32_t v = 0; v < mesh.vertexCount; v++) {
             const xatlas::Vertex& vertex = mesh.vertexArray[v];
             const float* vertexPosArr = (const float*)meshDeclarations[i].vertexPositionData;
@@ -344,19 +344,20 @@ int main() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    mainShader.bind();
-    mainShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-    mainShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-    mainShader.setVector3("u_CameraPosition", cam.getPosition());
-    glBindTextureUnit(1, assetManager.textures.at("white").getId());
     for (auto& renderable : scene.renderables) {
-      mainShader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
+      ws::Shader& shader = renderable.get().shader;
+      shader.bind();
+      shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+      shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+      shader.setVector3("u_CameraPosition", cam.getPosition());
+    glBindTextureUnit(1, assetManager.textures.at("white").getId());
+      shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       glBindTextureUnit(0, renderable.get().texture.getId());
       renderable.get().mesh.bind();
       renderable.get().mesh.draw();
       renderable.get().mesh.unbind();
+      shader.unbind();
     }
-    mainShader.unbind();
 
     textureViewer.draw();
     ws::VObjectPtr selectedObject = hierarchyWindow.draw();
