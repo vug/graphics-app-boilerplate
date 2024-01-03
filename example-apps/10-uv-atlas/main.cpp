@@ -38,14 +38,17 @@ int main() {
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
   assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
   assetManager.meshes.emplace("torus", ws::loadOBJ(ws::ASSETS_FOLDER / "models/torus.obj"));
+  assetManager.meshes.emplace("baked_scene", ws::loadOBJ(SRC / "baked_scene.obj"));
   assetManager.textures.emplace("uv_grid", ws::ASSETS_FOLDER / "images/Wikipedia/UV_checker_Map_byValle.jpg");
   assetManager.textures.emplace("wood", ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg");
   assetManager.textures.emplace("metal", ws::ASSETS_FOLDER / "images/LearnOpenGL/metal.png");
+  assetManager.textures.emplace("baked_lightmap", SRC / "baked_lightmap.png");
   ws::Texture whiteTex{ws::Texture::Specs{1, 1, ws::Texture::Format::RGB8, ws::Texture::Filter::Linear}};
   std::vector<uint32_t> whiteTexPixels = {0xFFFFFF};
   whiteTex.loadPixels(whiteTexPixels.data());
   assetManager.textures.emplace("white", std::move(whiteTex));
   ws::Shader mainShader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"};
+  ws::Shader unlitShader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"};
   ws::Shader debugShader{SRC / "debug.vert", SRC / "debug.frag"};
   ws::Framebuffer atlasFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
@@ -84,9 +87,17 @@ int main() {
       assetManager.textures["metal"],
       whiteTex,
   };
+  ws::RenderableObject bakedScene = {
+      {"BakedScene", {glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{1.f, 1.f, 1.f}}},
+      assetManager.meshes.at("baked_scene"),
+      unlitShader,
+      assetManager.textures["baked_lightmap"],
+      whiteTex,
+  };
   ws::PerspectiveCamera3D cam;
   ws::Scene scene{
     .renderables{monkey1, monkey2, box, torus, ground},
+    //.renderables{bakedScene},
   };
   ws::setParent(&ground, &scene.root);
   ws::setParent(&monkey1, &scene.root);
@@ -176,7 +187,7 @@ int main() {
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
   orbitingCamController.radius = 10.f;
   orbitingCamController.theta = 0.3f;
-  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{atlasFbo.getFirstColorAttachment()};
+  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{atlasFbo.getFirstColorAttachment(), assetManager.textures.at("baked_lightmap")};
   ws::TextureViewer textureViewer{texRefs};
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};

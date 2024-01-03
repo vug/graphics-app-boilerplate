@@ -24,7 +24,7 @@ void main() {
   // worldPos
   //FragColor = vec4(v.worldPosition, 1);
   // uv1
-  FragColor = vec4(v.texCoord.x, v.texCoord.y, 0, 1);
+  //FragColor = vec4(v.texCoord.x, v.texCoord.y, 0, 1);
   // uv2
   //FragColor = vec4(v.texCoord2.x, v.texCoord2.y, 0, 1);
   // objectNorm
@@ -34,5 +34,5 @@ void main() {
   // front-back faces
   //FragColor = gl_FrontFacing ? vec4(1, 0, 0, 1) : vec4(0, 0, 1, 1);
   // original texture
-  //FragColor = vec4(texColor, 1);
+  FragColor = vec4(texColor, 1);
 }
