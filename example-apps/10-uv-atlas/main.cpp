@@ -34,8 +34,10 @@ int main() {
   ws::Workshop workshop{1920, 1080, "UV Atlas Generation - Lightmapping"};
 
   AssetManager assetManager;
-  assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
-  assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
+  assetManager.meshes.emplace("monkey1", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
+  assetManager.meshes.emplace("monkey2", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
+  assetManager.meshes.emplace("cube1", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
+  assetManager.meshes.emplace("cube2", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
   assetManager.meshes.emplace("torus", ws::loadOBJ(ws::ASSETS_FOLDER / "models/torus.obj"));
   assetManager.meshes.emplace("baked_scene", ws::loadOBJ(SRC / "baked_scene.obj"));
   assetManager.textures.emplace("uv_grid", ws::ASSETS_FOLDER / "images/Wikipedia/UV_checker_Map_byValle.jpg");
@@ -53,28 +55,28 @@ int main() {
 
   ws::RenderableObject ground = {
       {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
-      assetManager.meshes.at("cube"),
+      assetManager.meshes.at("cube1"),
       mainShader,
       assetManager.textures["wood"],
       whiteTex,
   };
   ws::RenderableObject monkey1 = {
       {"Monkey1", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
-      assetManager.meshes.at("monkey"),
+      assetManager.meshes.at("monkey1"),
       mainShader,
       assetManager.textures["uv_grid"],
       whiteTex,
   };
   ws::RenderableObject monkey2 = {
       {"Monkey2", {glm::vec3{4, 0, 1}, glm::vec3{0, 1, 0}, glm::radians(55.f), glm::vec3{1.f, 1.f, 1.f}}},
-      assetManager.meshes.at("monkey"),
+      assetManager.meshes.at("monkey2"),
       mainShader,
       assetManager.textures["wood"],
       whiteTex,
   };
   ws::RenderableObject box = {
       {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
-      assetManager.meshes.at("cube"),
+      assetManager.meshes.at("cube2"),
       mainShader,
       assetManager.textures["wood"],
       whiteTex,
