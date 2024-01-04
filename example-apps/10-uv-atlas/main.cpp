@@ -17,8 +17,11 @@
 #include <stb_image_write.h>
 #include <xatlas.h>
 
+#include <fstream>
+#include <iostream>
 #include <print>
 #include <ranges>
+#include <string>
 #include <vector>
 
 const std::filesystem::path SRC{SOURCE_DIR};
@@ -308,6 +311,54 @@ int main() {
           }
         }
         std::fclose(file);
+      }
+    }
+    if (ImGui::Button("Save UV2s")) {
+      std::string filename = "uv2s.dat";
+      std::ofstream out(filename, std::ios::binary);
+      assert(out.is_open());
+      uint32_t numMeshes = atlas->meshCount;
+      out.write(reinterpret_cast<char*>(&numMeshes), sizeof(uint32_t));
+      for (uint32_t i = 0; i < numMeshes; i++) {
+        const ws::RenderableObject& r = scene.renderables[i];
+        const xatlas::Mesh& atlasMesh = atlas->meshes[i];
+        uint32_t objNameLength = r.name.length();
+        out.write(reinterpret_cast<char*>(&objNameLength), sizeof(uint32_t));
+        std::string objName = r.name;
+        out.write(reinterpret_cast<const char*>(objName.c_str()), sizeof(char) * objNameLength);
+        uint32_t numVertices = atlasMesh.vertexCount;
+        out.write(reinterpret_cast<char*>(&numVertices), sizeof(uint32_t));
+        for (uint32_t vIx = 0; vIx < atlasMesh.vertexCount; vIx++) {
+          xatlas::Vertex& atlasVertex = atlasMesh.vertexArray[vIx];
+          out.write(reinterpret_cast<char*>(&atlasVertex.uv), sizeof(float) * 2);
+        }
+      }
+    }
+    if (ImGui::Button("Read UV2s")) {
+      std::string filename = "uv2s.dat";
+      std::ifstream in(filename, std::ios::binary);
+      assert(in.is_open());
+      uint32_t numMeshes;
+      in.read(reinterpret_cast<char*>(&numMeshes), sizeof(uint32_t));
+      std::println("numMeshes {}", numMeshes);
+      for (uint32_t i = 0; i < numMeshes; i++) {
+        uint32_t objNameLength;
+        in.read(reinterpret_cast<char*>(&objNameLength), sizeof(uint32_t));
+        std::println("objNameLength {}", objNameLength);
+        char* objNamePtr = new char[objNameLength + 1];
+        objNamePtr[objNameLength] = '\0';
+        in.read(reinterpret_cast<char*>(objNamePtr), sizeof(char) * objNameLength);
+        std::string objName{objNamePtr};
+        std::println("objName {}", objName);
+        uint32_t numVertices;
+        in.read(reinterpret_cast<char*>(&numVertices), sizeof(uint32_t));
+        std::println("numVertices {}", numVertices);
+        for (uint32_t vIx = 0; vIx < numVertices; vIx++) {
+          glm::vec2 uv2;
+          in.read(reinterpret_cast<char*>(&uv2), sizeof(glm::vec2));
+          std::print("({:.3f},{:.3f}) ", uv2.x, uv2.y);
+        }
+        std::println("");
       }
     }
       
