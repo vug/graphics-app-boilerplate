@@ -184,9 +184,9 @@ int main() {
     }
     sceneMesh.uploadData();
   };
-  for (uint32_t ix = 0; ix < atlas->meshCount; ++ix) {
-    copyUV2(atlas, ix, scene.renderables[ix].get().mesh);
-  }
+  //for (uint32_t ix = 0; ix < atlas->meshCount; ++ix) {
+  //  copyUV2(atlas, ix, scene.renderables[ix].get().mesh);
+  //}
 
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
   orbitingCamController.radius = 10.f;
@@ -330,7 +330,10 @@ int main() {
         out.write(reinterpret_cast<char*>(&numVertices), sizeof(uint32_t));
         for (uint32_t vIx = 0; vIx < atlasMesh.vertexCount; vIx++) {
           xatlas::Vertex& atlasVertex = atlasMesh.vertexArray[vIx];
-          out.write(reinterpret_cast<char*>(&atlasVertex.uv), sizeof(float) * 2);
+          float u = atlasVertex.uv[0] / atlas->width;
+          float v = atlasVertex.uv[1] / atlas->height;
+          out.write(reinterpret_cast<char*>(&u), sizeof(float));
+          out.write(reinterpret_cast<char*>(&v), sizeof(float));
         }
       }
     }
@@ -353,11 +356,17 @@ int main() {
         uint32_t numVertices;
         in.read(reinterpret_cast<char*>(&numVertices), sizeof(uint32_t));
         std::println("numVertices {}", numVertices);
+        const xatlas::Mesh& atlasMesh = atlas->meshes[i];
+        ws::Mesh& mesh = scene.renderables[i].get().mesh;
+        std::vector<ws::DefaultVertex>& vertices = mesh.meshData.vertices;
         for (uint32_t vIx = 0; vIx < numVertices; vIx++) {
+          uint32_t ix = atlasMesh.vertexArray[vIx].xref;
           glm::vec2 uv2;
           in.read(reinterpret_cast<char*>(&uv2), sizeof(glm::vec2));
-          std::print("({:.3f},{:.3f}) ", uv2.x, uv2.y);
+          vertices[ix].texCoord2 = uv2;
+          //std::print("({:.3f},{:.3f}) ", uv2.x, uv2.y);
         }
+        mesh.uploadData();
         std::println("");
       }
     }
