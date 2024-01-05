@@ -195,6 +195,7 @@ int main() {
   ws::TextureViewer textureViewer{texRefs};
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};
+  workshop.shadersToReload = {mainShader, unlitShader, debugShader};
   
   glEnable(GL_DEPTH_TEST);
   
