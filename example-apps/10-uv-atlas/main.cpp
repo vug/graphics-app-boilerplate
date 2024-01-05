@@ -211,7 +211,7 @@ int main() {
     ImGui::Separator();
     static xatlas::ChartOptions chartOptions;
     ImGui::Text("Chart Options");
-    uint32_t n0 = 0, n1 = 1, n2 = 2, n5 = 5, n64 = 64, n1000 = 1000;
+    uint32_t n0 = 0, n1 = 1, n5 = 5, n64 = 64, n1000 = 1000;
     ImGui::SliderFloat("Max Chart Area", &chartOptions.maxChartArea, 0, 10);
     ImGui::SliderFloat("Max Chart Boundary Length", &chartOptions.maxBoundaryLength, 0, 50);
     ImGui::SliderFloat("normalDeviationWeight", &chartOptions.normalDeviationWeight, 0, 10);
@@ -317,12 +317,12 @@ int main() {
       std::string filename = "uv2s.dat";
       std::ofstream out(filename, std::ios::binary);
       assert(out.is_open());
-      uint32_t numMeshes = atlas->meshCount;
-      out.write(reinterpret_cast<char*>(&numMeshes), sizeof(uint32_t));
-      for (uint32_t i = 0; i < numMeshes; i++) {
+      uint32_t numAtlasMeshes = atlas->meshCount;
+      out.write(reinterpret_cast<char*>(&numAtlasMeshes), sizeof(uint32_t));
+      for (uint32_t i = 0; i < numAtlasMeshes; i++) {
         const ws::RenderableObject& r = scene.renderables[i];
         const xatlas::Mesh& atlasMesh = atlas->meshes[i];
-        uint32_t objNameLength = r.name.length();
+        size_t objNameLength = r.name.length();
         out.write(reinterpret_cast<char*>(&objNameLength), sizeof(uint32_t));
         std::string objName = r.name;
         out.write(reinterpret_cast<const char*>(objName.c_str()), sizeof(char) * objNameLength);
@@ -341,10 +341,10 @@ int main() {
       std::string filename = "uv2s.dat";
       std::ifstream in(filename, std::ios::binary);
       assert(in.is_open());
-      uint32_t numMeshes;
-      in.read(reinterpret_cast<char*>(&numMeshes), sizeof(uint32_t));
-      std::println("numMeshes {}", numMeshes);
-      for (uint32_t i = 0; i < numMeshes; i++) {
+      uint32_t numMeshesInDat;
+      in.read(reinterpret_cast<char*>(&numMeshesInDat), sizeof(uint32_t));
+      std::println("numMeshes {}", numMeshesInDat);
+      for (uint32_t i = 0; i < numMeshesInDat; i++) {
         uint32_t objNameLength;
         in.read(reinterpret_cast<char*>(&objNameLength), sizeof(uint32_t));
         std::println("objNameLength {}", objNameLength);
