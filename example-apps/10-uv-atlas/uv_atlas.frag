@@ -15,15 +15,6 @@ layout(binding = 1) uniform sampler2D secondTex;
 
 out vec4 FragColor;
 
-/*
-// need to bring camera near and far
-float LinearizeDepth(float depth) {
-    float z = depth * 2.0 - 1.0; // back to NDC 
-    return (2.0 * near * far) / (far + near - z * (far - near));	
-}
-float depthViz = LinearizeDepth(gl_FragCoord.z) / far;
-*/
-
 void main() {
   const vec3 objectNormal = normalize(v.objectNormal);
   const vec3 worldNormal = normalize(v.worldNormal);

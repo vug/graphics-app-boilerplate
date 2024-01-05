@@ -54,6 +54,7 @@ int main() {
   ws::Shader mainShader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"};
   ws::Shader unlitShader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"};
   ws::Shader debugShader{SRC / "debug.vert", SRC / "debug.frag"};
+  ws::Shader uvAtlasShader{SRC / "uv_atlas.vert", SRC / "uv_atlas.frag"};
   ws::Framebuffer atlasFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   ws::RenderableObject ground = {
@@ -195,7 +196,7 @@ int main() {
   ws::TextureViewer textureViewer{texRefs};
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};
-  workshop.shadersToReload = {mainShader, unlitShader, debugShader};
+  workshop.shadersToReload = {mainShader, uvAtlasShader, unlitShader, debugShader};
   
   glEnable(GL_DEPTH_TEST);
   
@@ -208,6 +209,8 @@ int main() {
 
     ImGui::Begin("Main");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
+    static bool debugScene = false;
+    ImGui::Checkbox("Debug Scene using debug shader", &debugScene);
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
     static xatlas::ChartOptions chartOptions;
@@ -422,10 +425,10 @@ int main() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
-    debugShader.bind();
-    debugShader.setMatrix4("u_WorldFromObject", glm::mat4(1));
-    debugShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-    debugShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+    uvAtlasShader.bind();
+    uvAtlasShader.setMatrix4("u_WorldFromObject", glm::mat4(1));
+    uvAtlasShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+    uvAtlasShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
     for (auto& renderable : scene.renderables) {
       glBindTextureUnit(0, renderable.get().texture.getId());
       const ws::Mesh& mesh = renderable.get().mesh;
@@ -433,7 +436,7 @@ int main() {
       mesh.draw();
       mesh.unbind();
     }
-    debugShader.unbind();
+    uvAtlasShader.unbind();
     atlasFbo.unbind();
 
     glViewport(0, 0, winSize.x, winSize.y);
@@ -443,17 +446,19 @@ int main() {
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (auto& renderable : scene.renderables) {
-      ws::Shader& shader = renderable.get().shader;
+      ws::Shader& shader = debugScene ? debugShader : renderable.get().shader;
       shader.bind();
       shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
       shader.setVector3("u_CameraPosition", cam.getPosition());
+      glBindTextureUnit(0, renderable.get().texture.getId());
       glBindTextureUnit(1, assetManager.textures.at("white").getId());
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-      glBindTextureUnit(0, renderable.get().texture.getId());
       renderable.get().mesh.bind();
       renderable.get().mesh.draw();
       renderable.get().mesh.unbind();
+      glBindTextureUnit(0, 0);
+      glBindTextureUnit(1, 0);
       shader.unbind();
     }
 

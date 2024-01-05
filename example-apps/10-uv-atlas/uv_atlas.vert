@@ -27,6 +27,5 @@ void main() {
   v.worldNormal = mat3(transpose(inverse(u_WorldFromObject))) * a_ObjectNormal;
   v.texCoord = a_TexCoord;
   v.texCoord2 = a_TexCoord2;
-  gl_Position = u_ProjectionFromView * u_ViewFromWorld * u_WorldFromObject * vec4(a_ObjectPosition, 1.0);
-  //gl_Position = vec4(a_TexCoord2 * 2 - 1, 0, 1);
+  gl_Position = vec4(a_TexCoord2 * 2 - 1, 0, 1);
 }
