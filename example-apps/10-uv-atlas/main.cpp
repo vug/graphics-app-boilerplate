@@ -53,7 +53,7 @@ int main() {
   assetManager.textures.emplace("white", std::move(whiteTex));
   ws::Shader mainShader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"};
   ws::Shader unlitShader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"};
-  ws::Shader debugShader{SRC / "debug.vert", SRC / "debug.frag"};
+  ws::Shader debugShader{ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag"};
   ws::Shader uvAtlasShader{SRC / "uv_atlas.vert", SRC / "uv_atlas.frag"};
   ws::Shader lightmapShader{SRC / "lightmap.vert", SRC / "lightmap.frag"};
   ws::Framebuffer atlasFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
