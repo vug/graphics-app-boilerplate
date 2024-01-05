@@ -322,8 +322,8 @@ int main() {
       }
     }
     if (ImGui::Button("Save UV2s")) {
-      std::string filename = "uv2s.dat";
-      std::ofstream out(filename, std::ios::binary);
+      std::filesystem::path uvFile = SRC / "uv2s.dat";
+      std::ofstream out(uvFile.string().c_str(), std::ios::binary);
       assert(out.is_open());
       uint32_t numAtlasMeshes = atlas->meshCount;
       out.write(reinterpret_cast<char*>(&numAtlasMeshes), sizeof(uint32_t));
@@ -346,8 +346,8 @@ int main() {
       }
     }
     if (ImGui::Button("Read UV2s")) {
-      std::string filename = "uv2s.dat";
-      std::ifstream in(filename, std::ios::binary);
+      std::filesystem::path uvFile = SRC / "uv2s.dat";
+      std::ifstream in(uvFile.string().c_str(), std::ios::binary);
       assert(in.is_open());
       uint32_t numMeshesInDat;
       in.read(reinterpret_cast<char*>(&numMeshesInDat), sizeof(uint32_t));
