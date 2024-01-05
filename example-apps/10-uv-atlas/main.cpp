@@ -455,6 +455,8 @@ int main() {
       shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
       shader.setVector3("u_CameraPosition", cam.getPosition());
+      if (debugScene)
+        shader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
       glBindTextureUnit(0, renderable.get().texture.getId());
       glBindTextureUnit(1, renderable.get().texture2.getId());
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
