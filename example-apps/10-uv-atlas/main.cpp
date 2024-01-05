@@ -290,37 +290,6 @@ int main() {
       }
       std::fclose(file);    
     }
-    if (ImGui::Button("Export every object in object-space into OBJs with w/baked UV2")) {
-      for (uint32_t i = 0; i < atlas->meshCount; i++) {
-        const ws::RenderableObject& r = scene.renderables[i];
-        const ws::Mesh& wsMesh = r.mesh;
-        const xatlas::Mesh& atlasMesh = atlas->meshes[i];
-
-        const std::string modelFilename = std::format("{}_baked_uv2s.obj", r.name);
-        std::FILE* file;
-        fopen_s(&file, modelFilename.c_str(), "w");
-        assert(file != nullptr);
-
-        uint32_t firstVertex = 0;
-        for (uint32_t vIx = 0; vIx < atlasMesh.vertexCount; vIx++) {
-          const xatlas::Vertex& atlasVertex = atlasMesh.vertexArray[vIx];
-          const ws::DefaultVertex& wsVertex = wsMesh.meshData.vertices[atlasVertex.xref];
-          std::println(file, "v {:g} {:g} {:g}", wsVertex.position.x, wsVertex.position.y, wsVertex.position.z);
-          std::println(file, "vn {:g} {:g} {:g}", wsVertex.normal.x, wsVertex.normal.y, wsVertex.normal.z);
-          std::println(file, "vt {:g} {:g}", atlasVertex.uv[0] / atlas->width, atlasVertex.uv[1] / atlas->height);
-        }
-        std::println(file, "o {}", r.name);
-        std::println(file, "s off");
-        for (uint32_t f = 0; f < atlasMesh.indexCount; f += 3) {
-          std::print(file, "f ");
-          for (uint32_t j = 0; j < 3; j++) {
-            const uint32_t index = firstVertex + atlasMesh.indexArray[f + j] + 1;  // 1-indexed
-            std::print(file, "{:d}/{:d}/{:d}{:c}", index, index, index, j == 2 ? '\n' : ' ');
-          }
-        }
-        std::fclose(file);
-      }
-    }
     if (ImGui::Button("Save UV2s")) {
       std::filesystem::path uvFile = SRC / "uv2s.dat";
       std::ofstream out(uvFile.string().c_str(), std::ios::binary);
