@@ -55,42 +55,46 @@ int main() {
   ws::Shader unlitShader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"};
   ws::Shader debugShader{SRC / "debug.vert", SRC / "debug.frag"};
   ws::Shader uvAtlasShader{SRC / "uv_atlas.vert", SRC / "uv_atlas.frag"};
+  ws::Shader lightmapShader{SRC / "lightmap.vert", SRC / "lightmap.frag"};
   ws::Framebuffer atlasFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
+  const bool shouldUseLightmap = true;
+  ws::Shader& objShader = shouldUseLightmap ? lightmapShader : mainShader;
+  ws::Texture& obj2ndTex = shouldUseLightmap ? assetManager.textures.at("baked_lightmap") : whiteTex;
   ws::RenderableObject ground = {
       {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
       assetManager.meshes.at("cube1"),
-      mainShader,
+      objShader,
       assetManager.textures["wood"],
-      whiteTex,
+      obj2ndTex,
   };
   ws::RenderableObject monkey1 = {
       {"Monkey1", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey1"),
-      mainShader,
+      objShader,
       assetManager.textures["uv_grid"],
-      whiteTex,
+      obj2ndTex,
   };
   ws::RenderableObject monkey2 = {
       {"Monkey2", {glm::vec3{4, 0, 1}, glm::vec3{0, 1, 0}, glm::radians(55.f), glm::vec3{1.f, 1.f, 1.f}}},
       assetManager.meshes.at("monkey2"),
-      mainShader,
+      objShader,
       assetManager.textures["wood"],
-      whiteTex,
+      obj2ndTex,
   };
   ws::RenderableObject box = {
       {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
       assetManager.meshes.at("cube2"),
-      mainShader,
+      objShader,
       assetManager.textures["wood"],
-      whiteTex,
+      obj2ndTex,
   };
   ws::RenderableObject torus = {
       {"Torus", {glm::vec3{1.5, 2, 3}, glm::vec3{0, 1, 1}, glm::radians(30.f), glm::vec3{1.f, 1.f, 1.f}}},
       assetManager.meshes.at("torus"),
-      mainShader,
+      objShader,
       assetManager.textures["metal"],
-      whiteTex,
+      obj2ndTex,
   };
   ws::RenderableObject bakedScene = {
       {"BakedScene", {glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{1.f, 1.f, 1.f}}},
@@ -196,7 +200,7 @@ int main() {
   ws::TextureViewer textureViewer{texRefs};
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};
-  workshop.shadersToReload = {mainShader, uvAtlasShader, unlitShader, debugShader};
+  workshop.shadersToReload = {mainShader, unlitShader, debugShader, uvAtlasShader, lightmapShader};
   
   glEnable(GL_DEPTH_TEST);
   
@@ -452,7 +456,7 @@ int main() {
       shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
       shader.setVector3("u_CameraPosition", cam.getPosition());
       glBindTextureUnit(0, renderable.get().texture.getId());
-      glBindTextureUnit(1, assetManager.textures.at("white").getId());
+      glBindTextureUnit(1, renderable.get().texture2.getId());
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       renderable.get().mesh.bind();
       renderable.get().mesh.draw();
