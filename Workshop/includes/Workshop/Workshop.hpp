@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Input.hpp"
+#include "Shader.hpp"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -32,6 +33,8 @@ class Workshop {
   std::optional<std::function<void(const MouseButton button, const glm::vec2& pos0, const glm::vec2& pos)>> onMouseDragBegin;
   std::optional<std::function<void(const MouseButton button, const glm::vec2& pos0, const glm::vec2& pos)>> onMouseDragging;
   std::optional<std::function<void(const MouseButton button, const glm::vec2& pos0, const glm::vec2& pos)>> onMouseDragEnd;
+  // Shaders inserted into this vector can be reloaded live
+  std::vector<std::reference_wrapper<ws::Shader>> shadersToReload;
   void imGuiDrawAppWindow();
 
  private:

@@ -10,6 +10,9 @@
 #include <imgui_impl_opengl3.h>
 #include <implot.h>
 
+#include <ranges>
+namespace rng = std::ranges;
+namespace vw = std::views;
 #include <signal.h>
 #include <iostream>
 
@@ -163,9 +166,21 @@ void Workshop::imGuiDrawAppWindow() {
     setVSync(vSync);
   if (ImGui::Button("OpenGL Features"))
     printFeatures();
-  ImGui::Separator();
   static bool shouldShowImGuiDemo = false;
-  ImGui::Checkbox("Show Demo", &shouldShowImGuiDemo);
+  ImGui::Checkbox("Show ImGui Demo?", &shouldShowImGuiDemo);
+  static int shaderToReloadIx = 0;
+  if (!shadersToReload.empty()) {
+    auto items = shadersToReload 
+      | vw::transform([](auto& s) { return std::format("Shader[{}]", s.get().getId()); })
+      | rng::to<std::vector<std::string>>();
+    auto items2 = items 
+      | vw::transform([](auto& s) { return s.c_str(); })
+      | rng::to<std::vector<const char*>>();
+    ImGui::Combo("Shader", &shaderToReloadIx, items2.data(), static_cast<int32_t>(items2.size()));
+    if (ImGui::Button(std::format("Reload {}", items[shaderToReloadIx]).c_str()))
+      shadersToReload[shaderToReloadIx].get().reload();
+  }
+  ImGui::Separator();
   ImGui::End();
 
   if (shouldShowImGuiDemo)
