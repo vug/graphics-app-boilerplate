@@ -2,6 +2,7 @@ set(TARGET UvAtlas)
 
 add_executable(${TARGET}
   main.cpp
+  LightMapper.hpp LightMapper.cpp
 )
 
 if(MSVC)
