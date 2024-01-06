@@ -143,10 +143,8 @@ int main() {
 
     if (ImGui::Button("Save my Uv Atlas Image")) {
       const ws::Texture& tex = atlasFbo.getFirstColorAttachment();
-      const uint32_t w = tex.specs.width, h = tex.specs.height;
-      uint32_t* pixels = new uint32_t[w * h];
-      glGetTextureSubImage(tex.getId(), 0, 0, 0, 0, w, h, 1, GL_RGBA, GL_UNSIGNED_BYTE, sizeof(uint32_t) * w * h, pixels);
-      stbi_write_png("uv_atlas_vug.png", w, h, 4, pixels, sizeof(uint32_t) * w);
+	    const uint32_t* pixels = tex.downloadPixels();
+	    stbi_write_png("uv_atlas_vug.png", tex.specs.width, tex.specs.height, 4, pixels, sizeof(uint32_t) * tex.specs.width);
       delete[] pixels;
     }
     ImGui::End();

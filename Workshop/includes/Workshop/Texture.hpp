@@ -66,6 +66,7 @@ class Texture {
   void bindImageTexture(uint32_t textureUnit, Access access) const;
   // not type-safe
   void uploadPixels(const void* pixels);
+  const uint32_t* downloadPixels() const;
   void resize(uint32_t width, uint32_t height);
   const std::string& getName() const { return name; }
 
