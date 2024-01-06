@@ -2,6 +2,7 @@
 
 #include <glad/gl.h>
 #include <stb_image.h>
+#include <stb_image_write.h>
 
 #include <cassert>
 
@@ -156,10 +157,16 @@ void Texture::uploadPixels(const void* data) {
 const uint32_t* Texture::downloadPixels() const {
 	GlSpecs gs = getGlSpecs();
 	const uint32_t w = specs.width, h = specs.height;
-  // always save into 4 channeled files, improve when needed
+	// uint32_t stores a 4-channel pixel, however texture can have 1 to 4 channels. Beware, improve if needed.
 	uint32_t* pixels = new uint32_t[w * h];
 	glGetTextureSubImage(getId(), 0, 0, 0, 0, w, h, 1, gs.format, gs.type, sizeof(uint32_t) * w * h, pixels);
 	return pixels;
+}
+
+void Texture::saveToImageFile(const std::filesystem::path& imgFile) const {
+  const uint32_t* pixels = downloadPixels();
+  stbi_write_png(imgFile.string().c_str(), specs.width, specs.height, 4, pixels, sizeof(uint32_t) * specs.width);
+  delete[] pixels;
 }
 
 void Texture::resize(uint32_t width, uint32_t height) {

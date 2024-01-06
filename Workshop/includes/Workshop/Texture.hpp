@@ -67,6 +67,7 @@ class Texture {
   // not type-safe
   void uploadPixels(const void* pixels);
   const uint32_t* downloadPixels() const;
+  void saveToImageFile(const std::filesystem::path& imgFile) const;
   void resize(uint32_t width, uint32_t height);
   const std::string& getName() const { return name; }
 

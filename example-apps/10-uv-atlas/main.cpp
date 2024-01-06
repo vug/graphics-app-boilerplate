@@ -141,12 +141,8 @@ int main() {
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
 
-    if (ImGui::Button("Save my Uv Atlas Image")) {
-      const ws::Texture& tex = atlasFbo.getFirstColorAttachment();
-	    const uint32_t* pixels = tex.downloadPixels();
-	    stbi_write_png("uv_atlas_vug.png", tex.specs.width, tex.specs.height, 4, pixels, sizeof(uint32_t) * tex.specs.width);
-      delete[] pixels;
-    }
+    if (ImGui::Button("Save my Uv Atlas Image"))
+      atlasFbo.getFirstColorAttachment().saveToImageFile("uv_atlas_vug.png");
     ImGui::End();
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
