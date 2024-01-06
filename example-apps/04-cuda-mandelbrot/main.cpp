@@ -151,7 +151,7 @@ void main () {
       cudaGraphicsGLRegisterImage(&texCuda, tex.getId(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
     }
 
-    workshop.imGuiDrawAppWindow();
+    workshop.drawUI();
 
     ImGui::Begin("Main");
     static int maxIter = 100;

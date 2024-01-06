@@ -20,7 +20,7 @@ int main() {
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
 
-    workshop.imGuiDrawAppWindow();
+    workshop.drawUI();
 
     ImGui::Begin("Main");
     static glm::vec3 bgColor{1, 0, 0};

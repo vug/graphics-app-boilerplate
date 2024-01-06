@@ -89,7 +89,7 @@ int main()
     outlineB.resizeIfNeeded(winSize.x, winSize.y);
     glViewport(0, 0, winSize.x, winSize.y);
 
-    workshop.imGuiDrawAppWindow();
+    workshop.drawUI();
 
     ImGui::Begin("Main");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};

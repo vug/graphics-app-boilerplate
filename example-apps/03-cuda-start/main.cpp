@@ -159,7 +159,7 @@ void main () {
     //calcPixelsGpuToCpuToTex(tex, winSize);
     calcPixelsGlInterop(tex, winSize, workshop.getFrameNo());
 
-    workshop.imGuiDrawAppWindow();
+    workshop.drawUI();
 
     glClearColor(1, 0, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT);

@@ -201,10 +201,12 @@ int main() {
       shader.unbind();
     }
 
+	workshop.drawUI();
     textureViewer.draw();
     ws::VObjectPtr selectedObject = hierarchyWindow.draw();
     inspectorWindow.inspectObject(selectedObject);
 	lightMapper.drawUI(scene);
+
     workshop.endFrame();
   }
 

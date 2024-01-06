@@ -71,7 +71,7 @@ int main()
     workshop.beginFrame();
     const glm::vec2 winSize = workshop.getWindowSize();
 
-    workshop.imGuiDrawAppWindow();
+    workshop.drawUI();
 
     ImGui::Begin("Main");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};

@@ -150,7 +150,7 @@ int main() {
     workshop.beginFrame();
     const glm::uvec2 winSize = workshop.getWindowSize();
 
-    workshop.imGuiDrawAppWindow();
+    workshop.drawUI();
 
     ImGui::Begin("Main");
     static glm::vec3 bgColor{144.f/255, 225.f/255, 236.f/255};

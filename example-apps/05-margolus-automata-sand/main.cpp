@@ -331,7 +331,7 @@ void main () {
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
     
-    workshop.imGuiDrawAppWindow();
+    workshop.drawUI();
 
     ImGui::Begin("Main");
     ImGui::Separator();

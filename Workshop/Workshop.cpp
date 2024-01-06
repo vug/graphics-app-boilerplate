@@ -158,7 +158,7 @@ void Workshop::setVSync(bool should) {
   glfwSwapInterval(shouldVSync ? 1 : 0);
 }
 
-void Workshop::imGuiDrawAppWindow() {
+void Workshop::drawUI() {
   ImGui::Begin("Workshop");
   ImGui::Text("Frame No: %6d, Frame Dur: %.2f, FPS: %.1f", getFrameNo(), getFrameDurationMs(), getFrameRate());
   bool vSync = getVSync();

@@ -55,7 +55,7 @@ void main () { outColor = vec4 (fragColor, 1.0); }
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
 
-    workshop.imGuiDrawAppWindow();
+    workshop.drawUI();
 
     ImGui::Begin("Main");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
