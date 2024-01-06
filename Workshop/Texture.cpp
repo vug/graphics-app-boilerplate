@@ -146,7 +146,7 @@ void Texture::bindImageTexture(uint32_t textureUnit, Access access) const {
   glBindImageTexture(textureUnit, id, 0, GL_FALSE, 0, glAccess, getGlSpecs().internalFormat);
 }
 
-void Texture::loadPixels(const void* data) {
+void Texture::uploadPixels(const void* data) {
   bind();
   GlSpecs gs = getGlSpecs();
   glTexImage2D(GL_TEXTURE_2D, 0, gs.internalFormat, specs.width, specs.height, 0, gs.format, gs.type, data);

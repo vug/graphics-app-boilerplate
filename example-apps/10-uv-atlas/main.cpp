@@ -49,7 +49,7 @@ int main() {
   assetManager.textures.emplace("baked_lightmap", SRC / "baked_lightmap.png");
   ws::Texture whiteTex{ws::Texture::Specs{1, 1, ws::Texture::Format::RGB8, ws::Texture::Filter::Linear}};
   std::vector<uint32_t> whiteTexPixels = {0xFFFFFF};
-  whiteTex.loadPixels(whiteTexPixels.data());
+  whiteTex.uploadPixels(whiteTexPixels.data());
   assetManager.textures.emplace("white", std::move(whiteTex));
   ws::Shader mainShader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"};
   ws::Shader unlitShader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"};
@@ -133,8 +133,6 @@ int main() {
     const glm::uvec2 winSize = workshop.getWindowSize();
 	const glm::uvec2 atlasSize = lightMapper.getAtlasSize();
 	atlasFbo.resizeIfNeeded(atlasSize.x, atlasSize.y);
-
-    workshop.imGuiDrawAppWindow();
 
     ImGui::Begin("LightMapper");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};

@@ -65,7 +65,7 @@ class Texture {
   // should already be bound
   void bindImageTexture(uint32_t textureUnit, Access access) const;
   // not type-safe
-  void loadPixels(const void* data);
+  void uploadPixels(const void* pixels);
   void resize(uint32_t width, uint32_t height);
   const std::string& getName() const { return name; }
 

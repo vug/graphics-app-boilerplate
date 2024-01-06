@@ -43,7 +43,7 @@ void calcPixelsCpuToTex(ws::Texture& tex, const glm::uvec2& ws) {
       pixels[i * ws.x + j] = (alpha << 24) + (blue << 16) + (green << 8) + red;
     }
   }
-  tex.loadPixels(pixels.data());
+  tex.uploadPixels(pixels.data());
 }
 
 void calcPixelsGpuToCpuToTex(ws::Texture& tex, const glm::uvec2& ws) {
@@ -59,7 +59,7 @@ void calcPixelsGpuToCpuToTex(ws::Texture& tex, const glm::uvec2& ws) {
   cudaMemcpy(pixels.data(), d_pixels, texSizeBytes, cudaMemcpyDeviceToHost);
   cudaFree(d_pixels);
 
-  tex.loadPixels(pixels.data());
+  tex.uploadPixels(pixels.data());
 }
 
 void calcPixelsGlInterop(ws::Texture& tex, const glm::uvec2& ws, int timeStep) {

@@ -43,7 +43,7 @@ void calcPixelsCpuToTex(ws::Texture& tex, const glm::uvec2& ws) {
       pixels[i * ws.x + j] = (alpha << 24) + (blue << 16) + (green << 8) + red;
     }
   }
-  tex.loadPixels(pixels.data());
+  tex.uploadPixels(pixels.data());
 }
 
 int main(int argc, char* argv[]) {
