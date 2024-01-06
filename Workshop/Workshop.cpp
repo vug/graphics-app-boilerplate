@@ -30,7 +30,7 @@ Workshop::Workshop(int width, int height, const std::string& name) {
 
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, openGLMajorVersion);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, openGLMinorVersion);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   if (shouldDebugOpenGL)
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
   if (useMSAA)
