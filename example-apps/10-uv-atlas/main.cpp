@@ -182,14 +182,14 @@ int main() {
       shader.setVector3("u_CameraPosition", cam.getPosition());
       if (debugScene)
         shader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
-      glBindTextureUnit(0, renderable.get().texture.getId());
-      glBindTextureUnit(1, renderable.get().texture2.getId());
+	    renderable.get().texture.bindToUnit(0);
+	    renderable.get().texture2.bindToUnit(1);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       renderable.get().mesh.bind();
       renderable.get().mesh.draw();
       renderable.get().mesh.unbind();
-      glBindTextureUnit(0, 0);
-      glBindTextureUnit(1, 0);
+	    renderable.get().texture.unbindFromUnit(0);
+	    renderable.get().texture2.unbindFromUnit(1);
       shader.unbind();
     }
 

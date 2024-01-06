@@ -129,6 +129,14 @@ void Texture::unbind() const {
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void Texture::bindToUnit(uint32_t unit) const {
+	glBindTextureUnit(unit, id);
+}
+
+void Texture::unbindFromUnit(uint32_t unit) const {
+  glBindTextureUnit(unit, 0);
+}
+
 void Texture::bindImageTexture(uint32_t textureUnit, Access access) const {
   GLenum glAccess{};
   switch (access) {

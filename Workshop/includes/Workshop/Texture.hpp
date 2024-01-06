@@ -62,6 +62,8 @@ class Texture {
   bool isValid() const { return id != INVALID; }
   void bind() const;
   void unbind() const;
+  void bindToUnit(uint32_t unit) const;
+  void unbindFromUnit(uint32_t unit) const;
   // should already be bound
   void bindImageTexture(uint32_t textureUnit, Access access) const;
   // not type-safe
