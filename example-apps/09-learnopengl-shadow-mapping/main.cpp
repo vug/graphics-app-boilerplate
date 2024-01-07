@@ -65,6 +65,7 @@ int main() {
   assetManager.meshes.emplace("quad", ws::Mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/quad.obj")});
   assetManager.meshes.emplace("axes", ws::Mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/coordinate_axes.obj")});
   assetManager.textures.emplace("wood", ws::Texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg"});
+  assetManager.textures.emplace("checkerboard", ws::Texture{ws::ASSETS_FOLDER / "images/Wikipedia/checkerboard_pattern.png"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("simpleDepth", ws::Shader{SRC / "shadow_mapping_depth.vert", SRC / "shadow_mapping_depth.frag"});
   assetManager.shaders.emplace("phongShadowed", ws::Shader{SRC / "phong_shadowed.vert", SRC / "phong_shadowed.frag"});
@@ -86,6 +87,7 @@ int main() {
     assetManager.meshes.at("axes"),
     assetManager.shaders["phongShadowed"],
     assetManager.textures["wood"],
+    assetManager.textures["checkerboard"],
   };
   ws::RenderableObject ground = {
     //ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{1, 0, 0}, glm::radians(-90.f), glm::vec3{25.f, 25.f, 1.f}}},
@@ -93,24 +95,28 @@ int main() {
     assetManager.meshes.at("quad"),
     assetManager.shaders["phongShadowed"],
     assetManager.textures["wood"],
+    assetManager.textures["checkerboard"],
   };
   ws::RenderableObject cube1 = {
     {"Cube1", {glm::vec3{0, 1.5f, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
     assetManager.meshes.at("cube"),
     assetManager.shaders["phongShadowed"],
     assetManager.textures["wood"],
+    assetManager.textures["checkerboard"],
   };
   ws::RenderableObject cube2 = {
     ws::Object{std::string{"Cube2"}, ws::Transform{glm::vec3{2.0f, 0.0f, 1.0f}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
     assetManager.meshes.at("cube"),
     assetManager.shaders["phongShadowed"],
     assetManager.textures["wood"],
+    assetManager.textures["checkerboard"],
   };
   ws::RenderableObject cube3 = {
     ws::Object{std::string{"Cube3"}, ws::Transform{glm::vec3{-1.f, 0, 2.f}, glm::normalize(glm::vec3{1.f, 0, 1.f}), glm::radians(60.f), glm::vec3{.5f, .5f, .5f}}},
     assetManager.meshes.at("cube"),
     assetManager.shaders["phongShadowed"],
     assetManager.textures["wood"],
+    assetManager.textures["checkerboard"],
   };
   ws::CameraObject cam1{
     ws::Object{std::string{"SceneCamera"}, ws::Transform{glm::vec3{0, 0, -5.f}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}}},
