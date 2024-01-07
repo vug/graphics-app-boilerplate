@@ -50,23 +50,23 @@ int main() {
   ws::RenderableObject ground = {
       {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
       assetManager.meshes.at("cube"),
-      assetManager.shaders["phong"],
-      assetManager.textures["uv_grid"],
+      assetManager.shaders.at("phong"),
+      assetManager.textures.at("uv_grid"),
       whiteTex,
   };
   ws::RenderableObject monkey = {
       {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey"),
-      assetManager.shaders["unlit"],
-      assetManager.textures["checkerboard"],
+      assetManager.shaders.at("unlit"),
+      assetManager.textures.at("checkerboard"),
       whiteTex,
   };
   ws::RenderableObject box = {
       {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
       assetManager.meshes.at("cube"),
-      assetManager.shaders["boilerplate"],
-      assetManager.textures["wood"],
-      assetManager.textures["checkerboard"],
+      assetManager.shaders.at("boilerplate"),
+      assetManager.textures.at("wood"),
+      assetManager.textures.at("checkerboard"),
   };
   ws::PerspectiveCamera3D cam;
   ws::Scene scene{
