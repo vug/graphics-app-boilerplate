@@ -61,10 +61,12 @@ target_include_directories(
 
 # git submodule add https://github.com/nothings/stb.git
 # https://stackoverflow.com/questions/55081746/add-target-properties-to-an-existing-imported-library-in-cmake
-# Am I making compilation slower by not putting "#define STB_IMAGE_IMPLEMENTATION" into a CPP file?
-# STB_IMAGE_STATIC added so that header files can be included by more than one CPP file.
+# Add STB_X_IMPLEMENTATION AND STB_X_STATIC together for each stb component so that its header file can be included by more than one CPP file
 add_library(stb INTERFACE)
-set_property(TARGET stb APPEND PROPERTY INTERFACE_COMPILE_DEFINITIONS STB_IMAGE_IMPLEMENTATION STB_IMAGE_STATIC)
+set_property(TARGET stb APPEND PROPERTY INTERFACE_COMPILE_DEFINITIONS 
+  STB_IMAGE_IMPLEMENTATION STB_IMAGE_STATIC 
+  STB_IMAGE_WRITE_IMPLEMENTATION STB_IMAGE_WRITE_STATIC
+)
 target_include_directories(
   stb INTERFACE
   stb/
