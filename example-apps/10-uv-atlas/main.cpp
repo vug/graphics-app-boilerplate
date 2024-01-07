@@ -15,8 +15,6 @@
 #include <imgui.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vec3.hpp>
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb_image_write.h>
 #include <xatlas.h>
 
 #include <print>
