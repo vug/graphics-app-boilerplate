@@ -26,6 +26,7 @@ add_subdirectory(example-apps/07-outlines-via-grow)
 add_subdirectory(example-apps/08-learnopengl-cubemaps)
 add_subdirectory(example-apps/09-learnopengl-shadow-mapping)
 add_subdirectory(example-apps/10-uv-atlas)
+add_subdirectory(example-apps/11-rendering-cookbook-infinite-grid)
 
 file(GLOB_RECURSE ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/assets/*)
 set(WORKSHOP_ASSETS ${ASSETS} PARENT_SCOPE)
