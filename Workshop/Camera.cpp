@@ -107,7 +107,7 @@ void DragHelper::checkDragging(const ThreeButtonMouseState& mouseState, const gl
 
 ManualCamera3DViewController::ManualCamera3DViewController(Camera3DView& cameraView)
     : cameraView(cameraView),
-      rightDragHelper(
+      leftDragHelper(
           MouseButton::LEFT,
           [&]() {
             pitch0 = cameraView.pitch;
@@ -118,17 +118,27 @@ ManualCamera3DViewController::ManualCamera3DViewController(Camera3DView& cameraV
             cameraView.yaw = yaw0 + drag.x * sensitivity;
           }),
       middleDragHelper(
-          MouseButton::RIGHT,
+          MouseButton::MIDDLE,
           [&]() {
             pos0 = cameraView.position;
           },
           [&](const glm::vec2& drag) {
             cameraView.position = pos0 + (cameraView.getRight() * drag.x - cameraView.getUp() * drag.y) * sensitivityB;
-          }) {}
+          }), 
+      rightDragHelper(
+          MouseButton::RIGHT,
+          [&]() {
+            pos0 = cameraView.position;
+          },
+          [&](const glm::vec2& drag) {
+            cameraView.position = pos0 + (cameraView.getForward() * drag.y) * sensitivityB;
+          }) 
+  {}
 
 void ManualCamera3DViewController::update(const glm::vec2& cursorPos, const ThreeButtonMouseState& mouseState) {
-  rightDragHelper.checkDragging(mouseState, cursorPos);
+  leftDragHelper.checkDragging(mouseState, cursorPos);
   middleDragHelper.checkDragging(mouseState, cursorPos);
+  rightDragHelper.checkDragging(mouseState, cursorPos);
 
   //float cameraSpeed = win.isKeyHeld(GLFW_KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
   //if (win.isKeyHeld(GLFW_KEY_W))

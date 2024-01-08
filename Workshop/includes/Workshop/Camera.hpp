@@ -132,6 +132,7 @@ class ManualCamera3DViewController {
   glm::vec3 pos0{};
   float pitch0{};
   float yaw0{};
+  DragHelper leftDragHelper;
   DragHelper rightDragHelper;
   DragHelper middleDragHelper;
 
