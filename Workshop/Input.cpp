@@ -91,4 +91,8 @@ void keyCallback(GLFWwindow* window, int key, [[maybe_unused]] int scancode, int
     glfwSetWindowShouldClose(window, true);
 }
 
+bool isKeyPressed(int key) {
+  return glfwGetKey(glfwGetCurrentContext(), key) == GLFW_PRESS;
+}
+
 }
