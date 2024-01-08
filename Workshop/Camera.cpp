@@ -79,11 +79,11 @@ void AutoOrbitingCamera3DViewController::update(float deltaTime) {
 
 // -----
 
-DragHelper::DragHelper(int glfwDragButton, std::function<void()> onEnterDraggingCallback, std::function<void(const glm::vec2& drag)> onBeingDraggedCallback)
-    : glfwDragButton(glfwDragButton), onEnterDraggingCallback(onEnterDraggingCallback), onBeingDraggedCallback(onBeingDraggedCallback) {}
+DragHelper::DragHelper(MouseButton dragButton, std::function<void()> onEnterDraggingCallback, std::function<void(const glm::vec2& drag)> onBeingDraggedCallback)
+    : dragButton(dragButton), onEnterDraggingCallback(onEnterDraggingCallback), onBeingDraggedCallback(onBeingDraggedCallback) {}
 
-void DragHelper::checkDragging(int glfwInputButton, const glm::vec2& cursorPos) {
-  if (glfwInputButton == glfwDragButton) {
+void DragHelper::checkDragging(const ThreeButtonMouseState& mouseState, const glm::vec2& cursorPos) {
+  if (mouseState.at(dragButton).status == MouseButtonState::Status::PRESSED) {
     // enter dragging
     if (!isBeingDragged) {
       isBeingDragged = true;
@@ -108,7 +108,7 @@ void DragHelper::checkDragging(int glfwInputButton, const glm::vec2& cursorPos) 
 ManualCamera3DViewController::ManualCamera3DViewController(Camera3DView& cameraView)
     : cameraView(cameraView),
       rightDragHelper(
-          0,  // LEFT
+          MouseButton::LEFT,
           [&]() {
             pitch0 = cameraView.pitch;
             yaw0 = cameraView.yaw;
@@ -118,7 +118,7 @@ ManualCamera3DViewController::ManualCamera3DViewController(Camera3DView& cameraV
             cameraView.yaw = yaw0 + drag.x * sensitivity;
           }),
       middleDragHelper(
-          1,  // GLFW_MOUSE_BUTTON_RIGHT,
+          MouseButton::RIGHT,
           [&]() {
             pos0 = cameraView.position;
           },
@@ -126,22 +126,22 @@ ManualCamera3DViewController::ManualCamera3DViewController(Camera3DView& cameraV
             cameraView.position = pos0 + (cameraView.getRight() * drag.x - cameraView.getUp() * drag.y) * sensitivityB;
           }) {}
 
-void ManualCamera3DViewController::update(const glm::vec2& cursorPos, int glfwInputButton) {
-  rightDragHelper.checkDragging(glfwInputButton, cursorPos);
-  middleDragHelper.checkDragging(glfwInputButton, cursorPos);
+void ManualCamera3DViewController::update(const glm::vec2& cursorPos, const ThreeButtonMouseState& mouseState) {
+  rightDragHelper.checkDragging(mouseState, cursorPos);
+  middleDragHelper.checkDragging(mouseState, cursorPos);
 
-  //   float cameraSpeed = win.isKeyHeld(GLFW_KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
-  //   if (win.isKeyHeld(GLFW_KEY_W))
-  //     cameraView.position += cameraView.getForward() * cameraSpeed * deltaTime;
-  //   if (win.isKeyHeld(GLFW_KEY_S))
-  //     cameraView.position -= cameraView.getForward() * cameraSpeed * deltaTime;
-  //   if (win.isKeyHeld(GLFW_KEY_A))
-  //     cameraView.position -= cameraView.getRight() * cameraSpeed * deltaTime;
-  //   if (win.isKeyHeld(GLFW_KEY_D))
-  //     cameraView.position += cameraView.getRight() * cameraSpeed * deltaTime;
-  //   if (win.isKeyHeld(GLFW_KEY_Q))
-  //     cameraView.position += glm::vec3{0, 1, 0} * cameraSpeed * deltaTime;
-  //   if (win.isKeyHeld(GLFW_KEY_E))
-  //     cameraView.position -= glm::vec3{0, 1, 0} * cameraSpeed * deltaTime;
+  //float cameraSpeed = win.isKeyHeld(GLFW_KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
+  //if (win.isKeyHeld(GLFW_KEY_W))
+  //  cameraView.position += cameraView.getForward() * cameraSpeed * deltaTime;
+  //if (win.isKeyHeld(GLFW_KEY_S))
+  //  cameraView.position -= cameraView.getForward() * cameraSpeed * deltaTime;
+  //if (win.isKeyHeld(GLFW_KEY_A))
+  //  cameraView.position -= cameraView.getRight() * cameraSpeed * deltaTime;
+  //if (win.isKeyHeld(GLFW_KEY_D))
+  //  cameraView.position += cameraView.getRight() * cameraSpeed * deltaTime;
+  //if (win.isKeyHeld(GLFW_KEY_Q))
+  //  cameraView.position += glm::vec3{0, 1, 0} * cameraSpeed * deltaTime;
+  //if (win.isKeyHeld(GLFW_KEY_E))
+  //  cameraView.position -= glm::vec3{0, 1, 0} * cameraSpeed * deltaTime;
 }
 }  // namespace ws

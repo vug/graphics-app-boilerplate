@@ -71,9 +71,10 @@ int main() {
   uint32_t gridVao;
   glGenVertexArrays(1, &gridVao);
 
-  ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
-  orbitingCamController.radius = 10.f;
-  orbitingCamController.theta = 0.3f;
+  //ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
+  //orbitingCamController.radius = 10.f;
+  //orbitingCamController.theta = 0.3f;
+  ws::ManualCamera3DViewController manualCamController{cam};
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{offscreenFbo.getFirstColorAttachment()};
   ws::TextureViewer textureViewer{texRefs};
   ws::HierarchyWindow hierarchyWindow{scene};
@@ -95,7 +96,15 @@ int main() {
     ImGui::Separator();
     ImGui::End();
 
-    orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
+    // orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
+    glm::vec2 cursorPos;
+    {
+      double xpos, ypos;
+      glfwGetCursorPos(workshop.getGLFWwindow(), &xpos, &ypos);
+      cursorPos = {xpos, ypos};
+    }
+    
+    manualCamController.update(cursorPos, workshop.mouseState);
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
     glViewport(0, 0, winSize.x, winSize.y);

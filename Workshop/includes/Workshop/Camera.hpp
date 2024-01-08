@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Input.hpp"
+
 #include <glm/gtx/quaternion.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
@@ -108,7 +110,7 @@ class AutoOrbitingCamera3DViewController {
 // calls given callbacks at state changes
 class DragHelper {
  private:
-  int glfwDragButton{};
+  MouseButton dragButton{};
   std::function<void()> onEnterDraggingCallback;
   std::function<void(const glm::vec2& drag)> onBeingDraggedCallback;
   // state
@@ -117,9 +119,9 @@ class DragHelper {
   glm::vec2 cursor0{};
 
  public:
-  DragHelper(int glfwDragButton, std::function<void()> onEnterDraggingCallback, std::function<void(const glm::vec2& drag)> onBeingDraggedCallback);
+  DragHelper(MouseButton dragButton, std::function<void()> onEnterDraggingCallback, std::function<void(const glm::vec2& drag)> onBeingDraggedCallback);
   // update function to call every frame
-  void checkDragging(int glfwInputButton, const glm::vec2& cursorPos);
+  void checkDragging(const ThreeButtonMouseState& mouseState, const glm::vec2& cursorPos);
 };
 
 // First Person Camera mechanism with state machine for dragging
@@ -137,7 +139,7 @@ class ManualCamera3DViewController {
   const float sensitivityB = 0.005f;  // pan sensitivity
  public:
   ManualCamera3DViewController(Camera3DView& cameraView);
-  void update(const glm::vec2& cursorPos, int glfwInputButton);
+  void update(const glm::vec2& cursorPos, const ThreeButtonMouseState& mouseState);
 };
 }  // namespace ws
 #pragma warning(default : 4250)
