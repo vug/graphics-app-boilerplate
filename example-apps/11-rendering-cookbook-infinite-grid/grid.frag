@@ -9,6 +9,15 @@ out vec4 FragColor;
 
 void main() {
   //FragColor = vec4(1, 0, 0, 1);
+
   //FragColor = vec4(uv.x, uv.y, 0, 1);
-  FragColor = vec4(fract(p2D), 0, 1);
+
+  const vec2 cellPos = fract(p2D);
+  FragColor = vec4(cellPos, 0, 1);
+
+  if (cellPos.x < 0.05 || cellPos.y < 0.05) {
+    FragColor = vec4(1, 1, 1, 1);
+  } else {
+    discard;
+  }
 }
