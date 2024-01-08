@@ -47,34 +47,29 @@ int main() {
   ws::Shader debugShader{ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag"};
   ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
-  ws::RenderableObject ground = {
-      {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
-      assetManager.meshes.at("cube"),
-      assetManager.shaders.at("phong"),
-      assetManager.textures.at("uv_grid"),
-      whiteTex,
-  };
   ws::RenderableObject monkey = {
       {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey"),
-      assetManager.shaders.at("unlit"),
-      assetManager.textures.at("checkerboard"),
+      assetManager.shaders.at("phong"),
+      assetManager.textures.at("uv_grid"),
       whiteTex,
   };
   ws::RenderableObject box = {
       {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
       assetManager.meshes.at("cube"),
-      assetManager.shaders.at("grid"),
+      assetManager.shaders.at("unlit"),
       assetManager.textures.at("wood"),
-      assetManager.textures.at("checkerboard"),
+      whiteTex,
   };
   ws::PerspectiveCamera3D cam;
   ws::Scene scene{
-      .renderables{ground, monkey, box},
+    .renderables{monkey, box},
   };
-  ws::setParent(&ground, &scene.root);
   ws::setParent(&monkey, &scene.root);
   ws::setParent(&box, &scene.root);
+
+  uint32_t gridVao;
+  glGenVertexArrays(1, &gridVao);
 
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
   orbitingCamController.radius = 10.f;
@@ -103,33 +98,24 @@ int main() {
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
-    offscreenFbo.bind();
     glViewport(0, 0, winSize.x, winSize.y);
+    //glEnable(GL_CULL_FACE);
+    //glCullFace(GL_BACK);
     glDisable(GL_CULL_FACE);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT);
-    assetManager.shaders.at("grid").bind();
-    assetManager.shaders.at("grid").setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-    assetManager.shaders.at("grid").setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-    for (auto& renderable : scene.renderables) {
-      renderable.get().texture.bindToUnit(0);
-      assetManager.shaders.at("grid").setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-      const ws::Mesh& mesh = renderable.get().mesh;
-      mesh.bind();
-      mesh.draw();
-      mesh.unbind();
-      renderable.get().texture.unbindFromUnit(0);
-    }
-    assetManager.shaders.at("grid").unbind();
-    offscreenFbo.unbind();
-
-    glViewport(0, 0, winSize.x, winSize.y);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    {
+      ws::Shader& shader = assetManager.shaders.at("grid");
+      shader.bind();
+      shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+      shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+      //shader.setVector3("u_CameraPosition", cam.getPosition());
+      glBindVertexArray(gridVao);
+      glDrawArrays(GL_TRIANGLES, 0, 6);
+      glBindVertexArray(0);
+      shader.unbind();
+    }
     for (auto& renderable : scene.renderables) {
       ws::Shader& shader = debugScene ? debugShader : renderable.get().shader;
       shader.bind();
