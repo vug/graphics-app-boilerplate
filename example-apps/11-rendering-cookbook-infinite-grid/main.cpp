@@ -104,7 +104,7 @@ int main() {
       cursorPos = {xpos, ypos};
     }
     
-    manualCamController.update(cursorPos, workshop.mouseState);
+    manualCamController.update(cursorPos, workshop.mouseState, workshop.getFrameDurationMs() * 0.001f);
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
     glViewport(0, 0, winSize.x, winSize.y);

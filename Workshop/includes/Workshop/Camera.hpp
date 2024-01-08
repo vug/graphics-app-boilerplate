@@ -140,7 +140,7 @@ class ManualCamera3DViewController {
   const float sensitivityB = 0.005f;  // pan sensitivity
  public:
   ManualCamera3DViewController(Camera3DView& cameraView);
-  void update(const glm::vec2& cursorPos, const ThreeButtonMouseState& mouseState);
+  void update(const glm::vec2& cursorPos, const ThreeButtonMouseState& mouseState, float deltaTime);
 };
 }  // namespace ws
 #pragma warning(default : 4250)

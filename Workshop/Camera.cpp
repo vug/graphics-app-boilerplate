@@ -135,23 +135,26 @@ ManualCamera3DViewController::ManualCamera3DViewController(Camera3DView& cameraV
           }) 
   {}
 
-void ManualCamera3DViewController::update(const glm::vec2& cursorPos, const ThreeButtonMouseState& mouseState) {
+void ManualCamera3DViewController::update(const glm::vec2& cursorPos, const ThreeButtonMouseState& mouseState, float deltaTime) {
   leftDragHelper.checkDragging(mouseState, cursorPos);
   middleDragHelper.checkDragging(mouseState, cursorPos);
   rightDragHelper.checkDragging(mouseState, cursorPos);
 
-  //float cameraSpeed = win.isKeyHeld(GLFW_KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
-  //if (win.isKeyHeld(GLFW_KEY_W))
-  //  cameraView.position += cameraView.getForward() * cameraSpeed * deltaTime;
-  //if (win.isKeyHeld(GLFW_KEY_S))
-  //  cameraView.position -= cameraView.getForward() * cameraSpeed * deltaTime;
-  //if (win.isKeyHeld(GLFW_KEY_A))
-  //  cameraView.position -= cameraView.getRight() * cameraSpeed * deltaTime;
-  //if (win.isKeyHeld(GLFW_KEY_D))
-  //  cameraView.position += cameraView.getRight() * cameraSpeed * deltaTime;
-  //if (win.isKeyHeld(GLFW_KEY_Q))
-  //  cameraView.position += glm::vec3{0, 1, 0} * cameraSpeed * deltaTime;
-  //if (win.isKeyHeld(GLFW_KEY_E))
-  //  cameraView.position -= glm::vec3{0, 1, 0} * cameraSpeed * deltaTime;
+  const float cameraSpeed = isKeyPressed(GLFW_KEY_LEFT_SHIFT) ? 0.2f : 2.0f;
+  // up-down in world-space
+  if (isKeyPressed(GLFW_KEY_Q))
+    cameraView.position += glm::vec3{0, -1, 0} * cameraSpeed * deltaTime;
+  if (isKeyPressed(GLFW_KEY_E))
+    cameraView.position += glm::vec3{0, 1, 0} * cameraSpeed * deltaTime;
+  // left-right on camera-plane
+  if (isKeyPressed(GLFW_KEY_A))
+    cameraView.position += -cameraView.getRight() * cameraSpeed * deltaTime;
+  if (isKeyPressed(GLFW_KEY_D))
+    cameraView.position += cameraView.getRight() * cameraSpeed * deltaTime;
+  // forward-backward
+  if (isKeyPressed(GLFW_KEY_W))
+    cameraView.position += cameraView.getForward() * cameraSpeed * deltaTime;
+  if (isKeyPressed(GLFW_KEY_S))
+    cameraView.position += -cameraView.getForward() * cameraSpeed * deltaTime;
 }
 }  // namespace ws
