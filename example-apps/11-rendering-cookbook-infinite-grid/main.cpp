@@ -106,17 +106,7 @@ int main() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    {
-      ws::Shader& shader = assetManager.shaders.at("grid");
-      shader.bind();
-      shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-      shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      shader.setVector3("u_CameraPosition", cam.getPosition());
-      glBindVertexArray(gridVao);
-      glDrawArrays(GL_TRIANGLES, 0, 6);
-      glBindVertexArray(0);
-      shader.unbind();
-    }
+    glDisable(GL_BLEND);
     for (auto& renderable : scene.renderables) {
       ws::Shader& shader = debugScene ? debugShader : renderable.get().shader;
       shader.bind();
@@ -133,6 +123,19 @@ int main() {
       renderable.get().mesh.unbind();
 	    renderable.get().texture.unbindFromUnit(0);
 	    renderable.get().texture2.unbindFromUnit(1);
+      shader.unbind();
+    }
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    {
+      ws::Shader& shader = assetManager.shaders.at("grid");
+      shader.bind();
+      shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+      shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+      shader.setVector3("u_CameraPosition", cam.getPosition());
+      glBindVertexArray(gridVao);
+      glDrawArrays(GL_TRIANGLES, 0, 6);
+      glBindVertexArray(0);
       shader.unbind();
     }
 
