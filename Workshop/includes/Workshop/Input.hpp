@@ -40,6 +40,9 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void mousePositionCallback(GLFWwindow* window, double xpos, double ypos);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
+// uses GLFW keys because I'm too lazy to write down my own enum class for all keys
 bool isKeyPressed(int key);
+int MouseButtonToGlfw(MouseButton button);
+bool isMouseButtonPressed(MouseButton button);
 
 }

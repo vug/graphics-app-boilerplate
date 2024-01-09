@@ -2,6 +2,7 @@
 #include "Workshop.hpp"
 
 #include <print>
+#include <utility>
 
 namespace ws {
 
@@ -93,6 +94,24 @@ void keyCallback(GLFWwindow* window, int key, [[maybe_unused]] int scancode, int
 
 bool isKeyPressed(int key) {
   return glfwGetKey(glfwGetCurrentContext(), key) == GLFW_PRESS;
+}
+
+int MouseButtonToGlfw(MouseButton button) {
+  switch (button) {
+    case MouseButton::LEFT:
+      return GLFW_MOUSE_BUTTON_LEFT;
+    case MouseButton::MIDDLE:
+      return GLFW_MOUSE_BUTTON_MIDDLE;
+    case MouseButton::RIGHT:
+      return GLFW_MOUSE_BUTTON_RIGHT;
+    default:
+      assert(false); // case not handled
+      std::unreachable();
+  }
+}
+
+bool isMouseButtonPressed(MouseButton button) {
+  return glfwGetMouseButton(glfwGetCurrentContext(), MouseButtonToGlfw(button));
 }
 
 }
