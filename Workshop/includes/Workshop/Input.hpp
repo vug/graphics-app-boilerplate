@@ -44,5 +44,6 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 bool isKeyPressed(int key);
 int MouseButtonToGlfw(MouseButton button);
 bool isMouseButtonPressed(MouseButton button);
+glm::vec2 getMouseCursorPosition();
 
 }

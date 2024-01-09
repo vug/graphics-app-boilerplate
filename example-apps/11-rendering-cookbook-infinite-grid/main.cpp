@@ -1,6 +1,7 @@
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
 #include <Workshop/Framebuffer.hpp>
+#include <Workshop/Input.hpp>
 #include <Workshop/Model.hpp>
 #include <Workshop/Scene.hpp>
 #include <Workshop/Shader.hpp>
@@ -95,13 +96,7 @@ int main() {
     ImGui::Separator();
     ImGui::End();
 
-    glm::vec2 cursorPos;
-    {
-      double xpos, ypos;
-      glfwGetCursorPos(workshop.getGLFWwindow(), &xpos, &ypos);
-      cursorPos = {xpos, ypos};
-    }
-    manualCamController.update(cursorPos, workshop.mouseState, workshop.getFrameDurationMs() * 0.001f);
+    manualCamController.update(ws::getMouseCursorPosition(), workshop.mouseState, workshop.getFrameDurationMs() * 0.001f);
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
     glViewport(0, 0, winSize.x, winSize.y);

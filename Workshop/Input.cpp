@@ -114,4 +114,10 @@ bool isMouseButtonPressed(MouseButton button) {
   return glfwGetMouseButton(glfwGetCurrentContext(), MouseButtonToGlfw(button));
 }
 
+glm::vec2 getMouseCursorPosition() {
+  double xpos, ypos;
+  glfwGetCursorPos(glfwGetCurrentContext(), &xpos, &ypos);
+  return {xpos, ypos};
+}
+
 }
