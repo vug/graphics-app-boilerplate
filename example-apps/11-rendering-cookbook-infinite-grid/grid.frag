@@ -14,8 +14,10 @@ void main() {
 
   const vec2 cellPos = fract(p2D);
   FragColor = vec4(cellPos, 0, 1);
+  vec2 dP2D = fwidth(p2D) * 1;
 
-  if (cellPos.x < 0.05 || cellPos.y < 0.05) {
+  const bool hasWidthOfX = cellPos.x < dP2D.x || cellPos.y < dP2D.y;
+  if (hasWidthOfX) {
     FragColor = vec4(1, 1, 1, 1);
   } else {
     discard;
