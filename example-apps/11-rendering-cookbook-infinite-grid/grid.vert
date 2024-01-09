@@ -1,3 +1,4 @@
+// Shader logic taken from https://github.com/PacktPublishing/3D-Graphics-Rendering-Cookbook/blob/master/Chapter5/GL01_Grid/src/main.cpp
 #version 460
 
 vec2 positions[4] = vec2[](vec2 (-.5, -.5), vec2 (.5, -.5), vec2 (.5, .5), vec2(-.5, .5));
