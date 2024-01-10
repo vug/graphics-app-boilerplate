@@ -1,5 +1,16 @@
 # Example Projects
 
+# 11 - Rendering Cookbook - Infinite Grid
+
+Implementation of [Chapter5/GL01\_Grid/src/main\.cpp at master · PacktPublishing/3D\-Graphics\-Rendering\-Cookbook](https://github.com/PacktPublishing/3D-Graphics-Rendering-Cookbook/blob/master/Chapter5/GL01_Grid/src/main.cpp) from [3D Graphics Rendering Cookbook \| Packt](https://www.packtpub.com/product/3d-graphics-rendering-cookbook/9781838986193) in graphics-boilerplate-app.
+
+![image](screenshots/11-rendering-cookbook-infinite-grid.png)
+
+* Procedurally generate an "infinite quad" that follows camera's projection onto xz-plane in vertex shader
+* In fragment shader draw anti-aliased lines of 3 LODs.
+* Uses `fwidth(p2D)` for determining LODs and anti-aliasing a lot. 
+* also reduce alpha when grid is far away, both for visual appealing and prevention of Moire patterns at distance.
+
 # 10 - UV-Atlas generation and Lightmaps
 
 ## Atlas Generation
