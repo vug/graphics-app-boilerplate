@@ -122,6 +122,7 @@ int main() {
   ws::TextureViewer textureViewer{texRefs};
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};
+  ws::EditorWindow editorWindow{scene};
   workshop.shadersToReload = {mainShader, unlitShader, debugShader, uvAtlasShader, lightmapShader};
   
   glEnable(GL_DEPTH_TEST);
@@ -191,11 +192,12 @@ int main() {
       shader.unbind();
     }
 
-	workshop.drawUI();
+	  workshop.drawUI();
+	  lightMapper.drawUI(scene);
     textureViewer.draw();
     ws::VObjectPtr selectedObject = hierarchyWindow.draw();
     inspectorWindow.inspectObject(selectedObject);
-	lightMapper.drawUI(scene);
+    editorWindow.draw();
 
     workshop.endFrame();
   }

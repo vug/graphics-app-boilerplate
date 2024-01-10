@@ -250,4 +250,13 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
 
   ImGui::End();
 }
+
+EditorWindow::EditorWindow(Scene& scene) : scene(scene) {
+
+}
+
+void EditorWindow::draw() {
+
+}
+
 }

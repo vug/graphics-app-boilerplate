@@ -29,4 +29,13 @@ class InspectorWindow {
  public:
   void inspectObject(VObjectPtr objPtr);
 };
+
+class EditorWindow {
+ public:
+  EditorWindow(Scene& scene);
+  void draw();
+
+ private:
+  Scene& scene;
+};
 }
