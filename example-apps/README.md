@@ -35,6 +35,20 @@ To render the scene with the baked lightmap, once scene is loaded,
 
 ![image](screenshots/10-uv-atlas-5-rendering-lightmap.jpg)
 
+# 09 - LearnOpenGL - ShadowMaps
+
+Implementation of [LearnOpenGL \- Shadow Mapping](https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping) in graphics-app-boilerplate.
+
+![image](screenshots/09-learnopengl-shadowmapping.png)
+
+* First, draws depth buffer from directional light source's view in orthographic projection into an offscreen depth-onlyFramebuffer called shadowmap
+* the lighting calculations in the shaders have a shadow logic, which 
+  i. calculates the distance of the surface to the light,
+  i. compares that to the distance stored in the shadow map (requires vertex positions to be transform into Light-space),
+  i. if stored value in closer than that fragment is in shadow
+
+Requires extra care for fragments that are outside of the "light camera"s view plane, z-fighting of a surface with itself (aka shadow acne) etc.
+
 
 # 08 - LearnOpenGL - Cubemaps
 
