@@ -251,12 +251,27 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
   ImGui::End();
 }
 
-EditorWindow::EditorWindow(Scene& scene) : scene(scene) {
-
-}
+EditorWindow::EditorWindow(Scene& scene) : scene(scene) {}
 
 void EditorWindow::draw() {
+  ImGui::Begin("Editor");
+  ImVec2 size = ImGui::GetContentRegionAvail();
+  glm::ivec2 sizei { size.x, size.y };
+  fbo.resizeIfNeeded(sizei.x, sizei.y);
 
+  fbo.bind();
+  glViewport(0, 0, sizei.x, sizei.y);
+  glClearColor(0.8f, 0.7f, 0.2f, 1.f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  fbo.unbind();
+
+  ImVec2 uv0 = {0, 0};
+  ImVec2 uv1 = {1, 1};
+  // flip the texture upside-down via following uv-coordinate transformation: (0, 0), (1, 1) -> (0, 1), (1, 0) 
+  std::swap(uv0.y, uv1.y);
+  ImGui::Image((void*)(intptr_t)fbo.getFirstColorAttachment().getId(), size, uv0, uv1, { 1, 1, 1, 1 }, { 1, 1, 0, 1 });
+
+  ImGui::End();
 }
 
 }

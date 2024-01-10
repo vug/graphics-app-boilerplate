@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Framebuffer.hpp"
 #include "Texture.hpp"
 #include "Scene.hpp"
 
@@ -36,6 +37,7 @@ class EditorWindow {
   void draw();
 
  private:
+  Framebuffer fbo;
   Scene& scene;
 };
 }
