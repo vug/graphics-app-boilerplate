@@ -1,4 +1,40 @@
-# Hi!
+# Example Projects
+
+# 10 - UV-Atlas generation and Lightmaps
+
+## Atlas Generation
+After a scene is loaded can generate a UV atlas using https://github.com/jpcy/xatlas.
+There is a GUI to tweak XAtlas parameters. 
+
+![image](screenshots/10-uv-atlas-1-Scene-UV-using-mesh-uvs.jpg)
+
+Observed that, if input mesh UVs are not given to XAtlas, generated UVs are too scattered and seams causes visual artifacts
+
+![image](screenshots/10-uv-atlas-2-UV-viz-with-mesh-uvs.jpg)
+
+![image](screenshots/10-uv-atlas-3-UV-viz-without-mesh-uvs.jpg)
+
+## Scene export
+Export whole scene as a single OBJ file, file contains all the meshes, where atlas UVs are stored in uv attribute and world positions are stored in position attribute (i.e. "scene UVs" and transforms are "baked" with the export)
+Export UV2s of all meshes into a binary custom formatted file.
+
+## Light baking in Blender
+
+* Import OBJ in Blender.
+* Adjust lighting: I used "Sky Texture" with dramatic sunrise lighting.
+* Bake via [Render Baking — Blender Manual](https://docs.blender.org/manual/en/latest/render/cycles/baking.html)
+
+![image](screenshots/10-uv-atlas-4-Blender-bake.jpg)
+
+## Rendering w/Lightmap
+
+To render the scene with the baked lightmap, once scene is loaded, 
+* load UV2s from custom binary file and replace existing UVs
+* assign lightmap shader instead of original shaders
+* bind lightmap texture from blender
+
+![image](screenshots/10-uv-atlas-5-rendering-lightmap.jpg)
+
 
 # 08 - LearnOpenGL - Cubemaps
 
