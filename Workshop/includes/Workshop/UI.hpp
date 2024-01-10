@@ -35,9 +35,11 @@ class InspectorWindow {
 class EditorWindow {
  public:
   EditorWindow(Scene& scene);
-  void draw();
+	void draw(const ThreeButtonMouseState& mouseState, float deltaTime);
 
  private:
+	ManualCamera3DViewController camController;
+	PerspectiveCamera3D cam;
   Framebuffer fbo;
   Scene& scene;
   Shader shader;

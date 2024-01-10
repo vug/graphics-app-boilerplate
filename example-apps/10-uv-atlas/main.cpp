@@ -115,9 +115,9 @@ int main() {
   LightMapper lightMapper; 
   lightMapper.generateUV2Atlas(scene);
 
-  ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
-  orbitingCamController.radius = 10.f;
-  orbitingCamController.theta = 0.3f;
+	cam.position = { 0, 5, -10 };
+	cam.pitch = glm::radians(-30.f);
+	ws::ManualCamera3DViewController manualCamController{cam};
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{atlasFbo.getFirstColorAttachment(), assetManager.textures.at("baked_lightmap")};
   ws::TextureViewer textureViewer{texRefs};
   ws::HierarchyWindow hierarchyWindow{scene};
@@ -130,8 +130,8 @@ int main() {
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
     const glm::uvec2 winSize = workshop.getWindowSize();
-	const glm::uvec2 atlasSize = lightMapper.getAtlasSize();
-	atlasFbo.resizeIfNeeded(atlasSize.x, atlasSize.y);
+	  const glm::uvec2 atlasSize = lightMapper.getAtlasSize();
+	  atlasFbo.resizeIfNeeded(atlasSize.x, atlasSize.y);
 
     ImGui::Begin("LightMapper");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
@@ -144,7 +144,8 @@ int main() {
       atlasFbo.getFirstColorAttachment().saveToImageFile("uv_atlas_vug.png");
     ImGui::End();
 
-    orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
+		if(!ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
+			manualCamController.update(ws::getMouseCursorPosition(), workshop.mouseState, workshop.getFrameDurationMs() * 0.001f);
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
     atlasFbo.bind();
@@ -197,7 +198,7 @@ int main() {
     textureViewer.draw();
     ws::VObjectPtr selectedObject = hierarchyWindow.draw();
     inspectorWindow.inspectObject(selectedObject);
-    editorWindow.draw();
+		editorWindow.draw(workshop.mouseState, workshop.getFrameDurationMs() * 0.001f);
 
     workshop.endFrame();
   }

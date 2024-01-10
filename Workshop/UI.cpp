@@ -254,14 +254,18 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
 
 EditorWindow::EditorWindow(Scene& scene)
 	: scene(scene),
-		shader(ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag")
+		shader(ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag"),
+		camController(cam)
 { }
 
-void EditorWindow::draw() {
+void EditorWindow::draw(const ThreeButtonMouseState& mouseState, float deltaTime) {
   ImGui::Begin("Editor");
   ImVec2 size = ImGui::GetContentRegionAvail();
   glm::ivec2 sizei { size.x, size.y };
   fbo.resizeIfNeeded(sizei.x, sizei.y);
+
+	if (ImGui::IsWindowHovered())
+		camController.update(getMouseCursorPosition(), mouseState, deltaTime);
 
   fbo.bind();
   glViewport(0, 0, sizei.x, sizei.y);
@@ -271,6 +275,10 @@ void EditorWindow::draw() {
   for (auto& renderable : scene.renderables) {
 	  shader.bind();
 	  shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
+		shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+		shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+		shader.setVector3("u_CameraPosition", cam.getPosition());
+		shader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
 	  renderable.get().mesh.bind();
 	  renderable.get().mesh.draw();
 	  renderable.get().mesh.unbind();
