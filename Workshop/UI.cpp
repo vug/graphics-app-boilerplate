@@ -1,3 +1,4 @@
+#include <Workshop/Assets.hpp>
 #include "UI.hpp"
 
 #include <glm/gtx/euler_angles.hpp>
@@ -251,7 +252,10 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
   ImGui::End();
 }
 
-EditorWindow::EditorWindow(Scene& scene) : scene(scene) {}
+EditorWindow::EditorWindow(Scene& scene)
+	: scene(scene),
+		shader(ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag")
+{ }
 
 void EditorWindow::draw() {
   ImGui::Begin("Editor");
@@ -261,8 +265,17 @@ void EditorWindow::draw() {
 
   fbo.bind();
   glViewport(0, 0, sizei.x, sizei.y);
-  glClearColor(0.8f, 0.7f, 0.2f, 1.f);
+  glClearColor(0.f, 0.f, 0.f, 1.f);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  for (auto& renderable : scene.renderables) {
+	  shader.bind();
+	  shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
+	  renderable.get().mesh.bind();
+	  renderable.get().mesh.draw();
+	  renderable.get().mesh.unbind();
+	  shader.unbind();
+  }
   fbo.unbind();
 
   ImVec2 uv0 = {0, 0};

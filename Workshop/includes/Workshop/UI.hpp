@@ -3,6 +3,7 @@
 #include "Framebuffer.hpp"
 #include "Texture.hpp"
 #include "Scene.hpp"
+#include "Shader.hpp"
 
 #include <vector>
 
@@ -39,5 +40,6 @@ class EditorWindow {
  private:
   Framebuffer fbo;
   Scene& scene;
+  Shader shader;
 };
 }
