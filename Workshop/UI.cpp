@@ -291,6 +291,10 @@ EditorWindow::EditorWindow(Scene& scene)
 void EditorWindow::draw() {
 	ImGui::Begin("Editor");
 	ImVec2 size = ImGui::GetContentRegionAvail();
+  if (size.y < 0) { // happens when minimized
+    ImGui::End();
+    return;
+  }
 	glm::ivec2 sizei { size.x, size.y };
 	fbo.resizeIfNeeded(sizei.x, sizei.y);
 
