@@ -12,6 +12,36 @@
 
 namespace ws {
 
+static bool imguiMouseDragHelperHasBegun = false;
+
+void ImGuiBeginMouseDragHelper(const char* name, ImVec2 size) {
+	assert(!imguiMouseDragHelperHasBegun); // cannot put one into another
+	ImVec2 tmpCursor = ImGui::GetCursorPos();
+	ImGui::InvisibleButton(name, size); // ImGuiButtonFlags_AllowItemOverlap needed?
+	ImGui::SetCursorPos(tmpCursor);
+	imguiMouseDragHelperHasBegun = true;
+}
+
+bool ImGuiMouseDragHelperIsBeginningDrag() {
+	assert(imguiMouseDragHelperHasBegun);
+	return ImGui::IsItemActivated();
+}
+
+bool ImGuiMouseDragHelperIsDragging() {
+	assert(imguiMouseDragHelperHasBegun);
+	return ImGui::IsItemActive();
+}
+
+bool ImGuiMouseDragHelperIsEndingDrag() {
+	assert(imguiMouseDragHelperHasBegun);
+	return ImGui::IsItemDeactivated();
+}
+
+void ImGuiEndMouseDragHelper() {
+	assert(imguiMouseDragHelperHasBegun);
+	imguiMouseDragHelperHasBegun = false;
+}
+
 TextureViewer::TextureViewer(const std::vector<std::reference_wrapper<ws::Texture>>& textures) 
   : textures{textures} {
 }
@@ -264,25 +294,18 @@ void EditorWindow::draw() {
   glm::ivec2 sizei { size.x, size.y };
   fbo.resizeIfNeeded(sizei.x, sizei.y);
 
-	auto cursor = ImGui::GetCursorPos();
-	ImGui::InvisibleButton("EditorDragDetector", size); // ImGuiButtonFlags_AllowItemOverlap needed?
-
-	ImGui::SetCursorPos(cursor);
-	auto io = ImGui::GetIO();
-	ImVec2 leftClickedPos = io.MouseClickedPos[0];
-	ImVec2 pos = io.MousePos;
-	ImVec2 delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 0);
-
+	ImGuiBeginMouseDragHelper("EditorDragDetector", size);
 	static glm::vec3 camPos0{};
-	// Only called at the first frame of IsActive
-	if (ImGui::IsItemActivated()) {
+	if (ImGuiMouseDragHelperIsBeginningDrag())
 		camPos0 = cam.getPosition();
-	}
-	if (ImGui::IsItemActive()) {
+	if (ImGuiMouseDragHelperIsDragging()) {
+		const ImVec2 delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 0);
 		cam.position = camPos0 + 0.01f * glm::vec3 { delta.x, delta.y, 0 };
-		ImGui::GetForegroundDrawList()->AddLine(leftClickedPos, pos, ImGui::GetColorU32(ImGuiCol_Button), 4.0f); // Draw a line between the button and the mouse cursor
+		//ImGui::GetForegroundDrawList()->AddLine(ImGui::GetIO().MouseClickedPos[ImGuiMouseButton_Left], ImGui::GetMousePos(), IM_COL32(255, 0, 0, 255), 4.0f);
+		//ImGui::GetForegroundDrawList()->AddLine(ImGui::GetIO().MouseClickedPos[ImGuiMouseButton_Middle], ImGui::GetMousePos(), IM_COL32(0, 255, 0, 255), 4.0f);
+		//ImGui::GetForegroundDrawList()->AddLine(ImGui::GetIO().MouseClickedPos[ImGuiMouseButton_Right], ImGui::GetMousePos(), IM_COL32(0, 0, 255, 255), 4.0f);
 	}
-	//if (ImGui::IsItemDeactivated()) {} // End of Drag, no common frames with IsItemActive()
+	ImGuiEndMouseDragHelper();
 
 	cam.aspectRatio = size.x / size.y;
 
@@ -310,7 +333,6 @@ void EditorWindow::draw() {
   // flip the texture upside-down via following uv-coordinate transformation: (0, 0), (1, 1) -> (0, 1), (1, 0) 
   std::swap(uv0.y, uv1.y);
   ImGui::Image((void*)(intptr_t)fbo.getFirstColorAttachment().getId(), size, uv0, uv1, { 1, 1, 1, 1 }, { 1, 1, 0, 1 });
-	ImGui::SetCursorPos(cursor);
 	//ImGui::Image((void*)(intptr_t)fbo.getFirstColorAttachment().getId(), size, uv0, uv1);
 
   ImGui::End();
