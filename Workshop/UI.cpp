@@ -258,14 +258,33 @@ EditorWindow::EditorWindow(Scene& scene)
 		camController(cam)
 { }
 
-void EditorWindow::draw(const ThreeButtonMouseState& mouseState, float deltaTime) {
+void EditorWindow::draw() {
   ImGui::Begin("Editor");
   ImVec2 size = ImGui::GetContentRegionAvail();
   glm::ivec2 sizei { size.x, size.y };
   fbo.resizeIfNeeded(sizei.x, sizei.y);
 
-	if (ImGui::IsWindowHovered())
-		camController.update(getMouseCursorPosition(), mouseState, deltaTime);
+	auto cursor = ImGui::GetCursorPos();
+	ImGui::InvisibleButton("EditorDragDetector", size); // ImGuiButtonFlags_AllowItemOverlap needed?
+
+	ImGui::SetCursorPos(cursor);
+	auto io = ImGui::GetIO();
+	ImVec2 leftClickedPos = io.MouseClickedPos[0];
+	ImVec2 pos = io.MousePos;
+	ImVec2 delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 0);
+
+	static glm::vec3 camPos0{};
+	// Only called at the first frame of IsActive
+	if (ImGui::IsItemActivated()) {
+		camPos0 = cam.getPosition();
+	}
+	if (ImGui::IsItemActive()) {
+		cam.position = camPos0 + 0.01f * glm::vec3 { delta.x, delta.y, 0 };
+		ImGui::GetForegroundDrawList()->AddLine(leftClickedPos, pos, ImGui::GetColorU32(ImGuiCol_Button), 4.0f); // Draw a line between the button and the mouse cursor
+	}
+	//if (ImGui::IsItemDeactivated()) {} // End of Drag, no common frames with IsItemActive()
+
+	cam.aspectRatio = size.x / size.y;
 
   fbo.bind();
   glViewport(0, 0, sizei.x, sizei.y);
@@ -291,6 +310,8 @@ void EditorWindow::draw(const ThreeButtonMouseState& mouseState, float deltaTime
   // flip the texture upside-down via following uv-coordinate transformation: (0, 0), (1, 1) -> (0, 1), (1, 0) 
   std::swap(uv0.y, uv1.y);
   ImGui::Image((void*)(intptr_t)fbo.getFirstColorAttachment().getId(), size, uv0, uv1, { 1, 1, 1, 1 }, { 1, 1, 0, 1 });
+	ImGui::SetCursorPos(cursor);
+	//ImGui::Image((void*)(intptr_t)fbo.getFirstColorAttachment().getId(), size, uv0, uv1);
 
   ImGui::End();
 }

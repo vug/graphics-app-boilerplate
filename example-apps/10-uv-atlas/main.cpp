@@ -144,8 +144,8 @@ int main() {
       atlasFbo.getFirstColorAttachment().saveToImageFile("uv_atlas_vug.png");
     ImGui::End();
 
-		if(!ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
-			manualCamController.update(ws::getMouseCursorPosition(), workshop.mouseState, workshop.getFrameDurationMs() * 0.001f);
+//		if(!ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
+//			manualCamController.update(ws::getMouseCursorPosition(), workshop.mouseState, workshop.getFrameDurationMs() * 0.001f);
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
     atlasFbo.bind();
@@ -198,7 +198,7 @@ int main() {
     textureViewer.draw();
     ws::VObjectPtr selectedObject = hierarchyWindow.draw();
     inspectorWindow.inspectObject(selectedObject);
-		editorWindow.draw(workshop.mouseState, workshop.getFrameDurationMs() * 0.001f);
+		editorWindow.draw();
 
     workshop.endFrame();
   }
