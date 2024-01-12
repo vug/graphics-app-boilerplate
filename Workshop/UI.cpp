@@ -17,7 +17,7 @@ static bool imguiMouseDragHelperHasBegun = false;
 void ImGuiBeginMouseDragHelper(const char* name, ImVec2 size) {
 	assert(!imguiMouseDragHelperHasBegun); // cannot put one into another
 	ImVec2 tmpCursor = ImGui::GetCursorPos();
-	ImGui::InvisibleButton(name, size); // ImGuiButtonFlags_AllowItemOverlap needed?
+	ImGui::InvisibleButton(name, size, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonMiddle | ImGuiButtonFlags_MouseButtonRight); // ImGuiButtonFlags_AllowItemOverlap needed?
 	ImGui::SetCursorPos(tmpCursor);
 	imguiMouseDragHelperHasBegun = true;
 }
@@ -289,18 +289,31 @@ EditorWindow::EditorWindow(Scene& scene)
 { }
 
 void EditorWindow::draw() {
-  ImGui::Begin("Editor");
-  ImVec2 size = ImGui::GetContentRegionAvail();
-  glm::ivec2 sizei { size.x, size.y };
-  fbo.resizeIfNeeded(sizei.x, sizei.y);
+	ImGui::Begin("Editor");
+	ImVec2 size = ImGui::GetContentRegionAvail();
+	glm::ivec2 sizei { size.x, size.y };
+	fbo.resizeIfNeeded(sizei.x, sizei.y);
 
 	ImGuiBeginMouseDragHelper("EditorDragDetector", size);
-	static glm::vec3 camPos0{};
-	if (ImGuiMouseDragHelperIsBeginningDrag())
-		camPos0 = cam.getPosition();
+	static glm::vec3 pos0{};
+	static float pitch0{};
+	static float yaw0{};
+	if (ImGuiMouseDragHelperIsBeginningDrag()) {
+		pos0 = cam.getPosition();
+		pitch0 = cam.pitch;
+		yaw0 = cam.yaw;
+	}
 	if (ImGuiMouseDragHelperIsDragging()) {
-		const ImVec2 delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 0);
-		cam.position = camPos0 + 0.01f * glm::vec3 { delta.x, delta.y, 0 };
+		const ImVec2 deltaLeft = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 0);
+		const ImVec2 deltaMiddle = ImGui::GetMouseDragDelta(ImGuiMouseButton_Middle, 0);
+		const ImVec2 deltaRight = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right, 0);
+		std::println("delta left ({:.1f}, {:.1f}). delta middle ({:.1f}, {:.1f})", deltaLeft.x, deltaLeft.y, deltaMiddle.x, deltaMiddle.y);
+		const float sensitivity = 0.005f;
+		cam.pitch = glm::clamp(pitch0 - deltaLeft.y * sensitivity, -std::numbers::pi_v<float> * 0.5f, std::numbers::pi_v<float> * 0.5f);
+		cam.yaw = yaw0 + deltaLeft.x * sensitivity;
+		cam.position = pos0 
+			+ (cam.getRight() * deltaMiddle.x - cam.getUp() * deltaMiddle.y) * sensitivity
+		  + (cam.getForward() * deltaRight.x - cam.getUp() * deltaRight.y) * sensitivity;
 		//ImGui::GetForegroundDrawList()->AddLine(ImGui::GetIO().MouseClickedPos[ImGuiMouseButton_Left], ImGui::GetMousePos(), IM_COL32(255, 0, 0, 255), 4.0f);
 		//ImGui::GetForegroundDrawList()->AddLine(ImGui::GetIO().MouseClickedPos[ImGuiMouseButton_Middle], ImGui::GetMousePos(), IM_COL32(0, 255, 0, 255), 4.0f);
 		//ImGui::GetForegroundDrawList()->AddLine(ImGui::GetIO().MouseClickedPos[ImGuiMouseButton_Right], ImGui::GetMousePos(), IM_COL32(0, 0, 255, 255), 4.0f);
