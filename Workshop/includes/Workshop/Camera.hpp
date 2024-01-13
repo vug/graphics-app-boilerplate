@@ -11,6 +11,32 @@
 
 #pragma warning(disable : 4250)
 namespace ws {
+class Camera {
+public:
+	glm::vec3 position{0.f, 3.f, -5.f};
+	glm::vec3 target{0.f, 0.f, 0.f};
+	float nearClip{0.01f};
+	float farClip{100.0f};
+	float aspectRatio{1.f};
+	// Perspective Camera
+	float fov{50.f};
+	// Orthographic Camera
+	float orthoSize{5.0f};
+
+	glm::vec3 getDirection() const;
+	glm::mat4 getViewFromWorld() const;
+	glm::vec3 getForward() const;
+	glm::vec3 getUp() const;
+	glm::vec3 getRight() const;
+
+	glm::mat4 getProjectionFromView() const;
+	glm::mat4 getProjectionFromWorld() const;
+
+	float getPitch() const;
+	float getYaw() const;
+	float getRoll() const;	
+};
+
 class ICamera {
  public:
   virtual const glm::vec3& getPosition() const = 0;

@@ -101,7 +101,7 @@ int main() {
       assetManager.textures["baked_lightmap"],
       whiteTex,
   };
-  ws::PerspectiveCamera3D cam;
+  ws::Camera cam;
   ws::Scene scene{
     .renderables{monkey1, monkey2, box, torus, ground},
     //.renderables{bakedScene},
@@ -116,8 +116,7 @@ int main() {
   lightMapper.generateUV2Atlas(scene);
 
 	cam.position = { 0, 5, -10 };
-	cam.pitch = glm::radians(-30.f);
-	ws::ManualCamera3DViewController manualCamController{cam};
+	cam.target = { 0, 0, 0 };
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{atlasFbo.getFirstColorAttachment(), assetManager.textures.at("baked_lightmap")};
   ws::TextureViewer textureViewer{texRefs};
   ws::HierarchyWindow hierarchyWindow{scene};
@@ -144,8 +143,6 @@ int main() {
       atlasFbo.getFirstColorAttachment().saveToImageFile("uv_atlas_vug.png");
     ImGui::End();
 
-//		if(!ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
-//			manualCamController.update(ws::getMouseCursorPosition(), workshop.mouseState, workshop.getFrameDurationMs() * 0.001f);
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
     atlasFbo.bind();
@@ -179,7 +176,7 @@ int main() {
       shader.bind();
       shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      shader.setVector3("u_CameraPosition", cam.getPosition());
+      shader.setVector3("u_CameraPosition", cam.position);
       if (debugScene)
         shader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
 	    renderable.get().texture.bindToUnit(0);

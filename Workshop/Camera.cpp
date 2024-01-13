@@ -3,6 +3,37 @@
 #include <imgui.h>
 
 namespace ws {
+
+glm::vec3 Camera::getDirection() const {
+	return glm::normalize(target - position);
+}
+
+glm::mat4 Camera::getViewFromWorld() const {
+	return glm::lookAt(position, position + getDirection(), {0, 1, 0});
+}
+
+glm::vec3 Camera::getForward() const {
+	return getDirection();
+}
+
+glm::vec3 Camera::getUp() const {
+	return glm::normalize(glm::cross(getRight(), getForward()));
+}
+
+glm::vec3 Camera::getRight() const {
+	return glm::normalize(glm::cross(getDirection(), {0, 1, 0}));
+}
+
+glm::mat4 Camera::getProjectionFromView() const {
+	return glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip);
+}
+
+glm::mat4 Camera::getProjectionFromWorld() const {
+	return getProjectionFromView() * getViewFromWorld();
+}
+
+//
+
 const glm::vec3& ICameraView::getPosition() const {
   return position;
 }
