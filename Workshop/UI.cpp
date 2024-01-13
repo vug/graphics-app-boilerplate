@@ -290,6 +290,10 @@ EditorWindow::EditorWindow(Scene& scene)
 
 void EditorWindow::draw() {
 	ImGui::Begin("Editor");
+
+	static bool shouldBeWireframe = false;
+	ImGui::Checkbox("Wireframe", &shouldBeWireframe);
+
 	ImVec2 size = ImGui::GetContentRegionAvail();
   if (size.y < 0) { // happens when minimized
     ImGui::End();
@@ -352,7 +356,7 @@ void EditorWindow::draw() {
   fbo.bind();
   glViewport(0, 0, sizei.x, sizei.y);
   glClearColor(0.f, 0.f, 0.f, 1.f);
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glPolygonMode(GL_FRONT_AND_BACK, shouldBeWireframe ? GL_LINE : GL_FILL);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   for (auto& renderable : scene.renderables) {
 	  shader.bind();
