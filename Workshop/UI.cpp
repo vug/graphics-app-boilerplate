@@ -300,25 +300,47 @@ void EditorWindow::draw() {
 
 	ImGuiBeginMouseDragHelper("EditorDragDetector", size);
 	static Camera cam0;
-	if (ImGuiMouseDragHelperIsBeginningDrag())
+	static glm::vec3 deltaPos;
+	if (ImGuiMouseDragHelperIsBeginningDrag()) {
 		cam0 = cam;
+		deltaPos = {};
+	}
 	if (ImGuiMouseDragHelperIsDragging()) {
 		const ImVec2 deltaLeft = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 0);
 		const ImVec2 deltaMiddle = ImGui::GetMouseDragDelta(ImGuiMouseButton_Middle, 0);
 		const ImVec2 deltaRight = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right, 0);
-		const float sensitivity = 0.005f;
+		const float mouseSpeed = 0.005f;
+		float keySpeed = 0.1f;
+
+		if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
+			keySpeed *= 5;
 
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+			if (ImGui::IsKeyDown(ImGuiKey_A))
+				deltaPos -= cam.getRight() * keySpeed;
+			if (ImGui::IsKeyDown(ImGuiKey_D))
+				deltaPos += cam.getRight() * keySpeed;
+			if (ImGui::IsKeyDown(ImGuiKey_W))
+				deltaPos += cam.getForward() * keySpeed;
+			if (ImGui::IsKeyDown(ImGuiKey_S))
+				deltaPos -= cam.getForward() * keySpeed;
+			if (ImGui::IsKeyDown(ImGuiKey_Q))
+				deltaPos -= cam.getUp() * keySpeed;
+			if (ImGui::IsKeyDown(ImGuiKey_E))
+				deltaPos += cam.getUp() * keySpeed;
+
 			const glm::vec3 oldPosToOldTarget = cam0.target - cam0.position;
-			const float deltaPitch = -deltaRight.y * sensitivity;
+			const float deltaPitch = -deltaRight.y * mouseSpeed;
 			glm::vec3 oldPosToNewTarget = glm::rotate(oldPosToOldTarget, deltaPitch, cam0.getRight());
-			const float deltaYaw = -deltaRight.x * sensitivity;
+			const float deltaYaw = -deltaRight.x * mouseSpeed;
 			oldPosToNewTarget = glm::rotate(oldPosToNewTarget, deltaYaw, glm::vec3 { 0, 1, 0 });
-			cam.target = cam0.position + oldPosToNewTarget;
+
+			cam.position = cam0.position + deltaPos;
+			cam.target = cam0.position + oldPosToNewTarget + deltaPos;
 		}
 
 		else if (ImGui::IsMouseDown(ImGuiMouseButton_Middle)) {
-			const glm::vec3 deltaPan = (cam0.getRight() * -deltaMiddle.x - cam0.getUp() * -deltaMiddle.y) * sensitivity;
+			const glm::vec3 deltaPan = (cam0.getRight() * -deltaMiddle.x - cam0.getUp() * -deltaMiddle.y) * mouseSpeed;
 			cam.position = cam0.position + deltaPan;
 			cam.target = cam0.target + deltaPan;
 		}
