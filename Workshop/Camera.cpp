@@ -1,5 +1,6 @@
 #include "Camera.hpp"
 
+#include <glm/glm.hpp>
 #include <imgui.h>
 
 namespace ws {
@@ -30,6 +31,11 @@ glm::mat4 Camera::getProjectionFromView() const {
 
 glm::mat4 Camera::getProjectionFromWorld() const {
 	return getProjectionFromView() * getViewFromWorld();
+}
+
+float Camera::getPitch() const {
+	glm::vec3 dir = getDirection();
+	return glm::acos(dir.z);
 }
 
 //

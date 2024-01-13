@@ -52,8 +52,7 @@ class EditorWindow {
 	void draw();
 
  private:
-	ManualCamera3DViewController camController;
-	PerspectiveCamera3D cam;
+	Camera cam;
   Framebuffer fbo;
   Scene& scene;
   Shader shader;

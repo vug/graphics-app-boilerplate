@@ -2,6 +2,7 @@
 #include "UI.hpp"
 
 #include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/rotate_vector.hpp> // for glm::rotate overload for rotating a vector around an axis by an angle
 #include <imgui/imgui.h>
 #include <imgui_internal.h> // for PushMultiItemsWidths, GImGui
 
@@ -284,8 +285,7 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
 
 EditorWindow::EditorWindow(Scene& scene)
 	: scene(scene),
-		shader(ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag"),
-		camController(cam)
+		shader(ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag")
 { }
 
 void EditorWindow::draw() {
@@ -299,25 +299,40 @@ void EditorWindow::draw() {
 	fbo.resizeIfNeeded(sizei.x, sizei.y);
 
 	ImGuiBeginMouseDragHelper("EditorDragDetector", size);
-	static glm::vec3 pos0{};
+	static glm::vec3 position0{};
+	static glm::vec3 target0{};
+	static glm::vec3 right0;
+	static glm::vec3 up0{};
 	static float pitch0{};
-	static float yaw0{};
 	if (ImGuiMouseDragHelperIsBeginningDrag()) {
-		pos0 = cam.getPosition();
-		pitch0 = cam.pitch;
-		yaw0 = cam.yaw;
+		position0 = cam.position;
+		target0 = cam.target;
+		right0 = cam.getRight();
+		up0 = cam.getUp();
+		pitch0 = cam.getPitch();
 	}
 	if (ImGuiMouseDragHelperIsDragging()) {
 		const ImVec2 deltaLeft = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 0);
 		const ImVec2 deltaMiddle = ImGui::GetMouseDragDelta(ImGuiMouseButton_Middle, 0);
 		const ImVec2 deltaRight = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right, 0);
-		std::println("delta left ({:.1f}, {:.1f}). delta middle ({:.1f}, {:.1f})", deltaLeft.x, deltaLeft.y, deltaMiddle.x, deltaMiddle.y);
+
 		const float sensitivity = 0.005f;
-		cam.pitch = glm::clamp(pitch0 - deltaLeft.y * sensitivity, -std::numbers::pi_v<float> * 0.5f, std::numbers::pi_v<float> * 0.5f);
-		cam.yaw = yaw0 + deltaLeft.x * sensitivity;
-		cam.position = pos0 
-			+ (cam.getRight() * deltaMiddle.x - cam.getUp() * deltaMiddle.y) * sensitivity
-		  + (cam.getForward() * deltaRight.x - cam.getUp() * deltaRight.y) * sensitivity;
+
+		if (ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+			const glm::vec3 oldPosToOldTarget = target0 - position0;
+			const float deltaPitch = -deltaRight.y * sensitivity;
+			glm::vec3 oldPosToNewTarget = glm::rotate(oldPosToOldTarget, deltaPitch, right0);
+			const float deltaYaw = -deltaRight.x * sensitivity;
+			oldPosToNewTarget = glm::rotate(oldPosToNewTarget, deltaYaw, glm::vec3 { 0, 1, 0 });
+			cam.target = position0 + oldPosToNewTarget;
+		}
+
+		else if (ImGui::IsMouseDown(ImGuiMouseButton_Middle)) {
+			const glm::vec3 dr = (right0 * -deltaMiddle.x - up0 * -deltaMiddle.y) * sensitivity;
+			cam.position = position0 + dr;
+			cam.target = target0 + dr;
+		}
+
 		//ImGui::GetForegroundDrawList()->AddLine(ImGui::GetIO().MouseClickedPos[ImGuiMouseButton_Left], ImGui::GetMousePos(), IM_COL32(255, 0, 0, 255), 4.0f);
 		//ImGui::GetForegroundDrawList()->AddLine(ImGui::GetIO().MouseClickedPos[ImGuiMouseButton_Middle], ImGui::GetMousePos(), IM_COL32(0, 255, 0, 255), 4.0f);
 		//ImGui::GetForegroundDrawList()->AddLine(ImGui::GetIO().MouseClickedPos[ImGuiMouseButton_Right], ImGui::GetMousePos(), IM_COL32(0, 0, 255, 255), 4.0f);
@@ -336,7 +351,7 @@ void EditorWindow::draw() {
 	  shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
 		shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
 		shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-		shader.setVector3("u_CameraPosition", cam.getPosition());
+		shader.setVector3("u_CameraPosition", cam.position);
 		shader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
 	  renderable.get().mesh.bind();
 	  renderable.get().mesh.draw();
