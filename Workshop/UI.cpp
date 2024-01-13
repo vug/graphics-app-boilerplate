@@ -299,43 +299,29 @@ void EditorWindow::draw() {
 	fbo.resizeIfNeeded(sizei.x, sizei.y);
 
 	ImGuiBeginMouseDragHelper("EditorDragDetector", size);
-	static glm::vec3 position0{};
-	static glm::vec3 target0{};
-	static glm::vec3 right0;
-	static glm::vec3 up0{};
-	static float pitch0{};
-	if (ImGuiMouseDragHelperIsBeginningDrag()) {
-		position0 = cam.position;
-		target0 = cam.target;
-		right0 = cam.getRight();
-		up0 = cam.getUp();
-		pitch0 = cam.getPitch();
-	}
+	static Camera cam0;
+	if (ImGuiMouseDragHelperIsBeginningDrag())
+		cam0 = cam;
 	if (ImGuiMouseDragHelperIsDragging()) {
 		const ImVec2 deltaLeft = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 0);
 		const ImVec2 deltaMiddle = ImGui::GetMouseDragDelta(ImGuiMouseButton_Middle, 0);
 		const ImVec2 deltaRight = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right, 0);
-
 		const float sensitivity = 0.005f;
 
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
-			const glm::vec3 oldPosToOldTarget = target0 - position0;
+			const glm::vec3 oldPosToOldTarget = cam0.target - cam0.position;
 			const float deltaPitch = -deltaRight.y * sensitivity;
-			glm::vec3 oldPosToNewTarget = glm::rotate(oldPosToOldTarget, deltaPitch, right0);
+			glm::vec3 oldPosToNewTarget = glm::rotate(oldPosToOldTarget, deltaPitch, cam0.getRight());
 			const float deltaYaw = -deltaRight.x * sensitivity;
 			oldPosToNewTarget = glm::rotate(oldPosToNewTarget, deltaYaw, glm::vec3 { 0, 1, 0 });
-			cam.target = position0 + oldPosToNewTarget;
+			cam.target = cam0.position + oldPosToNewTarget;
 		}
 
 		else if (ImGui::IsMouseDown(ImGuiMouseButton_Middle)) {
-			const glm::vec3 dr = (right0 * -deltaMiddle.x - up0 * -deltaMiddle.y) * sensitivity;
-			cam.position = position0 + dr;
-			cam.target = target0 + dr;
+			const glm::vec3 deltaPan = (cam0.getRight() * -deltaMiddle.x - cam0.getUp() * -deltaMiddle.y) * sensitivity;
+			cam.position = cam0.position + deltaPan;
+			cam.target = cam0.target + deltaPan;
 		}
-
-		//ImGui::GetForegroundDrawList()->AddLine(ImGui::GetIO().MouseClickedPos[ImGuiMouseButton_Left], ImGui::GetMousePos(), IM_COL32(255, 0, 0, 255), 4.0f);
-		//ImGui::GetForegroundDrawList()->AddLine(ImGui::GetIO().MouseClickedPos[ImGuiMouseButton_Middle], ImGui::GetMousePos(), IM_COL32(0, 255, 0, 255), 4.0f);
-		//ImGui::GetForegroundDrawList()->AddLine(ImGui::GetIO().MouseClickedPos[ImGuiMouseButton_Right], ImGui::GetMousePos(), IM_COL32(0, 0, 255, 255), 4.0f);
 	}
 	ImGuiEndMouseDragHelper();
 
