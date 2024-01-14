@@ -13,6 +13,7 @@ in VertexData v;
 layout(binding = 0) uniform sampler2D mainTex;
 layout(binding = 1) uniform sampler2D secondTex;
 uniform vec2 u_CameraNearFar; // .x: near, .y: far
+uniform int shadingModel = 2;
 
 out vec4 FragColor;
 
@@ -29,37 +30,72 @@ void main() {
   const float near = u_CameraNearFar.x;
   const float far = u_CameraNearFar.y;
 
-  // Position in Object-Space
-  //FragColor = vec4(v.objectPosition, 1);
-  
-  // Position in World-Space
-  //FragColor = vec4(v.worldPosition, 1);
-  
-  // UV1
-  FragColor = vec4(v.texCoord.x, v.texCoord.y, 0, 1);
-  
-  // UV2
-  //FragColor = vec4(v.texCoord2.x, v.texCoord2.y, 0, 1);
-  
-  // Normal in Object-Space
-  //FragColor = vec4(objectNormal * 0.5 + 0.5, 1);
+  switch(shadingModel) {
+    // Position in Object-Space
+    case 0: {
+      FragColor = vec4(v.objectPosition, 1);
+      return;
+    }
 
-  // Normal in World-Space
-  //FragColor = vec4(worldNormal * 0.5 + 0.5, 1);
+    // Position in World-Space
+    case 1: {
+      FragColor = vec4(v.worldPosition, 1);
+      return;
+    }
 
-  // Front vs Back faces
-  //FragColor = gl_FrontFacing ? vec4(1, 0, 0, 1) : vec4(0, 0, 1, 1);
+    // UV1
+    case 2: {
+      FragColor = vec4(v.texCoord.x, v.texCoord.y, 0, 1);
+      return;
+    }
 
-  // First texture
-  //FragColor = vec4(mainTexColor, 1);
+    // UV2
+    case 3: {
+      FragColor = vec4(v.texCoord2.x, v.texCoord2.y, 0, 1);
+      return;
+    }
 
-  // Second texture
-  //FragColor = vec4(secondTexColor, 1);
-  
-  // Depth (ortographics projection camera)
-  //FragColor = vec4(vec3(gl_FragCoord.z), 1);
-  
-  // Depth (perspective projection camera)
-  //float depthViz = LinearizeDepth(gl_FragCoord.z, near, far) / far;
-  //FragColor = vec4(vec3(depthViz), 1);
+    // Normal in Object-Space
+    case 4: {
+      FragColor = vec4(objectNormal * 0.5 + 0.5, 1);
+      return;
+    }
+
+    // Normal in World-Space
+    case 5: {
+      FragColor = vec4(worldNormal * 0.5 + 0.5, 1);
+      return;
+    }
+
+    // Front vs Back faces
+    case 6: {
+      FragColor = gl_FrontFacing ? vec4(1, 0, 0, 1) : vec4(0, 0, 1, 1);
+      return;
+    }
+
+    // First texture
+    case 7: {
+      FragColor = vec4(mainTexColor, 1);
+      return;
+    }
+
+    // Second texture
+    case 8: {
+      FragColor = vec4(secondTexColor, 1);
+      return;
+    }
+
+    // Depth (ortographics projection camera)
+    case 9: {
+      FragColor = vec4(vec3(gl_FragCoord.z), 1);
+      return;
+    }
+
+    // Depth (perspective projection camera)
+    case 10: {
+      float depthViz = LinearizeDepth(gl_FragCoord.z, near, far) / far;
+      FragColor = vec4(vec3(depthViz), 1);
+      return;
+    }
+  }
 }
