@@ -14,6 +14,7 @@ layout(binding = 0) uniform sampler2D mainTex;
 layout(binding = 1) uniform sampler2D secondTex;
 uniform vec2 u_CameraNearFar; // .x: near, .y: far
 uniform int u_ShadingModel = 2;
+uniform int u_MeshId = -1;
 
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out int MeshId;
@@ -31,7 +32,7 @@ void main() {
   const float near = u_CameraNearFar.x;
   const float far = u_CameraNearFar.y;
 
-  MeshId = 1;
+  MeshId = u_MeshId;
 
   switch(u_ShadingModel) {
     // Position in Object-Space
@@ -98,6 +99,12 @@ void main() {
     case 10: {
       float depthViz = LinearizeDepth(gl_FragCoord.z, near, far) / far;
       FragColor = vec4(vec3(depthViz), 1);
+      return;
+    }
+
+    // MeshIds
+    case 11: {
+      FragColor = vec4(vec3(u_MeshId / 10.f), 1); // TODO: improve to random color
       return;
     }
   }

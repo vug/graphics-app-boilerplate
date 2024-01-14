@@ -304,7 +304,7 @@ void EditorWindow::draw() {
 	ImGui::Checkbox("Wireframe", &shouldBeWireframe);
 
   static int shadingModel = 2;
-  std::array<const char*, 11> items = {"Pos (Obj)", "Pos (World)", "UV1", "UV2", "Normal (Obj)", "Normal (World)", "Front-Back Faces", "Texture1 (UV1)", "Texture2 (UV2)", "Depth (Ortho)", "Depth (Proj)"};
+  std::array<const char*, 12> items = {"Pos (Obj)", "Pos (World)", "UV1", "UV2", "Normal (Obj)", "Normal (World)", "Front-Back Faces", "Texture1 (UV1)", "Texture2 (UV2)", "Depth (Ortho)", "Depth (Proj)", "Mesh IDs"};
   ImGui::SameLine();
   ImGui::Combo("Shading Model", &shadingModel, items.data(), items.size());
 
@@ -394,7 +394,7 @@ void EditorWindow::draw() {
   glClearTexImage(fbo.getColorAttachments()[1].getId(), 0, GL_RED_INTEGER, GL_INT, &clearValue);
   glClear(GL_DEPTH_BUFFER_BIT);
   glPolygonMode(GL_FRONT_AND_BACK, shouldBeWireframe ? GL_LINE : GL_FILL);
-  for (auto& renderable : scene.renderables) {
+  for (auto [ix, renderable] : scene.renderables | std::ranges::views::enumerate) {
     editorShader.bind();
     editorShader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
     editorShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
@@ -402,6 +402,7 @@ void EditorWindow::draw() {
     editorShader.setVector3("u_CameraPosition", cam.position);
     editorShader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
     editorShader.setInteger("u_ShadingModel", shadingModel);
+    editorShader.setInteger("u_MeshId", ix);
     renderable.get().texture.bindToUnit(0);
     renderable.get().texture2.bindToUnit(1);
 	  renderable.get().mesh.bind();
