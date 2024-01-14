@@ -120,4 +120,29 @@ glm::vec2 getMouseCursorPosition() {
   return {xpos, ypos};
 }
 
+DragHelper::DragHelper(MouseButton dragButton, std::function<void()> onEnterDraggingCallback, std::function<void(const glm::vec2& drag)> onBeingDraggedCallback)
+    : dragButton(dragButton), onEnterDraggingCallback(onEnterDraggingCallback), onBeingDraggedCallback(onBeingDraggedCallback) {}
+
+void DragHelper::checkDragging(const ThreeButtonMouseState& mouseState, const glm::vec2& cursorPos) {
+  if (mouseState.at(dragButton).status == MouseButtonState::Status::PRESSED) {
+    // enter dragging
+    if (!isBeingDragged) {
+      isBeingDragged = true;
+      cursor0 = cursorPos;
+      onEnterDraggingCallback();  // for storing values at the beginning
+      isBeingPressed = true;
+    }
+    // being dragged
+    else {
+      const glm::vec2 drag = cursorPos - cursor0;
+      onBeingDraggedCallback(drag);  // for updating values while mouse is being dragged
+    }
+  }
+  // exit dragging
+  else if (isBeingPressed) {
+    isBeingDragged = false;
+    isBeingPressed = false;
+    // onExitDraggingCallback(); should come here if every needed
+  }
+}
 }

@@ -4,6 +4,7 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#include <functional>
 #include <unordered_map>
 
 namespace ws {
@@ -45,5 +46,23 @@ bool isKeyPressed(int key);
 int MouseButtonToGlfw(MouseButton button);
 bool isMouseButtonPressed(MouseButton button);
 glm::vec2 getMouseCursorPosition();
+
+// A state machine that keeps track of mouse dragging input by the given mouse button.
+// calls given callbacks at state changes
+class DragHelper {
+ private:
+  MouseButton dragButton{};
+  std::function<void()> onEnterDraggingCallback;
+  std::function<void(const glm::vec2& drag)> onBeingDraggedCallback;
+  // state
+  bool isBeingDragged{};
+  bool isBeingPressed{};
+  glm::vec2 cursor0{};
+
+ public:
+  DragHelper(MouseButton dragButton, std::function<void()> onEnterDraggingCallback, std::function<void(const glm::vec2& drag)> onBeingDraggedCallback);
+  // update function to call every frame
+  void checkDragging(const ThreeButtonMouseState& mouseState, const glm::vec2& cursorPos);
+};
 
 }

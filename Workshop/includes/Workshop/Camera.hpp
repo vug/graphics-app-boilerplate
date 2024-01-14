@@ -6,7 +6,6 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 
-#include <functional>
 #include <numbers>
 
 #pragma warning(disable : 4250)
@@ -130,24 +129,6 @@ class AutoOrbitingCameraController {
  public:
   AutoOrbitingCameraController(Camera& camera);
   void update(float deltaTime);
-};
-
-// A state machine that keeps track of mouse dragging input by the given mouse button.
-// calls given callbacks at state changes
-class DragHelper {
- private:
-  MouseButton dragButton{};
-  std::function<void()> onEnterDraggingCallback;
-  std::function<void(const glm::vec2& drag)> onBeingDraggedCallback;
-  // state
-  bool isBeingDragged{};
-  bool isBeingPressed{};
-  glm::vec2 cursor0{};
-
- public:
-  DragHelper(MouseButton dragButton, std::function<void()> onEnterDraggingCallback, std::function<void(const glm::vec2& drag)> onBeingDraggedCallback);
-  // update function to call every frame
-  void checkDragging(const ThreeButtonMouseState& mouseState, const glm::vec2& cursorPos);
 };
 
 // First Person Camera mechanism with state machine for dragging
