@@ -13,11 +13,14 @@ Framebuffer::Framebuffer(const std::vector<Texture::Specs>& colorSpecs, std::opt
         uint32_t id; glGenFramebuffers(1, &id); glBindFramebuffer(GL_FRAMEBUFFER, id); return id; }()),
       width([this, &colorSpecs, &depthStencilSpecs]() { return !colorSpecs.empty() ? colorSpecs[0].width : depthStencilSpecs.value().width; }()),
       height([this, &colorSpecs, &depthStencilSpecs]() { return !colorSpecs.empty() ? colorSpecs[0].height : depthStencilSpecs.value().height; }()) {
+  std::vector<uint32_t> drawBuffers;
   for (const auto& [ix, spec] : colorSpecs | std::views::enumerate) {
     assert(spec.width == width);
     assert(spec.height == height);
     colorAttachments.emplace_back(spec);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + static_cast<uint32_t>(ix), GL_TEXTURE_2D, colorAttachments[ix].getId(), 0);
+    const uint32_t attachmentNo = GL_COLOR_ATTACHMENT0 + static_cast<uint32_t>(ix);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentNo, GL_TEXTURE_2D, colorAttachments[ix].getId(), 0);
+    drawBuffers.push_back(attachmentNo);
   }
   if (depthStencilSpecs.has_value()) {
     assert(depthStencilSpecs.value().width == width);
@@ -28,6 +31,8 @@ Framebuffer::Framebuffer(const std::vector<Texture::Specs>& colorSpecs, std::opt
   if (colorAttachments.empty()) {
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
+  } else {
+    glDrawBuffers(drawBuffers.size(), drawBuffers.data());
   }
 
   assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
