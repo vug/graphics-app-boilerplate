@@ -24,6 +24,11 @@ float LinearizeDepth(float depth, float near, float far) {
     return (2.0 * near * far) / (far + near - z * (far - near));	
 }
 
+float hash(int n, int seed) {
+    n = (n << 13) ^ n;
+    return (1.0 - ((n * (n * n * 15731 + seed) + 1376312589) & 0x7fffffff) / 1073741824.0);
+}
+
 void main() {
   const vec3 objectNormal = normalize(v.objectNormal);
   const vec3 worldNormal = normalize(v.worldNormal);
@@ -104,7 +109,8 @@ void main() {
 
     // MeshIds
     case 11: {
-      FragColor = vec4(vec3(u_MeshId / 10.f), 1); // TODO: improve to random color
+      vec3 randomColor = vec3(hash(u_MeshId, 123) + 1 * 0.5, hash(u_MeshId, 12345)  + 1 * 0.5, hash(u_MeshId, 1234567) + 1 * 0.5);
+      FragColor = vec4(randomColor, 1);
       return;
     }
   }
