@@ -384,6 +384,9 @@ void EditorWindow::draw() {
 	cam.aspectRatio = size.x / size.y;
 
   fbo.bind();
+  // When drawing the scene render into first attachment, and put mesh ids into second attachment
+  uint32_t bothAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+  glDrawBuffers(2, bothAttachments);
   glViewport(0, 0, sizei.x, sizei.y);
   glDisable(GL_BLEND);
   glEnable(GL_CULL_FACE);
@@ -413,6 +416,9 @@ void EditorWindow::draw() {
     editorShader.unbind();
   }
 
+  // when drawing gizmos (such as coordinate grid) only draw into first attachment, don't touch mesh ids
+  uint32_t onlyFirstAttachmetn[] = {GL_COLOR_ATTACHMENT0};
+  glDrawBuffers(1, onlyFirstAttachmetn);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glDisable(GL_CULL_FACE);
@@ -432,8 +438,23 @@ void EditorWindow::draw() {
   ImVec2 uv1 = {1, 1};
   // flip the texture upside-down via following uv-coordinate transformation: (0, 0), (1, 1) -> (0, 1), (1, 0) 
   std::swap(uv0.y, uv1.y);
+  ImVec2 imagePosToWin = ImGui::GetCursorPos();
   ImGui::Image((void*)(intptr_t)fbo.getFirstColorAttachment().getId(), size, uv0, uv1, { 1, 1, 1, 1 }, { 1, 1, 0, 1 });
-	//ImGui::Image((void*)(intptr_t)fbo.getFirstColorAttachment().getId(), size, uv0, uv1);
+
+  GLint hoveredMeshId{-2}; // -2 means not touched, -1 means no mesh under cursor
+  if (ImGui::IsItemHovered()) {
+    fbo.bind();
+    const ImVec2 mousePos = ImGui::GetMousePos();
+    const ImVec2 winPos = ImGui::GetWindowPos();
+    const ImVec2 pixCoord = ImVec2(mousePos.x - (winPos.x + imagePosToWin.x), mousePos.y - (winPos.y + imagePosToWin.y));
+
+    glReadBuffer(GL_COLOR_ATTACHMENT1);
+    const Texture& tex = fbo.getColorAttachments()[1];
+    glReadPixels(pixCoord.x, tex.specs.height - pixCoord.y, 1, 1, GL_RED_INTEGER, GL_INT, &hoveredMeshId);
+    std::string selectedName = hoveredMeshId >= 0 ? scene.renderables[hoveredMeshId].get().name : "None";
+    //std::println("hoveredMeshId {}, selectedName {}, pixCoord ({:.1f}, {:.1f})", hoveredMeshId, selectedName, pixCoord.x, pixCoord.y);
+    fbo.unbind();
+  }
 
   ImGui::End();
 }
