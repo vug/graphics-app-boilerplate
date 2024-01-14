@@ -68,7 +68,7 @@ int main() {
       assetManager.textures.at("wood"),
       assetManager.textures.at("checkerboard"),
   };
-  ws::PerspectiveCamera3D cam;
+  ws::Camera cam;
   ws::Scene scene{
       .renderables{ground, monkey, box},
   };
@@ -135,7 +135,7 @@ int main() {
       shader.bind();
       shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      shader.setVector3("u_CameraPosition", cam.getPosition());
+      shader.setVector3("u_CameraPosition", cam.position);
       if (debugScene)
         shader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
 	    renderable.get().texture.bindToUnit(0);
