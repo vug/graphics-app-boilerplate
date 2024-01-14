@@ -285,7 +285,9 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
 
 EditorWindow::EditorWindow(Scene& scene)
 	: scene(scene),
-		shader(ws::ASSETS_FOLDER / "shaders/editor.vert", ws::ASSETS_FOLDER / "shaders/editor.frag")
+		editorShader(ws::ASSETS_FOLDER / "shaders/editor.vert", ws::ASSETS_FOLDER / "shaders/editor.frag"),
+		gridShader(ws::ASSETS_FOLDER / "shaders/infinite_grid.vert", ws::ASSETS_FOLDER / "shaders/infinite_grid.frag"),
+    gridVao([](){ uint32_t id;glGenVertexArrays(1, &id); return id;}())
 { }
 
 void EditorWindow::draw() {
@@ -376,17 +378,19 @@ void EditorWindow::draw() {
 
   fbo.bind();
   glViewport(0, 0, sizei.x, sizei.y);
+  glDisable(GL_BLEND);
+  glEnable(GL_CULL_FACE);
   glClearColor(0.f, 0.f, 0.f, 1.f);
   glPolygonMode(GL_FRONT_AND_BACK, shouldBeWireframe ? GL_LINE : GL_FILL);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   for (auto& renderable : scene.renderables) {
-	  shader.bind();
-	  shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-		shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-		shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-		shader.setVector3("u_CameraPosition", cam.position);
-		shader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
-		shader.setInteger("u_ShadingModel", shadingModel);
+    editorShader.bind();
+    editorShader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
+    editorShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+    editorShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+    editorShader.setVector3("u_CameraPosition", cam.position);
+    editorShader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
+    editorShader.setInteger("u_ShadingModel", shadingModel);
     renderable.get().texture.bindToUnit(0);
     renderable.get().texture2.bindToUnit(1);
 	  renderable.get().mesh.bind();
@@ -394,7 +398,21 @@ void EditorWindow::draw() {
 	  renderable.get().mesh.unbind();
     renderable.get().texture.unbindFromUnit(0);
     renderable.get().texture2.unbindFromUnit(1);
-	  shader.unbind();
+    editorShader.unbind();
+  }
+
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDisable(GL_CULL_FACE);
+  {
+    gridShader.bind();
+    gridShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+    gridShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+    gridShader.setVector3("u_CameraPosition", cam.position);
+    glBindVertexArray(gridVao);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+    gridShader.unbind();
   }
   fbo.unbind();
 

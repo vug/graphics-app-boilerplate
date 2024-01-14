@@ -55,6 +55,8 @@ class EditorWindow {
 	Camera cam;
   Framebuffer fbo;
   Scene& scene;
-  Shader shader;
+  Shader editorShader;
+  Shader gridShader;
+  uint32_t gridVao;
 };
 }
