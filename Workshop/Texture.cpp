@@ -36,6 +36,11 @@ Texture::GlSpecs Texture::getGlSpecs() const {
       gs.format = GL_DEPTH_STENCIL;
       gs.type = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
       break;
+    case Format::R32i:
+      gs.internalFormat = GL_R32I;
+      gs.format = GL_RED_INTEGER;
+      gs.type = GL_INT;
+      break;
     case Format::R32f:
       gs.internalFormat = GL_R32F;
       gs.format = GL_RED;
