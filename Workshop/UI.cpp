@@ -285,7 +285,7 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
 
 EditorWindow::EditorWindow(Scene& scene)
 	: scene(scene),
-		shader(ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag")
+		shader(ws::ASSETS_FOLDER / "shaders/editor.vert", ws::ASSETS_FOLDER / "shaders/editor.frag")
 { }
 
 void EditorWindow::draw() {

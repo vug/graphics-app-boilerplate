@@ -7,7 +7,6 @@ layout(location = 2) in vec2 a_TexCoord2;
 layout(location = 3) in vec3 a_Normal;
 layout(location = 4) in vec4 a_Color;
 layout(location = 5) in vec4 a_Custom;
-// layout(location = 6) in int meshId;
 
 // TODO: get from SceneUniforms.glsl
 uniform mat4 u_ViewFromWorld = mat4(1);
