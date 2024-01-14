@@ -14,11 +14,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vec3.hpp>
 
-// #include <implot.h>
-// #include <stb_image.h>
-// #include <tiny_obj_loader.h>
-// #include <vivid/vivid.h>
-
 #include <iostream>
 #include <print>
 

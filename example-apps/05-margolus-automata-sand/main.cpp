@@ -16,10 +16,6 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 
-// #include <implot.h>
-// #include <tiny_obj_loader.h>
-// #include <vivid/vivid.h>
-
 #include <iostream>
 #include <print>
 #include <random>
