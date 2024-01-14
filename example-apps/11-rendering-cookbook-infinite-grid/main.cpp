@@ -73,7 +73,7 @@ int main() {
   glGenVertexArrays(1, &gridVao);
 
   cam.position = {0, 3, -5};
-  ws::ManualCamera3DViewController manualCamController{cam};
+  ws::ManualCameraController manualCamController{cam};
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{offscreenFbo.getFirstColorAttachment()};
   ws::TextureViewer textureViewer{texRefs};
   ws::HierarchyWindow hierarchyWindow{scene};

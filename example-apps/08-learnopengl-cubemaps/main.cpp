@@ -82,7 +82,7 @@ int main() {
   Scene renderables = {box, glassyMonkey, glassyTeapot};
 
   ws::Camera cam;
-  ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
+  ws::AutoOrbitingCameraController orbitingCamController{cam};
   orbitingCamController.radius = 13.8f;
   orbitingCamController.theta = 0.355f;
 

@@ -133,7 +133,7 @@ int main() {
   ws::setParent(&axes, &scene.root);
 
   ws::Camera& cam = scene.cameras[0].get().camera;
-  ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
+  ws::AutoOrbitingCameraController orbitingCamController{cam};
   orbitingCamController.radius = 7.7f;
   orbitingCamController.theta = 0.5;
 

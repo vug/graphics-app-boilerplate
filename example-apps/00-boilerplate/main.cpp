@@ -76,7 +76,7 @@ int main() {
   ws::setParent(&monkey, &scene.root);
   ws::setParent(&box, &scene.root);
 
-  ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
+  ws::AutoOrbitingCameraController orbitingCamController{cam};
   orbitingCamController.radius = 10.f;
   orbitingCamController.theta = 0.3f;
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{offscreenFbo.getFirstColorAttachment()};

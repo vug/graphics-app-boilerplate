@@ -89,10 +89,10 @@ glm::mat4 OrthographicCameraProjection::getProjectionFromView() const {
 
 // -----
 
-AutoOrbitingCamera3DViewController::AutoOrbitingCamera3DViewController(Camera& cam)
+AutoOrbitingCameraController::AutoOrbitingCameraController(Camera& cam)
     : camera(cam) {}
 
-void AutoOrbitingCamera3DViewController::update(float deltaTime) {
+void AutoOrbitingCameraController::update(float deltaTime) {
   deltaPhi += speed * deltaTime;
   phi = phi0 + deltaPhi;
   camera.position = camera.target + glm::vec3{
@@ -139,7 +139,7 @@ void DragHelper::checkDragging(const ThreeButtonMouseState& mouseState, const gl
   }
 }
 
-ManualCamera3DViewController::ManualCamera3DViewController(Camera& cam)
+ManualCameraController::ManualCameraController(Camera& cam)
     : camera(cam),
       leftDragHelper(
           MouseButton::LEFT,
@@ -172,7 +172,7 @@ ManualCamera3DViewController::ManualCamera3DViewController(Camera& cam)
           }) 
   {}
 
-void ManualCamera3DViewController::update(const glm::vec2& cursorPos, const ThreeButtonMouseState& mouseState, float deltaTime) {
+void ManualCameraController::update(const glm::vec2& cursorPos, const ThreeButtonMouseState& mouseState, float deltaTime) {
   leftDragHelper.checkDragging(mouseState, cursorPos);
   middleDragHelper.checkDragging(mouseState, cursorPos);
   rightDragHelper.checkDragging(mouseState, cursorPos);
