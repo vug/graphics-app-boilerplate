@@ -13,7 +13,7 @@ in VertexData v;
 layout(binding = 0) uniform sampler2D mainTex;
 layout(binding = 1) uniform sampler2D secondTex;
 uniform vec2 u_CameraNearFar; // .x: near, .y: far
-uniform int shadingModel = 2;
+uniform int u_ShadingModel = 2;
 
 out vec4 FragColor;
 
@@ -30,7 +30,7 @@ void main() {
   const float near = u_CameraNearFar.x;
   const float far = u_CameraNearFar.y;
 
-  switch(shadingModel) {
+  switch(u_ShadingModel) {
     // Position in Object-Space
     case 0: {
       FragColor = vec4(v.objectPosition, 1);

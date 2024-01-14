@@ -294,6 +294,11 @@ void EditorWindow::draw() {
 	static bool shouldBeWireframe = false;
 	ImGui::Checkbox("Wireframe", &shouldBeWireframe);
 
+  static int shadingModel = 2;
+  std::array<const char*, 11> items = {"Pos (Obj)", "Pos (World)", "UV1", "UV2", "Normal (Obj)", "Normal (World)", "Front-Back Faces", "Texture1 (UV1)", "Texture2 (UV2)", "Depth (Ortho)", "Depth (Proj)"};
+  ImGui::SameLine();
+  ImGui::Combo("Shading Model", &shadingModel, items.data(), items.size());
+
 	ImVec2 size = ImGui::GetContentRegionAvail();
   if (size.y < 0) { // happens when minimized
     ImGui::End();
@@ -365,9 +370,14 @@ void EditorWindow::draw() {
 		shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
 		shader.setVector3("u_CameraPosition", cam.position);
 		shader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
+		shader.setInteger("u_ShadingModel", shadingModel);
+    renderable.get().texture.bindToUnit(0);
+    renderable.get().texture2.bindToUnit(1);
 	  renderable.get().mesh.bind();
 	  renderable.get().mesh.draw();
 	  renderable.get().mesh.unbind();
+    renderable.get().texture.unbindFromUnit(0);
+    renderable.get().texture2.unbindFromUnit(1);
 	  shader.unbind();
   }
   fbo.unbind();
