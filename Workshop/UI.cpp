@@ -284,7 +284,14 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
 }
 
 EditorWindow::EditorWindow(Scene& scene)
-	: scene(scene),
+  : 
+    fbo(std::vector<Texture::Specs>{
+      Texture::Specs{1, 1, Texture::Format::RGBA8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder},
+      Texture::Specs{1, 1, Texture::Format::R32i, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder},
+    },
+      Texture::Specs{1, 1, Texture::Format::Depth32fStencil8, Texture::Filter::Linear, Texture::Wrap::ClampToBorder}
+    ),
+    scene(scene),
 		editorShader(ws::ASSETS_FOLDER / "shaders/editor.vert", ws::ASSETS_FOLDER / "shaders/editor.frag"),
 		gridShader(ws::ASSETS_FOLDER / "shaders/infinite_grid.vert", ws::ASSETS_FOLDER / "shaders/infinite_grid.frag"),
     gridVao([](){ uint32_t id;glGenVertexArrays(1, &id); return id;}())
@@ -380,9 +387,13 @@ void EditorWindow::draw() {
   glViewport(0, 0, sizei.x, sizei.y);
   glDisable(GL_BLEND);
   glEnable(GL_CULL_FACE);
-  glClearColor(0.f, 0.f, 0.f, 1.f);
+  glEnable(GL_DEPTH_TEST);
+  const float red[] = {0, 0, 0, 1};
+  glClearTexImage(fbo.getColorAttachments()[0].getId(), 0, GL_RGBA, GL_FLOAT, red);
+  const int clearValue = -1;
+  glClearTexImage(fbo.getColorAttachments()[1].getId(), 0, GL_RED_INTEGER, GL_INT, &clearValue);
+  glClear(GL_DEPTH_BUFFER_BIT);
   glPolygonMode(GL_FRONT_AND_BACK, shouldBeWireframe ? GL_LINE : GL_FILL);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   for (auto& renderable : scene.renderables) {
     editorShader.bind();
     editorShader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
