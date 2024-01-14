@@ -1,6 +1,7 @@
 #include "Camera.hpp"
 
 #include <glm/glm.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include <imgui.h>
 
 namespace ws {
@@ -88,21 +89,17 @@ glm::mat4 OrthographicCameraProjection::getProjectionFromView() const {
 
 // -----
 
-AutoOrbitingCamera3DViewController::AutoOrbitingCamera3DViewController(Camera3DView& cameraView)
-    : cameraView(cameraView) {}
+AutoOrbitingCamera3DViewController::AutoOrbitingCamera3DViewController(Camera& cam)
+    : camera(cam) {}
 
 void AutoOrbitingCamera3DViewController::update(float deltaTime) {
   deltaPhi += speed * deltaTime;
   phi = phi0 + deltaPhi;
-  cameraView.position = glm::vec3{
-                            std::cos(phi) * std::cos(theta),
-                            std::sin(theta),
-                            std::sin(phi) * std::cos(theta),
-                        } *
-                        radius;
-
-  cameraView.yaw = phi + std::numbers::pi_v<float>;
-  cameraView.pitch = -theta;
+  camera.position = camera.target + glm::vec3{
+                                        std::cos(phi) * std::cos(theta),
+                                        std::sin(theta),
+                                        std::sin(phi) * std::cos(theta),
+                                    } * radius;
 
   ImGui::Begin("Workshop");
   ImGui::Text("Orbiting Camera Controller");
@@ -142,33 +139,36 @@ void DragHelper::checkDragging(const ThreeButtonMouseState& mouseState, const gl
   }
 }
 
-ManualCamera3DViewController::ManualCamera3DViewController(Camera3DView& cameraView)
-    : cameraView(cameraView),
+ManualCamera3DViewController::ManualCamera3DViewController(Camera& cam)
+    : camera(cam),
       leftDragHelper(
           MouseButton::LEFT,
           [&]() {
-            pitch0 = cameraView.pitch;
-            yaw0 = cameraView.yaw;
+            cam0 = camera;
           },
           [&](const glm::vec2& drag) {
-            cameraView.pitch = glm::clamp(pitch0 - drag.y * sensitivity, -std::numbers::pi_v<float> * 0.5f, std::numbers::pi_v<float> * 0.5f);
-            cameraView.yaw = yaw0 + drag.x * sensitivity;
+            const glm::vec3 oldTargetToOldPos = cam0.position - cam0.target;
+            const float deltaPitch = -drag.y * sensitivity;
+            glm::vec3 oldTargetToNewPos = glm::rotate(oldTargetToOldPos, deltaPitch, cam0.getRight());
+            const float deltaYaw = -drag.x * sensitivity;
+            oldTargetToNewPos = glm::rotate(oldTargetToNewPos, deltaYaw, glm::vec3{0, 1, 0});
+            cam.position = cam0.target + oldTargetToNewPos;
           }),
       middleDragHelper(
           MouseButton::MIDDLE,
           [&]() {
-            pos0 = cameraView.position;
+            cam0 = camera;
           },
           [&](const glm::vec2& drag) {
-            cameraView.position = pos0 + (cameraView.getRight() * drag.x - cameraView.getUp() * drag.y) * sensitivityB;
+            camera.position = cam0.position + (camera.getRight() * drag.x - camera.getUp() * drag.y) * sensitivityB;
           }), 
       rightDragHelper(
           MouseButton::RIGHT,
           [&]() {
-            pos0 = cameraView.position;
+            cam0 = camera;
           },
           [&](const glm::vec2& drag) {
-            cameraView.position = pos0 + (cameraView.getForward() * drag.y) * sensitivityB;
+            camera.position = cam0.position + (camera.getForward() * drag.y) * sensitivityB;
           }) 
   {}
 
@@ -177,21 +177,41 @@ void ManualCamera3DViewController::update(const glm::vec2& cursorPos, const Thre
   middleDragHelper.checkDragging(mouseState, cursorPos);
   rightDragHelper.checkDragging(mouseState, cursorPos);
 
+  static glm::vec3 pos0{};
+  static glm::vec3 tar0{};
+  static glm::vec3 deltaPos{};
   const float cameraSpeed = isKeyPressed(GLFW_KEY_LEFT_SHIFT) ? 0.2f : 2.0f;
+
+  bool anyKeyPressed = false;
+  auto keys1 = {GLFW_KEY_Q, GLFW_KEY_E, GLFW_KEY_A, GLFW_KEY_D, GLFW_KEY_W, GLFW_KEY_S};
+  for (auto key : keys1)
+    anyKeyPressed |= isKeyPressed(key);
+
+  if (!anyKeyPressed) {
+    deltaPos = {};
+    pos0 = camera.position;
+    tar0 = camera.target;
+  } else {
+    
+  }
+
   // up-down in world-space
   if (isKeyPressed(GLFW_KEY_Q))
-    cameraView.position += glm::vec3{0, -1, 0} * cameraSpeed * deltaTime;
+    deltaPos -= camera.getUp() * cameraSpeed * deltaTime;
   if (isKeyPressed(GLFW_KEY_E))
-    cameraView.position += glm::vec3{0, 1, 0} * cameraSpeed * deltaTime;
+    deltaPos += camera.getUp() * cameraSpeed * deltaTime;
   // left-right on camera-plane
   if (isKeyPressed(GLFW_KEY_A))
-    cameraView.position += -cameraView.getRight() * cameraSpeed * deltaTime;
+    deltaPos += -camera.getRight() * cameraSpeed * deltaTime;
   if (isKeyPressed(GLFW_KEY_D))
-    cameraView.position += cameraView.getRight() * cameraSpeed * deltaTime;
+    deltaPos += camera.getRight() * cameraSpeed * deltaTime;
   // forward-backward
   if (isKeyPressed(GLFW_KEY_W))
-    cameraView.position += cameraView.getForward() * cameraSpeed * deltaTime;
+    deltaPos += camera.getForward() * cameraSpeed * deltaTime;
   if (isKeyPressed(GLFW_KEY_S))
-    cameraView.position += -cameraView.getForward() * cameraSpeed * deltaTime;
+    deltaPos += -camera.getForward() * cameraSpeed * deltaTime;
+
+  camera.position = pos0 + deltaPos;
+  camera.target = tar0 + deltaPos;
 }
 }  // namespace ws

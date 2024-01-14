@@ -132,7 +132,7 @@ int main() {
   ws::setParent(&cam1, &scene.root);
   ws::setParent(&axes, &scene.root);
 
-  ws::PerspectiveCamera3D& cam = scene.cameras[0].get().camera;
+  ws::Camera& cam = scene.cameras[0].get().camera;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
   orbitingCamController.radius = 7.7f;
   orbitingCamController.theta = 0.5;
@@ -199,7 +199,7 @@ int main() {
         renderable.get().mesh.bind();
         glBindTextureUnit(0, renderable.get().texture.getId());
         glBindTextureUnit(1, assetManager.framebuffers.at("shadowFBO").getDepthAttachment().getId());
-        shader.setVector3("u_CameraPos", cam.getPosition());
+        shader.setVector3("u_CameraPos", cam.position);
         shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
         shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
         shader.setMatrix4("u_LightSpaceMatrix", light.getLightSpaceMatrix());

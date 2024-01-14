@@ -45,8 +45,8 @@ struct Renderable {
 };
 using Scene = std::vector<std::reference_wrapper<Renderable>>;
 
-void drawSkybox(const Skybox& skybox, const ws::ICamera& cam);
-void drawSceneWithCamera(const Scene& scene, const ws::ICamera& cam, const Skybox& skybox);
+void drawSkybox(const Skybox& skybox, const ws::Camera& cam);
+void drawSceneWithCamera(const Scene& scene, const ws::Camera& cam, const Skybox& skybox);
 
 int main() {
   std::println("Hi!");
@@ -81,7 +81,7 @@ int main() {
   };
   Scene renderables = {box, glassyMonkey, glassyTeapot};
 
-  ws::PerspectiveCamera3D cam;
+  ws::Camera cam;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
   orbitingCamController.radius = 13.8f;
   orbitingCamController.theta = 0.355f;
@@ -142,7 +142,7 @@ int main() {
   return 0;
 }
 
-void drawSceneWithCamera(const Scene& scene, const ws::ICamera& cam, const Skybox& skybox) {
+void drawSceneWithCamera(const Scene& scene, const ws::Camera& cam, const Skybox& skybox) {
   for (auto& objRef : scene) {
     auto& obj = objRef.get();
 
@@ -152,7 +152,7 @@ void drawSceneWithCamera(const Scene& scene, const ws::ICamera& cam, const Skybo
     glBindTextureUnit(0, obj.texture.getId());
     glBindTextureUnit(1, skybox.cubemap.getId());
     // Camera uniforms
-    obj.shader.setVector3("u_CameraPos", cam.getPosition());
+    obj.shader.setVector3("u_CameraPos", cam.position);
     obj.shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
     obj.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
     // Scene uniforms
@@ -172,7 +172,7 @@ void drawSceneWithCamera(const Scene& scene, const ws::ICamera& cam, const Skybo
   }
 }
 
-void drawSkybox(const Skybox& skybox, const ws::ICamera& cam) {
+void drawSkybox(const Skybox& skybox, const ws::Camera& cam) {
   skybox.shader.bind();
   // skyboxShader.setMatrix4("u_WorldFromObject", cube.transform.getWorldFromObjectMatrix());
   const glm::mat4 viewWithoutTranslation = ws::removeTranslation(cam.getViewFromWorld());

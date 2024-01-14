@@ -117,7 +117,7 @@ class OrthographicCamera3D : public virtual ICamera,
 
 class AutoOrbitingCamera3DViewController {
  private:
-  Camera3DView& cameraView;
+  Camera& camera;
   float phi{};
   float deltaPhi{};
 
@@ -128,7 +128,7 @@ class AutoOrbitingCamera3DViewController {
   float speed = 1.f;
 
  public:
-  AutoOrbitingCamera3DViewController(Camera3DView& cameraView);
+  AutoOrbitingCamera3DViewController(Camera& camera);
   void update(float deltaTime);
 };
 
@@ -153,11 +153,9 @@ class DragHelper {
 // First Person Camera mechanism with state machine for dragging
 class ManualCamera3DViewController {
  private:
-  Camera3DView& cameraView;
+  Camera& camera;
 
-  glm::vec3 pos0{};
-  float pitch0{};
-  float yaw0{};
+  Camera cam0;
   DragHelper leftDragHelper;
   DragHelper rightDragHelper;
   DragHelper middleDragHelper;
@@ -165,7 +163,7 @@ class ManualCamera3DViewController {
   const float sensitivity = 0.005f;   // look around sensitivity
   const float sensitivityB = 0.005f;  // pan sensitivity
  public:
-  ManualCamera3DViewController(Camera3DView& cameraView);
+  ManualCamera3DViewController(Camera& camera);
   void update(const glm::vec2& cursorPos, const ThreeButtonMouseState& mouseState, float deltaTime);
 };
 }  // namespace ws

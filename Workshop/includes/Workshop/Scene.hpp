@@ -43,7 +43,7 @@ struct RenderableObject : public Object {
 };
 
 struct CameraObject : public Object {
-  ws::PerspectiveCamera3D camera;
+  ws::Camera camera;
 };
 
 // TODO: how can I move this into Object as a static member function

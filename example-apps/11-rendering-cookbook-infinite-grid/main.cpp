@@ -62,7 +62,7 @@ int main() {
       assetManager.textures.at("wood"),
       whiteTex,
   };
-  ws::PerspectiveCamera3D cam;
+  ws::Camera cam;
   ws::Scene scene{
     .renderables{monkey, box},
   };
@@ -73,7 +73,6 @@ int main() {
   glGenVertexArrays(1, &gridVao);
 
   cam.position = {0, 3, -5};
-  cam.pitch = glm::radians(-30.f);
   ws::ManualCamera3DViewController manualCamController{cam};
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{offscreenFbo.getFirstColorAttachment()};
   ws::TextureViewer textureViewer{texRefs};
@@ -112,7 +111,7 @@ int main() {
       shader.bind();
       shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      shader.setVector3("u_CameraPosition", cam.getPosition());
+      shader.setVector3("u_CameraPosition", cam.position);
       if (debugScene)
         shader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
 	    renderable.get().texture.bindToUnit(0);
@@ -132,7 +131,7 @@ int main() {
       shader.bind();
       shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      shader.setVector3("u_CameraPosition", cam.getPosition());
+      shader.setVector3("u_CameraPosition", cam.position);
       glBindVertexArray(gridVao);
       glDrawArrays(GL_TRIANGLES, 0, 6);
       glBindVertexArray(0);

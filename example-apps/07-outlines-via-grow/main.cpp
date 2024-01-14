@@ -67,7 +67,7 @@ int main()
   std::vector<std::reference_wrapper<Renderable>> renderables = {cube1, quad, cube2};
 
 
-  ws::PerspectiveCamera3D cam;
+  ws::Camera cam;
   ws::AutoOrbitingCamera3DViewController orbitingCamController{cam};
   orbitingCamController.radius = 13.8f;
   orbitingCamController.theta = 0.355f;
