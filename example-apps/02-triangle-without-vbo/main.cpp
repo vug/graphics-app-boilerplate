@@ -5,13 +5,6 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <imgui.h>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/vec3.hpp>
-
-// #include <implot.h>
-// #include <stb_image.h>
-// #include <tiny_obj_loader.h>
-// #include <vivid/vivid.h>
 
 #include <print>
 
@@ -57,14 +50,14 @@ void main () { outColor = vec4 (fragColor, 1.0); }
 
     workshop.drawUI();
 
-    ImGui::Begin("Main");
-    static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
-    ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
+    ImGui::Begin("Triangle w/o VBO");
+    static float bgColor[3] = {42 / 256.f, 96 / 256.f, 87 / 256.f};
+    ImGui::ColorEdit3("BG Color", bgColor);
     ImGui::End();
 
     glBindVertexArray(vao);
 
-    glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
+    glClearColor(bgColor[0], bgColor[1], bgColor[2], 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
     shader.bind();

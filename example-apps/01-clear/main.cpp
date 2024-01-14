@@ -11,7 +11,7 @@ int main() {
 
     workshop.drawUI();
 
-    ImGui::Begin("Main");
+    ImGui::Begin("Clear");
     static float bgColor[3] = {1.f, 0.f, 0.f};
     ImGui::ColorEdit3("BG Color", bgColor);
     ImGui::End();
