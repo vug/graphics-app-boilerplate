@@ -338,21 +338,37 @@ void EditorWindow::draw() {
 			if (ImGui::IsKeyDown(ImGuiKey_E))
 				deltaPos += cam.getUp() * keySpeed;
 
-			const glm::vec3 oldPosToOldTarget = cam0.target - cam0.position;
-			const float deltaPitch = -deltaRight.y * mouseSpeed;
-			glm::vec3 oldPosToNewTarget = glm::rotate(oldPosToOldTarget, deltaPitch, cam0.getRight());
-			const float deltaYaw = -deltaRight.x * mouseSpeed;
-			oldPosToNewTarget = glm::rotate(oldPosToNewTarget, deltaYaw, glm::vec3 { 0, 1, 0 });
+      // look around
+      if (ImGui::IsKeyDown(ImGuiKey_LeftAlt)) {
+        deltaPos = cam.getForward() * deltaRight.y * mouseSpeed;
+      }
+      // zoom-in-out
+      else {
+        const glm::vec3 oldPosToOldTarget = cam0.target - cam0.position;
+        const float deltaPitch = -deltaRight.y * mouseSpeed;
+        glm::vec3 oldPosToNewTarget = glm::rotate(oldPosToOldTarget, deltaPitch, cam0.getRight());
+        const float deltaYaw = -deltaRight.x * mouseSpeed;
+        oldPosToNewTarget = glm::rotate(oldPosToNewTarget, deltaYaw, glm::vec3{0, 1, 0});
+        cam.target = cam0.position + oldPosToNewTarget + deltaPos;
+      }
 
 			cam.position = cam0.position + deltaPos;
-			cam.target = cam0.position + oldPosToNewTarget + deltaPos;
 		}
-
+    // pan around
 		else if (ImGui::IsMouseDown(ImGuiMouseButton_Middle)) {
 			const glm::vec3 deltaPan = (cam0.getRight() * -deltaMiddle.x - cam0.getUp() * -deltaMiddle.y) * mouseSpeed;
 			cam.position = cam0.position + deltaPan;
 			cam.target = cam0.target + deltaPan;
-		}
+		} 
+    // orbit around
+    else if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsKeyDown(ImGuiKey_LeftAlt)) {
+      const glm::vec3 oldTargetToOldPos = cam0.position - cam0.target;
+      const float deltaPitch = -deltaLeft.y * mouseSpeed;
+      glm::vec3 oldTargetToNewPos = glm::rotate(oldTargetToOldPos, deltaPitch, cam0.getRight());
+      const float deltaYaw = -deltaLeft.x * mouseSpeed;
+      oldTargetToNewPos = glm::rotate(oldTargetToNewPos, deltaYaw, glm::vec3{0, 1, 0});
+      cam.position = cam0.target + oldTargetToNewPos;
+    }
 	}
 	ImGuiEndMouseDragHelper();
 
