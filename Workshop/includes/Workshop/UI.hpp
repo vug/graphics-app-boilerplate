@@ -35,7 +35,7 @@ class TextureViewer {
 class HierarchyWindow {
  public:
   HierarchyWindow(Scene& scene);
-  VObjectPtr draw();
+  VObjectPtr draw(VObjectPtr clickedObject);
 
  private:
   Scene& scene;

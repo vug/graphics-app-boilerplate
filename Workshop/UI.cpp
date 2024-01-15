@@ -121,7 +121,7 @@ void TextureViewer::draw() {
 HierarchyWindow::HierarchyWindow(Scene& scene)
     : scene(scene) {}
 
-VObjectPtr HierarchyWindow::draw() {
+VObjectPtr HierarchyWindow::draw(VObjectPtr clickedObject) {
   ImGui::Begin("Hierarchy");
 
   struct NodeIdentifier {
@@ -130,6 +130,20 @@ VObjectPtr HierarchyWindow::draw() {
   };
   static NodeIdentifier selectedNodeId{"__NONE__", -1};
   static VObjectPtr selectedNode{};
+
+  std::function<void(VObjectPtr, int, int)> findClickedInTree = [&](VObjectPtr node, int depth, int siblingId) {
+    if (node == clickedObject) {
+      std::string nodeName = std::visit([](auto&& ptr) { return ptr->name; }, node);
+      selectedNodeId = {nodeName, siblingId};
+      selectedNode = node;
+    }
+    const auto& children = std::visit([](auto&& ptr) { return ptr->children; }, node);
+    const bool hasChildren = !children.empty();
+    int childNo = 1;
+    for (auto childPtr : children)
+      findClickedInTree(childPtr, depth + 1, childNo++);
+  };
+  findClickedInTree(&scene.root, 0, 1);
 
   // ChildNo is relative to parent. It is used to give objects with the same name different ImGui ids
   std::function<void(VObjectPtr, int, int)> drawTree = [&](VObjectPtr node, int depth, int siblingId) {
@@ -142,7 +156,7 @@ VObjectPtr HierarchyWindow::draw() {
     if (selectedNodeId.name == nodeName && selectedNodeId.siblingId == siblingId)
       flags |= ImGuiTreeNodeFlags_Selected;
 
-    // TreeNode works is easier to use but puts the arrow to leaves
+    // TreeNode is easier to use but always puts an arrow to leaf nodes
     const bool isOpen = ImGui::TreeNodeEx((void*)(intptr_t)siblingId, flags, nodeName.c_str());
     if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
       selectedNodeId = {nodeName, siblingId};
