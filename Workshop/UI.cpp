@@ -297,7 +297,7 @@ EditorWindow::EditorWindow(Scene& scene)
     gridVao([](){ uint32_t id;glGenVertexArrays(1, &id); return id;}())
 { }
 
-void EditorWindow::draw() {
+VObjectPtr EditorWindow::draw() {
 	ImGui::Begin("Editor");
 
 	static bool shouldBeWireframe = false;
@@ -315,7 +315,7 @@ void EditorWindow::draw() {
 	ImVec2 size = ImGui::GetContentRegionAvail();
   if (size.y < 0) { // happens when minimized
     ImGui::End();
-    return;
+    return {};
   }
 	glm::ivec2 sizei { size.x, size.y };
 	fbo.resizeIfNeeded(sizei.x, sizei.y);
@@ -438,6 +438,9 @@ void EditorWindow::draw() {
   }
   fbo.unbind();
 
+  // IsItemActivated checks whether InvisibleButton was clicked. IsItemClicked on the Image below didn't work for some reason. Probably because it's overlapping with the button.
+  bool wasViewportClicked = ImGui::IsItemActivated();
+
   ImVec2 uv0 = {0, 0};
   ImVec2 uv1 = {1, 1};
   // flip the texture upside-down via following uv-coordinate transformation: (0, 0), (1, 1) -> (0, 1), (1, 0) 
@@ -446,7 +449,8 @@ void EditorWindow::draw() {
   ImGui::Image((void*)(intptr_t)fbo.getFirstColorAttachment().getId(), size, uv0, uv1, { 1, 1, 1, 1 }, { 1, 1, 0, 1 });
 
   GLint hoveredMeshId{-2}; // -2 means not touched, -1 means no mesh under cursor
-  if (ImGui::IsItemHovered()) {
+  // when clicked on Image is stop being hovered :-O for that case added wasViewportClicked
+  if (ImGui::IsItemHovered() || wasViewportClicked) {
     fbo.bind();
     const ImVec2 mousePos = ImGui::GetMousePos();
     const ImVec2 winPos = ImGui::GetWindowPos();
@@ -460,7 +464,12 @@ void EditorWindow::draw() {
     fbo.unbind();
   }
 
+  VObjectPtr clickedObject {};
+  if (wasViewportClicked && hoveredMeshId >= 0)
+     clickedObject = &scene.renderables[hoveredMeshId].get();
   ImGui::End();
+
+  return clickedObject;
 }
 
 }

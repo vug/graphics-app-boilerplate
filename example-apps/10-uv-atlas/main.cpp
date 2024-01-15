@@ -193,9 +193,10 @@ int main() {
 	  workshop.drawUI();
 	  lightMapper.drawUI(scene);
     textureViewer.draw();
+		ws::VObjectPtr clickedObject = editorWindow.draw();
+    //std::visit([](auto&& obj) { if (obj != nullptr) std::println("clicked on {}", obj->name); }, clickedObject);
     ws::VObjectPtr selectedObject = hierarchyWindow.draw();
     inspectorWindow.inspectObject(selectedObject);
-		editorWindow.draw();
 
     workshop.endFrame();
   }

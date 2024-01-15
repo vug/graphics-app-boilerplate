@@ -49,7 +49,7 @@ class InspectorWindow {
 class EditorWindow {
  public:
   EditorWindow(Scene& scene);
-	void draw();
+	VObjectPtr draw();
 
  private:
 	Camera cam;
