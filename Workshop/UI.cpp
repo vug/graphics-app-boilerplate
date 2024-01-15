@@ -405,7 +405,7 @@ void EditorWindow::draw() {
     editorShader.setVector3("u_CameraPosition", cam.position);
     editorShader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
     editorShader.setInteger("u_ShadingModel", shadingModel);
-    editorShader.setInteger("u_MeshId", ix);
+    editorShader.setInteger("u_MeshId", static_cast<int>(ix));
     renderable.get().texture.bindToUnit(0);
     renderable.get().texture2.bindToUnit(1);
 	  renderable.get().mesh.bind();
@@ -450,7 +450,7 @@ void EditorWindow::draw() {
 
     glReadBuffer(GL_COLOR_ATTACHMENT1);
     const Texture& tex = fbo.getColorAttachments()[1];
-    glReadPixels(pixCoord.x, tex.specs.height - pixCoord.y, 1, 1, GL_RED_INTEGER, GL_INT, &hoveredMeshId);
+    glReadPixels(static_cast<int32_t>(pixCoord.x), static_cast<int32_t>(tex.specs.height - pixCoord.y), 1, 1, GL_RED_INTEGER, GL_INT, &hoveredMeshId);
     std::string selectedName = hoveredMeshId >= 0 ? scene.renderables[hoveredMeshId].get().name : "None";
     //std::println("hoveredMeshId {}, selectedName {}, pixCoord ({:.1f}, {:.1f})", hoveredMeshId, selectedName, pixCoord.x, pixCoord.y);
     fbo.unbind();
