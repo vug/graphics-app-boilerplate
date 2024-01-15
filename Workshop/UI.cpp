@@ -303,10 +303,14 @@ void EditorWindow::draw() {
 	static bool shouldBeWireframe = false;
 	ImGui::Checkbox("Wireframe", &shouldBeWireframe);
 
+  ImGui::SameLine();
   static int shadingModel = 2;
   std::array<const char*, 12> items = {"Pos (Obj)", "Pos (World)", "UV1", "UV2", "Normal (Obj)", "Normal (World)", "Front-Back Faces", "Texture1 (UV1)", "Texture2 (UV2)", "Depth (Ortho)", "Depth (Proj)", "Mesh IDs"};
+  ImGui::Combo("Shading Model", &shadingModel, items.data(), static_cast<int>(items.size()));
+
   ImGui::SameLine();
-  ImGui::Combo("Shading Model", &shadingModel, items.data(), items.size());
+  static std::string hoveredObjectName = "None"; // static because it'll be set after editor image is drawn
+  ImGui::Text("Hovered: %s", hoveredObjectName.c_str());
 
 	ImVec2 size = ImGui::GetContentRegionAvail();
   if (size.y < 0) { // happens when minimized
@@ -451,8 +455,8 @@ void EditorWindow::draw() {
     glReadBuffer(GL_COLOR_ATTACHMENT1);
     const Texture& tex = fbo.getColorAttachments()[1];
     glReadPixels(static_cast<int32_t>(pixCoord.x), static_cast<int32_t>(tex.specs.height - pixCoord.y), 1, 1, GL_RED_INTEGER, GL_INT, &hoveredMeshId);
-    std::string selectedName = hoveredMeshId >= 0 ? scene.renderables[hoveredMeshId].get().name : "None";
-    //std::println("hoveredMeshId {}, selectedName {}, pixCoord ({:.1f}, {:.1f})", hoveredMeshId, selectedName, pixCoord.x, pixCoord.y);
+    hoveredObjectName = hoveredMeshId >= 0 ? scene.renderables[hoveredMeshId].get().name : "None";
+    //std::println("hoveredMeshId {}, selectedName {}, pixCoord ({:.1f}, {:.1f})", hoveredMeshId, hoveredObjectName, pixCoord.x, pixCoord.y);
     fbo.unbind();
   }
 
