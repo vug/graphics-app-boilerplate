@@ -319,7 +319,7 @@ VObjectPtr EditorWindow::draw() {
 
   ImGui::SameLine();
   static int shadingModel = 2;
-  std::array<const char*, 12> items = {"Pos (Obj)", "Pos (World)", "UV1", "UV2", "Normal (Obj)", "Normal (World)", "Front-Back Faces", "Texture1 (UV1)", "Texture2 (UV2)", "Depth (Ortho)", "Depth (Proj)", "Mesh IDs"};
+  std::array<const char*, 13> items = {"Pos (Obj)", "Pos (World)", "UV1", "UV2", "Normal (Obj)", "Normal (World)", "Front-Back Faces", "Texture1 (UV1)", "Texture2 (UV2)", "Depth (Ortho)", "Depth (Proj)", "Mesh IDs", "Hemispherical Lighting"};
   ImGui::Combo("Shading Model", &shadingModel, items.data(), static_cast<int>(items.size()));
 
   ImGui::SameLine();

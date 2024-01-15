@@ -113,5 +113,17 @@ void main() {
       FragColor = vec4(randomColor, 1);
       return;
     }
+
+    // Hemisphere Lighting
+    case 12: {
+      const vec3 skyColor = vec3(0.5, 0.5, 1.0);
+      const vec3 groundColor = vec3(1.0, 0.5, 0.5);
+      const vec3 lightDir = vec3(0, 1, 0); // up, northpole
+		  const float dotNL = dot( worldNormal, lightDir );
+		  const float hemiDiffuseWeight = 0.5 * dotNL + 0.5;
+		  const vec3 color = mix(groundColor, skyColor, hemiDiffuseWeight);
+      FragColor = vec4(color, 1);
+      return;
+    }
   }
 }
