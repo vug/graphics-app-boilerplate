@@ -81,6 +81,7 @@ int main() {
   orbitingCamController.theta = 0.3f;
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{offscreenFbo.getFirstColorAttachment()};
   ws::TextureViewer textureViewer{texRefs};
+  ws::EditorWindow editorWindow{scene};
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};
   workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("unlit"), assetManager.shaders.at("boilerplate"), debugShader};
@@ -151,7 +152,8 @@ int main() {
 
  	  workshop.drawUI();
     textureViewer.draw();
-    ws::VObjectPtr selectedObject = hierarchyWindow.draw();
+    ws::VObjectPtr clickedObject = editorWindow.draw();
+    ws::VObjectPtr selectedObject = hierarchyWindow.draw(clickedObject);
     inspectorWindow.inspectObject(selectedObject);
 
     workshop.endFrame();
