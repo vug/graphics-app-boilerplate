@@ -101,6 +101,8 @@ int main() {
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
 
+    static float normalMapAmount = 1.f;
+    ImGui::SliderFloat("Normal Map Amount", &normalMapAmount, 0, 1);
     static int shadingMode = 0;
     std::array<const char*, 7> items = {"Scene", "Diffuse Map", "Normal Map", "Vertex Normal (World)", "Map Normal (World)", "Tangent", "Bi-Tangent"};
     ImGui::Combo("Shading Mode", &shadingMode, items.data(), static_cast<int>(items.size()));
@@ -125,6 +127,7 @@ int main() {
     for (auto& renderable : scene.renderables) {
       ws::Shader& shader = renderable.get().shader;
       shader.bind();
+      shader.setFloat("u_AmountOfMapNormal", normalMapAmount);
       shader.setInteger("u_ShadingMode", shadingMode);
       shader.setInteger("u_HasSpecular", hasSpecular);
       shader.setInteger("u_UseWhiteAsDiffuse", shouldUseWhiteAsSpecular);

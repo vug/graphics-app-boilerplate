@@ -68,6 +68,7 @@ vec3 illuminate(DirectionalLight light, vec3 position, vec3 normal, vec3 eyePos,
 uniform PointLight pointLight = PointLight(vec3(-2, 1, 2), vec3(1, 1, 1), 2.0f);
 uniform DirectionalLight directionalLight = DirectionalLight(vec3(1, 1, 1), vec3(-1, -1, -1), vec3(1, 1, 1), 0.75f);
 
+uniform float u_AmountOfMapNormal = 1.f;
 uniform int u_ShadingMode = 0;
 uniform bool u_HasSpecular = true;
 uniform bool u_UseWhiteAsDiffuse = false;
@@ -107,6 +108,7 @@ void main() {
   vec3 normal = normalize(tbn * (normalMap * 2. - 1.));
   if (u_IgnoreNormalMap)
     normal = worldNormal;
+  normal = normalize(mix(worldNormal, normal, u_AmountOfMapNormal));
 
   // Phong shading
   const float specCoeff = 32.f;
