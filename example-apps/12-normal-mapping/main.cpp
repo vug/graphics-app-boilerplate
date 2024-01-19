@@ -30,7 +30,7 @@ class AssetManager {
 
 int main() {
   std::println("Hi!");
-  ws::Workshop workshop{1920, 1080, "Boilerplate app"};
+  ws::Workshop workshop{1920, 1080, "Normal Mapping"};
 
   AssetManager assetManager;
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));

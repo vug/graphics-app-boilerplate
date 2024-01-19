@@ -1,5 +1,26 @@
 # Example Projects
 
+# 12 - Normal Mapping
+
+I was first going to follow the normal mapping tutorial on [LearnOpenGL.com](https://learnopengl.com/Advanced-Lighting/Normal-Mapping).
+Normal maps are stored in object/local tangent-space and they need to be converted to worl-space.
+For that purpose, we need tangent and bi-tangent (bi-normal) vectors that lie on u- and v-directions of the texCoordinates on the surface. (N,T,B vectors make a local, orthonormal coordinate system)
+The approach in LearnOpenGL org requires T and B to be pre-calculated, at asset load time, and be stored as one of the vertex attributes (similar to storing vertex normals)
+They show the math but suggest to use Assimp library, which does the calculation automatically.
+
+Probably in the future I'll go to that direction, but initially I just wanted to do T, B calculation on-the-fly in fragment shader.
+Initially I've found this StackOverflow post [math \- How to calculate Tangent and Binormal? \- Stack Overflow](https://stackoverflow.com/questions/5255806/how-to-calculate-tangent-and-binormal) with some answers.
+The result looked mostly good, however, at certain viewing angles the normals started flipping. :-O
+Couldn't tell whether I made a mistake by implementing the suggestions in SO post, or the suggestions were wrong.
+
+Searching deeper, found this blog post [Followup: Normal Mapping Without Precomputed Tangents \| The Tenth Planet](http://www.thetenthplanet.de/archives/1180).
+That was the ultimate source for calculating T,B,N coordinate system in the shader!
+
+![image](screenshots/12-normal-mapping.png)
+
+Added extra 
+
+
 # 11 - Rendering Cookbook - Infinite Grid
 
 Implementation of [Chapter5/GL01\_Grid/src/main\.cpp at master · PacktPublishing/3D\-Graphics\-Rendering\-Cookbook](https://github.com/PacktPublishing/3D-Graphics-Rendering-Cookbook/blob/master/Chapter5/GL01_Grid/src/main.cpp) from [3D Graphics Rendering Cookbook \| Packt](https://www.packtpub.com/product/3d-graphics-rendering-cookbook/9781838986193) in graphics-boilerplate-app.
