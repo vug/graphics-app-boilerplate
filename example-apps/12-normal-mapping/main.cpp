@@ -35,12 +35,15 @@ int main() {
   AssetManager assetManager;
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
   assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
-  assetManager.textures.emplace("uv_grid", ws::ASSETS_FOLDER / "images/Wikipedia/UV_checker_Map_byValle.jpg");
-  assetManager.textures.emplace("checkerboard", ws::ASSETS_FOLDER / "images/Wikipedia/checkerboard_pattern.png");
-  assetManager.textures.emplace("brickwall", ws::ASSETS_FOLDER / "images/LearnOpenGL/brickwall.jpg");
-  assetManager.textures.emplace("brickwall_normal", ws::ASSETS_FOLDER / "images/LearnOpenGL/brickwall_normal.jpg");
-  assetManager.textures.emplace("bricks2", ws::ASSETS_FOLDER / "images/LearnOpenGL/bricks2.jpg");
-  assetManager.textures.emplace("bricks2_normal", ws::ASSETS_FOLDER / "images/LearnOpenGL/bricks2_normal.jpg");
+  // https://cgaxis.com/product/old-brick-wall-pbr-texture-31/
+  assetManager.textures.emplace("brickwall", ws::ASSETS_FOLDER / "images/cgaxis/cgaxis_pbr_17_old_brick_wall_22_diffuse.jpg");
+  assetManager.textures.emplace("brickwall_normal", ws::ASSETS_FOLDER / "images/cgaxis/cgaxis_pbr_17_old_brick_wall_22_normal.jpg");
+  // https://cgaxis.com/product/hedgehog-fur-pbr-texture/
+  assetManager.textures.emplace("hedgehog", ws::ASSETS_FOLDER / "images/cgaxis/hedgehog_fur_37_34_diffuse.jpg");
+  assetManager.textures.emplace("hedgehog_normal", ws::ASSETS_FOLDER / "images/cgaxis/hedgehog_fur_37_34_normal.jpg");
+  // https://cgaxis.com/product/old-basement-floor-6127/
+  assetManager.textures.emplace("wood_floor", ws::ASSETS_FOLDER / "images/cgaxis/old_basement_floor_61_27_basecolor_diffuse.png");
+  assetManager.textures.emplace("wood_floor_normal", ws::ASSETS_FOLDER / "images/cgaxis/old_basement_floor_61_27_normal_opengl.png");
   ws::Texture whiteTex{ws::Texture::Specs{1, 1, ws::Texture::Format::RGB8, ws::Texture::Filter::Linear}};
   std::vector<uint32_t> whiteTexPixels = {0xFFFFFF};
   whiteTex.uploadPixels(whiteTexPixels.data());
@@ -52,22 +55,22 @@ int main() {
       {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
       assetManager.meshes.at("cube"),
       assetManager.shaders.at("normal_mapped"),
-      assetManager.textures.at("brickwall"),
-      assetManager.textures.at("brickwall_normal"),
+      assetManager.textures.at("wood_floor"),
+      assetManager.textures.at("wood_floor_normal"),
   };
   ws::RenderableObject monkey = {
       {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey"),
       assetManager.shaders.at("normal_mapped"),
-      assetManager.textures.at("brickwall"),
-      assetManager.textures.at("brickwall_normal"),
+      assetManager.textures.at("hedgehog"),
+      assetManager.textures.at("hedgehog_normal"),
   };
   ws::RenderableObject box = {
       {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
       assetManager.meshes.at("cube"),
       assetManager.shaders.at("normal_mapped"),
-      assetManager.textures.at("bricks2"),
-      assetManager.textures.at("bricks2_normal"),
+      assetManager.textures.at("brickwall"),
+      assetManager.textures.at("brickwall_normal"),
   };
   ws::Camera cam;
   ws::Scene scene{
