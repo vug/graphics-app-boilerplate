@@ -47,8 +47,6 @@ int main() {
   assetManager.shaders.emplace("phong", ws::Shader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("normal_mapped", ws::Shader{SRC / "normal_mapped.vert", SRC / "normal_mapped.frag"});
-  ws::Shader debugShader{ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag"};
-  ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   ws::RenderableObject ground = {
       {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
@@ -82,51 +80,26 @@ int main() {
   ws::AutoOrbitingCameraController orbitingCamController{cam};
   orbitingCamController.radius = 10.f;
   orbitingCamController.theta = 0.3f;
-  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{offscreenFbo.getFirstColorAttachment()};
-  ws::TextureViewer textureViewer{texRefs};
+  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{};
   ws::EditorWindow editorWindow{scene};
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};
-  workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("unlit"), assetManager.shaders.at("normal_mapped"), debugShader};
+  workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("unlit"), assetManager.shaders.at("normal_mapped")};
   
   glEnable(GL_DEPTH_TEST);
   
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
     const glm::uvec2 winSize = workshop.getWindowSize();
-    offscreenFbo.resizeIfNeeded(winSize.x, winSize.y); // can be resized by something else
 
     ImGui::Begin("Normal Mapping");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
-    static bool debugScene = false;
-    ImGui::Checkbox("Debug Scene using debug shader", &debugScene);
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
     ImGui::End();
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
-
-    offscreenFbo.bind();
-    glViewport(0, 0, winSize.x, winSize.y);
-    glDisable(GL_CULL_FACE);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT);
-    assetManager.shaders.at("normal_mapped").bind();
-    assetManager.shaders.at("normal_mapped").setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-    assetManager.shaders.at("normal_mapped").setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-    for (auto& renderable : scene.renderables) {
-      renderable.get().texture.bindToUnit(0);
-      assetManager.shaders.at("normal_mapped").setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-      const ws::Mesh& mesh = renderable.get().mesh;
-      mesh.bind();
-      mesh.draw();
-      mesh.unbind();
-      renderable.get().texture.unbindFromUnit(0);
-    }
-    assetManager.shaders.at("normal_mapped").unbind();
-    offscreenFbo.unbind();
 
     glViewport(0, 0, winSize.x, winSize.y);
     glEnable(GL_CULL_FACE);
@@ -135,13 +108,11 @@ int main() {
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (auto& renderable : scene.renderables) {
-      ws::Shader& shader = debugScene ? debugShader : renderable.get().shader;
+      ws::Shader& shader = renderable.get().shader;
       shader.bind();
       shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
       shader.setVector3("u_CameraPosition", cam.position);
-      if (debugScene)
-        shader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
 	    renderable.get().texture.bindToUnit(0);
 	    renderable.get().texture2.bindToUnit(1);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
@@ -154,7 +125,6 @@ int main() {
     }
 
  	  workshop.drawUI();
-    textureViewer.draw();
     ws::VObjectPtr clickedObject = editorWindow.draw();
     ws::VObjectPtr selectedObject = hierarchyWindow.draw(clickedObject);
     inspectorWindow.inspectObject(selectedObject);
