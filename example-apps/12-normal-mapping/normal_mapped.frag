@@ -65,10 +65,27 @@ vec3 illuminate(DirectionalLight light, vec3 position, vec3 normal, vec3 eyePos,
   vec3 specular = illuminateSpecular(light, position, normal, eyePos, specCoeff);
   return diffuse + specular;
 }
-uniform PointLight pointLight = PointLight(vec3(-2, 1, 2), vec3(1, 1, 1), 4.0f);
+uniform PointLight pointLight = PointLight(vec3(-2, 1, 2), vec3(1, 1, 1), 2.0f);
 uniform DirectionalLight directionalLight = DirectionalLight(vec3(1, 1, 1), vec3(-1, -1, -1), vec3(1, 1, 1), 0.75f);
 
-mat3 make_tbn(vec3 N, vec3 p, vec2 uv) { 
+uniform int u_ShadingMode = 0;
+uniform bool u_HasSpecular = true;
+uniform bool u_UseWhiteAsDiffuse = false;
+uniform bool u_IgnoreNormalMap = false;
+
+out vec4 FragColor;
+
+void main() {
+  const vec3 objectNormal = normalize(vertexData.objectNormal);
+  const vec3 worldNormal = normalize(vertexData.worldNormal);
+  const vec3 worldPos = vertexData.worldPosition;
+  const vec3 viewPos = u_CameraPosition - worldPos;
+
+  // Calculate TBN in fragment shader
+  vec3 p = -viewPos;
+  vec2 uv = vertexData.texCoord;
+  vec3 N = worldNormal;
+
   // get edge vectors of the pixel triangle 
   vec3 dp_dx = dFdx(p); 
   vec3 dp_dy = dFdy(p); 
@@ -83,42 +100,61 @@ mat3 make_tbn(vec3 N, vec3 p, vec2 uv) {
 
   // construct a scale-invariant frame 
   float invmax = inversesqrt(max(dot(T,T), dot(B,B))); 
-  return mat3(T * invmax, B * invmax, N);
-}
+  mat3 tbn = mat3(T * invmax, B * invmax, N);
 
-out vec4 FragColor;
+  vec3 normalMap = texture(secondTex, vertexData.texCoord).rgb;
+  //normalMap.y = -normalMap.y;
+  vec3 normal = normalize(tbn * (normalMap * 2. - 1.));
+  if (u_IgnoreNormalMap)
+    normal = worldNormal;
 
-void main() {
-  const vec3 objectNormal = normalize(vertexData.objectNormal);
-  const vec3 worldNormal = normalize(vertexData.worldNormal);
-
-  vec3 wp = vertexData.worldPosition;
-
-  vec3 v = u_CameraPosition - vertexData.worldPosition;
-  //v = -v;
-  mat3 tbn = make_tbn(worldNormal, -v, vertexData.texCoord);
-
-  vec3 normalMap = texture(secondTex, vertexData.texCoord).rgb * 2.0 - 1.0;
-  vec3 normal = normalize(tbn * normalMap);
-  //normal = n;
-
+  // Phong shading
   const float specCoeff = 32.f;
-
   vec3 diffuseColor = texture(mainTex, vertexData.texCoord).rgb;
-  //diffuseColor = vec3(1);
-  vec3 specularColor = vec3(1, 1, 1);
-
+  if(u_UseWhiteAsDiffuse)
+    diffuseColor = vec3(1);
+  vec3 specularColor = u_HasSpecular ? vec3(0.3) : vec3(0.0);
   vec3 directionalDiffuse = illuminateDiffuse(directionalLight, normal);
-  vec3 directionalSpecular = illuminateSpecular(directionalLight, wp, normal, u_CameraPosition, specCoeff);
+  vec3 directionalSpecular = illuminateSpecular(directionalLight, worldPos, normal, u_CameraPosition, specCoeff);
+  vec3 pointDiffuse = illuminateDiffuse(pointLight, worldPos, normal);
+  vec3 pointSpecular = illuminateSpecular(pointLight, worldPos, normal, u_CameraPosition, specCoeff);
+  vec3 color = diffuseColor * (directionalDiffuse + pointDiffuse) + specularColor * (directionalSpecular + pointSpecular);
 
-  vec3 pointDiffuse = illuminateDiffuse(pointLight, wp, normal);
-  vec3 pointSpecular = illuminateSpecular(pointLight, wp, normal, u_CameraPosition, specCoeff);
-  //vec3 color = diffuseColor * (directionalDiffuse + pointDiffuse) + specularColor * (directionalSpecular + pointSpecular);
-  vec3 color = diffuseColor * (directionalDiffuse + pointDiffuse) + vec3(0.25) * (directionalSpecular + pointSpecular);
-  FragColor = vec4(color, 1);
-
-  //FragColor = vec4(normalMap * 0.5 + 0.5, 1);
-  //FragColor = vec4(normal * 0.5 + 0.5, 1);
-  //FragColor = vec4(b * 0.5 + 0.5, 1);
-  //FragColor = vec4(t * 0.5 + 0.5, 1);
+  switch(u_ShadingMode) {
+    // Scene
+    case 0: {
+      FragColor = vec4(color, 1);
+    }
+    break;
+    // diffuseMap
+    case 1: {
+      FragColor = vec4(diffuseColor, 1);
+    }
+    break;
+    // normalMap
+    case 2: {
+      FragColor = vec4(normalMap, 1);
+    }
+    break;
+    // vertexNormalInWorld
+    case 3: {
+      FragColor = vec4(worldNormal * 0.5 + 0.5, 1);
+    }
+    break;
+    // mapNormalInWorld
+    case 4: {
+      FragColor = vec4(normal * 0.5 + 0.5, 1);
+    }
+    break;
+    // tangent
+    case 5: {
+      FragColor = vec4(T * invmax * 0.5 + 0.5, 1);
+    }
+    break;
+    // bitangent
+    case 6: {
+      FragColor = vec4(B * invmax * 0.5 + 0.5, 1);
+    }
+    break;
+  }
 }

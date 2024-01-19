@@ -83,6 +83,7 @@ int main() {
   ws::AutoOrbitingCameraController orbitingCamController{cam};
   orbitingCamController.radius = 10.f;
   orbitingCamController.theta = 0.3f;
+  orbitingCamController.speed = 0.f;
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{};
   ws::EditorWindow editorWindow{scene};
   ws::HierarchyWindow hierarchyWindow{scene};
@@ -99,6 +100,17 @@ int main() {
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
+
+    static int shadingMode = 0;
+    std::array<const char*, 7> items = {"Scene", "Diffuse Map", "Normal Map", "Vertex Normal (World)", "Map Normal (World)", "Tangent", "Bi-Tangent"};
+    ImGui::Combo("Shading Mode", &shadingMode, items.data(), static_cast<int>(items.size()));
+    static bool hasSpecular = true;
+    ImGui::Checkbox("Has Specular", &hasSpecular);
+    static bool shouldUseWhiteAsSpecular = false;
+    ImGui::Checkbox("Ignore Diffuse Map, just use white", &shouldUseWhiteAsSpecular);
+    static bool shouldIgnoreNormalMap = false;
+    ImGui::Checkbox("Ignore Normal Map, just use vertex normal", &shouldIgnoreNormalMap);
+
     ImGui::End();
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
@@ -113,6 +125,10 @@ int main() {
     for (auto& renderable : scene.renderables) {
       ws::Shader& shader = renderable.get().shader;
       shader.bind();
+      shader.setInteger("u_ShadingMode", shadingMode);
+      shader.setInteger("u_HasSpecular", hasSpecular);
+      shader.setInteger("u_UseWhiteAsDiffuse", shouldUseWhiteAsSpecular);
+      shader.setInteger("u_IgnoreNormalMap", shouldIgnoreNormalMap);
       shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
       shader.setVector3("u_CameraPosition", cam.position);
