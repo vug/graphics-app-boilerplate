@@ -326,6 +326,10 @@ VObjectPtr EditorWindow::draw() {
   static std::string hoveredObjectName = "None"; // static because it'll be set after editor image is drawn
   ImGui::Text("Hovered: %s", hoveredObjectName.c_str());
 
+  ImGui::SameLine();
+  static bool showGrid = true;
+  ImGui::Checkbox("Grid", &showGrid);
+
 	ImVec2 size = ImGui::GetContentRegionAvail();
   if (size.y < 0) { // happens when minimized
     ImGui::End();
@@ -434,21 +438,23 @@ VObjectPtr EditorWindow::draw() {
     editorShader.unbind();
   }
 
-  // when drawing gizmos (such as coordinate grid) only draw into first attachment, don't touch mesh ids
-  uint32_t onlyFirstAttachmetn[] = {GL_COLOR_ATTACHMENT0};
-  glDrawBuffers(1, onlyFirstAttachmetn);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glDisable(GL_CULL_FACE);
-  {
-    gridShader.bind();
-    gridShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-    gridShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-    gridShader.setVector3("u_CameraPosition", cam.position);
-    glBindVertexArray(gridVao);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
-    gridShader.unbind();
+  if (showGrid) {
+    // when drawing gizmos (such as coordinate grid) only draw into first attachment, don't touch mesh ids
+    uint32_t onlyFirstAttachmetn[] = {GL_COLOR_ATTACHMENT0};
+    glDrawBuffers(1, onlyFirstAttachmetn);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_CULL_FACE);
+    {
+      gridShader.bind();
+      gridShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+      gridShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+      gridShader.setVector3("u_CameraPosition", cam.position);
+      glBindVertexArray(gridVao);
+      glDrawArrays(GL_TRIANGLES, 0, 6);
+      glBindVertexArray(0);
+      gridShader.unbind();
+    }
   }
   fbo.unbind();
 
