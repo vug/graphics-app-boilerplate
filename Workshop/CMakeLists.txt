@@ -23,6 +23,7 @@ add_library(${TARGET} STATIC
   includes/Workshop/OpenGL.hpp OpenGL.cpp
   includes/Workshop/UI.hpp UI.cpp
   includes/Workshop/Scene.hpp Scene.cpp
+  includes/Workshop/AssetManager.hpp AssetManager.cpp
 )
 
 target_link_libraries(${TARGET} PUBLIC
