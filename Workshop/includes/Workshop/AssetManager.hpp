@@ -14,6 +14,10 @@ class AssetManager {
   std::unordered_map<std::string, ws::Texture> textures;
   std::unordered_map<std::string, ws::Shader> shaders;
   Texture white;
+  void drawWithEmptyVao(uint32_t numVertices) const;
+
+ private:
+  uint32_t vaoEmpty;
 };
 
 }
