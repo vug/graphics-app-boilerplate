@@ -258,7 +258,7 @@ int main() {
     //visualizeDepth();
 
     textureViewer.draw();
-    ws::VObjectPtr selectedObject = hierarchyWindow.draw();
+    ws::VObjectPtr selectedObject = hierarchyWindow.draw({});
     inspectorWindow.inspectObject(selectedObject);
 
     workshop.endFrame();
