@@ -35,6 +35,7 @@ int main() {
   assetManager.textures.emplace("wood", ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg");
   assetManager.shaders.emplace("phong", ws::Shader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"});
   assetManager.shaders.emplace("solid", ws::Shader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"});
+  assetManager.shaders.emplace("copy", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"});
   assetManager.shaders.emplace("boilerplate", ws::Shader{SRC / "boilerplate.vert", SRC / "boilerplate.frag"});
   ws::Shader debugShader{ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag"};
   ws::Framebuffer offscreenFbo = ws::Framebuffer(1, 1);
@@ -71,7 +72,7 @@ int main() {
   ws::AutoOrbitingCameraController orbitingCamController{cam};
   orbitingCamController.radius = 10.f;
   orbitingCamController.theta = 0.3f;
-  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{offscreenFbo.getFirstColorAttachment()};
+  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{offscreenFbo.getFirstColorAttachment(), assetManager.white};
   ws::TextureViewer textureViewer{texRefs};
   ws::EditorWindow editorWindow{scene};
   ws::HierarchyWindow hierarchyWindow{scene};
@@ -126,6 +127,10 @@ int main() {
     glViewport(0, 0, winSize.x, winSize.y);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    assetManager.shaders.at("copy").bind();
+    offscreenFbo.getFirstColorAttachment().bindToUnit(0);
+    assetManager.drawWithEmptyVao(6);
+    assetManager.shaders.at("copy").unbind();    
 
  	  workshop.drawUI();
     textureViewer.draw();
