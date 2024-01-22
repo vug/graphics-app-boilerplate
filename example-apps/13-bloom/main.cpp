@@ -1,4 +1,5 @@
 #include <Workshop/Assets.hpp>
+#include <Workshop/AssetManager.hpp>
 #include <Workshop/Camera.hpp>
 #include <Workshop/Framebuffer.hpp>
 #include <Workshop/Model.hpp>
@@ -21,27 +22,17 @@
 
 const std::filesystem::path SRC{SOURCE_DIR};
 
-class AssetManager {
- public:
-  std::unordered_map<std::string, ws::Mesh> meshes;
-  std::unordered_map<std::string, ws::Texture> textures;
-  std::unordered_map<std::string, ws::Shader> shaders;
-};
-
 int main() {
   std::println("Hi!");
   ws::Workshop workshop{1920, 1080, "Bloom"};
 
-  AssetManager assetManager;
+  ws::AssetManager assetManager;
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
   assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
   assetManager.meshes.emplace("sphere", ws::loadOBJ(ws::ASSETS_FOLDER / "models/sphere_ico.obj"));
   assetManager.textures.emplace("uv_grid", ws::ASSETS_FOLDER / "images/Wikipedia/UV_checker_Map_byValle.jpg");
   assetManager.textures.emplace("checkerboard", ws::ASSETS_FOLDER / "images/Wikipedia/checkerboard_pattern.png");
   assetManager.textures.emplace("wood", ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg");
-  ws::Texture whiteTex{ws::Texture::Specs{1, 1, ws::Texture::Format::RGB8, ws::Texture::Filter::Linear}};
-  std::vector<uint32_t> whiteTexPixels = {0xFFFFFF};
-  whiteTex.uploadPixels(whiteTexPixels.data());
   assetManager.shaders.emplace("phong", ws::Shader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"});
   assetManager.shaders.emplace("solid", ws::Shader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"});
   assetManager.shaders.emplace("boilerplate", ws::Shader{SRC / "boilerplate.vert", SRC / "boilerplate.frag"});
@@ -53,14 +44,14 @@ int main() {
       assetManager.meshes.at("cube"),
       assetManager.shaders.at("phong"),
       assetManager.textures.at("uv_grid"),
-      whiteTex,
+      assetManager.white,
   };
   ws::RenderableObject monkey = {
       {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey"),
       assetManager.shaders.at("phong"),
       assetManager.textures.at("checkerboard"),
-      whiteTex,
+      assetManager.white,
   };
   ws::RenderableObject sphere = {
       {"Sphere", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(0.f), glm::vec3{1.f, 1.f, 1.f}}},
