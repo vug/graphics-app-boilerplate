@@ -36,9 +36,13 @@ int main() {
   assetManager.shaders.emplace("phong", ws::Shader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"});
   assetManager.shaders.emplace("solid", ws::Shader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"});
   assetManager.shaders.emplace("copy", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"});
-  assetManager.shaders.emplace("boilerplate", ws::Shader{SRC / "boilerplate.vert", SRC / "boilerplate.frag"});
+  assetManager.shaders.emplace("lumi_tresh", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", SRC / "lumi_tresh.frag"});
   ws::Shader debugShader{ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag"};
-  ws::Framebuffer offscreenFbo = ws::Framebuffer(1, 1);
+  ws::Framebuffer sceneFbo{1, 1};
+  const int numMaxBlooms = 8;
+  std::vector<ws::Framebuffer> bloomFbos; // Hmm... No need to reserve
+  for (int i = 0; i < numMaxBlooms; ++i)
+    bloomFbos.emplace_back(ws::Framebuffer::makeDefaultColorOnly(1, 1));
 
   ws::RenderableObject ground = {
       {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
@@ -72,18 +76,23 @@ int main() {
   ws::AutoOrbitingCameraController orbitingCamController{cam};
   orbitingCamController.radius = 10.f;
   orbitingCamController.theta = 0.3f;
-  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{offscreenFbo.getFirstColorAttachment(), assetManager.white};
+  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{sceneFbo.getFirstColorAttachment(), bloomFbos[0].getFirstColorAttachment(), bloomFbos[1].getFirstColorAttachment(), bloomFbos[2].getFirstColorAttachment()};
   ws::TextureViewer textureViewer{texRefs};
   ws::EditorWindow editorWindow{scene};
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};
-  workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("solid"), assetManager.shaders.at("boilerplate")};
+  workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("solid"), assetManager.shaders.at("lumi_tresh")};
   
    
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
     const glm::uvec2 winSize = workshop.getWindowSize();
-    offscreenFbo.resizeIfNeeded(winSize.x, winSize.y); // can be resized by something else
+    sceneFbo.resizeIfNeeded(winSize.x, winSize.y);  // can be resized by something else
+    int numBlooms = static_cast<int>(std::log2(std::min(winSize.x, winSize.y)));
+    numBlooms = std::min(numBlooms, numMaxBlooms);
+    for (const auto& [n, fbo] : bloomFbos | std::ranges::views::enumerate | std::ranges::views::take(numBlooms))
+      fbo.resizeIfNeeded(winSize.x / (static_cast<int>(n) + 1), winSize.y / (static_cast<int>(n) + 1));
+
 
     ImGui::Begin("Bloom");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
@@ -91,12 +100,14 @@ int main() {
     ImGui::Checkbox("Debug Scene using debug shader", &debugScene);
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
+    static float luminanceThreshold = 0.75f;
+    ImGui::SliderFloat("Luminance Treshold", &luminanceThreshold, 0, 1);
     ImGui::End();
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
-    offscreenFbo.bind();
+    sceneFbo.bind();
     glViewport(0, 0, winSize.x, winSize.y);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -122,15 +133,18 @@ int main() {
 	    renderable.get().texture2.unbindFromUnit(1);
       shader.unbind();
     }
-    offscreenFbo.unbind();
+    sceneFbo.unbind();
 
+    bloomFbos[0].bind();
     glViewport(0, 0, winSize.x, winSize.y);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    assetManager.shaders.at("copy").bind();
-    offscreenFbo.getFirstColorAttachment().bindToUnit(0);
+    assetManager.shaders.at("lumi_tresh").bind();
+    sceneFbo.getFirstColorAttachment().bindToUnit(0);
     assetManager.drawWithEmptyVao(6);
-    assetManager.shaders.at("copy").unbind();    
+    assetManager.shaders.at("lumi_tresh").setFloat("u_LuminanceThreshold", luminanceThreshold);
+    assetManager.shaders.at("lumi_tresh").unbind();
+    bloomFbos[0].unbind();
 
  	  workshop.drawUI();
     textureViewer.draw();
