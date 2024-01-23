@@ -45,9 +45,10 @@ int main() {
   std::vector<ws::Framebuffer> bloomHorFbos; // Hmm... No need to reserve
   std::vector<ws::Framebuffer> bloomVerFbos; 
   for (int i = 0; i < numMaxBlooms; ++i) {
-    bloomHorFbos.emplace_back(ws::Framebuffer::makeDefaultColorOnly(1, 1));
-    bloomVerFbos.emplace_back(ws::Framebuffer::makeDefaultColorOnly(1, 1));
-    bloomHorFbos.back().getFirstColorAttachment().getId();
+    std::vector<ws::Texture::Specs> colorSpecs = {{1, 1, ws::Texture::Format::RGBA8, ws::Texture::Filter::Linear, ws::Texture::Wrap::Repeat}};
+    std::optional<ws::Texture::Specs> depthSpec = {};
+    bloomHorFbos.emplace_back(colorSpecs, depthSpec);
+    bloomVerFbos.emplace_back(colorSpecs, depthSpec);
   }
 
   ws::RenderableObject ground = {
@@ -102,9 +103,9 @@ int main() {
     int numBlooms = static_cast<int>(std::log2(std::min(winSize.x, winSize.y)));
     numBlooms = std::min(numBlooms, numMaxBlooms);
     for (const auto& [n, fbo] : bloomHorFbos | std::ranges::views::enumerate | std::ranges::views::take(numBlooms))
-      fbo.resizeIfNeeded(winSize.x / std::pow(2, n + 1), winSize.y / std::pow(2, n + 1));
+      fbo.resizeIfNeeded(static_cast<int>(winSize.x / std::pow(2, n + 1)), static_cast<int>(winSize.y / std::pow(2, n + 1)));
     for (const auto& [n, fbo] : bloomVerFbos | std::ranges::views::enumerate | std::ranges::views::take(numBlooms))
-      fbo.resizeIfNeeded(winSize.x / std::pow(2, n + 1), winSize.y / std::pow(2, n + 1));
+      fbo.resizeIfNeeded(static_cast<int>(winSize.x / std::pow(2, n + 1)), static_cast<int>(winSize.y / std::pow(2, n + 1)));
 
 
     ImGui::Begin("Bloom");
