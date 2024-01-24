@@ -21,9 +21,13 @@ add_library(${TARGET} STATIC
   includes/Workshop/Lights.hpp Lights.cpp
   includes/Workshop/Input.hpp Input.cpp
   includes/Workshop/OpenGL.hpp OpenGL.cpp
-  includes/Workshop/UI.hpp UI.cpp
+  includes/Workshop/UI.hpp 
   includes/Workshop/Scene.hpp Scene.cpp
   includes/Workshop/AssetManager.hpp AssetManager.cpp
+  includes/Workshop/ui/TextureViewer.hpp ui/TextureViewer.cpp
+  includes/Workshop/ui/HierarchyWindow.hpp ui/HierarchyWindow.cpp
+  includes/Workshop/ui/InspectorWindow.hpp ui/InspectorWindow.cpp
+  includes/Workshop/ui/EditorWindow.hpp ui/EditorWindow.cpp
 )
 
 target_link_libraries(${TARGET} PUBLIC
