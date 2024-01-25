@@ -250,6 +250,8 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
 
   // Pass 4: Draw highlights as overlay to screen
   fbo.bind();
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glDrawBuffer(GL_COLOR_ATTACHMENT0);
   glDisable(GL_DEPTH_TEST);
   copyShader.bind();
