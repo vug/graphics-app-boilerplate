@@ -57,7 +57,7 @@ EditorWindow::EditorWindow(Scene& scene)
       emptyVao([]() { uint32_t id;glGenVertexArrays(1, &id); return id; }()) 
   {}
 
-VObjectPtr EditorWindow::draw() {
+VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
   ImGui::Begin("Editor");
 
   static bool shouldBeWireframe = false;
@@ -179,7 +179,8 @@ VObjectPtr EditorWindow::draw() {
     editorShader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
     editorShader.setInteger("u_ShadingModel", shadingModel);
     editorShader.setInteger("u_MeshId", static_cast<int>(ix));
-    editorShader.setInteger("u_ShouldOutline", static_cast<int>(ix == 2));
+    const bool isSelected = std::visit([&renderable](auto&& ptr) { if (ptr == nullptr) return false; return ptr->name == renderable.get().name; }, selectedObject);
+    editorShader.setInteger("u_ShouldOutline", static_cast<int>(isSelected));
     renderable.get().texture.bindToUnit(0);
     renderable.get().texture2.bindToUnit(1);
     renderable.get().mesh.bind();

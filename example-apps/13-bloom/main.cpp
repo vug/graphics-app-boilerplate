@@ -89,7 +89,6 @@ int main() {
     texRefs.push_back(bloomVerFbos[n].getFirstColorAttachment());  
   }
   ws::TextureViewer textureViewer{texRefs};
-  ws::EditorWindow editorWindow{scene};
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};
   workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("solid"), assetManager.shaders.at("lumi_tresh"), assetManager.shaders.at("blur")};
@@ -211,8 +210,9 @@ int main() {
 
  	  workshop.drawUI();
     textureViewer.draw();
-    ws::VObjectPtr clickedObject = editorWindow.draw();
-    ws::VObjectPtr selectedObject = hierarchyWindow.draw(clickedObject);
+    static ws::VObjectPtr selectedObject;
+    ws::VObjectPtr clickedObject = editorWindow.draw(selectedObject);
+    selectedObject = hierarchyWindow.draw(clickedObject);
     inspectorWindow.inspectObject(selectedObject);
 
     workshop.endFrame();
