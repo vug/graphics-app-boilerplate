@@ -26,11 +26,15 @@ class EditorWindow {
  private:
   Camera cam;
   Framebuffer fbo;
+  Framebuffer outlineFboA{};
+  Framebuffer outlineFboB{};
   Scene& scene;
   Shader editorShader;
   Shader solidColorShader;
   Shader outlineShader;
+  Shader copyShader;
   Shader gridShader;
   uint32_t gridVao;
+  uint32_t emptyVao;
 };
 }

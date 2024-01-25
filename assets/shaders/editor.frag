@@ -15,9 +15,11 @@ layout(binding = 1) uniform sampler2D secondTex;
 uniform vec2 u_CameraNearFar; // .x: near, .y: far
 uniform int u_ShadingModel = 2;
 uniform int u_MeshId = -1;
+uniform bool u_ShouldOutline = false;
 
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out int MeshId;
+layout(location = 2) out vec4 OutlineColor;
 
 float LinearizeDepth(float depth, float near, float far) {
     float z = depth * 2.0 - 1.0; // back to NDC 
@@ -38,6 +40,7 @@ void main() {
   const float far = u_CameraNearFar.y;
 
   MeshId = u_MeshId;
+  OutlineColor = u_ShouldOutline ? vec4(1, 1, 0, 1) : vec4(0, 0, 0, 0);
 
   switch(u_ShadingModel) {
     // Position in Object-Space

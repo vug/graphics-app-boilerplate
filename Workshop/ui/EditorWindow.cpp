@@ -43,7 +43,7 @@ EditorWindow::EditorWindow(Scene& scene)
         std::vector<Texture::Specs>{
           Texture::Specs{1, 1, Texture::Format::RGBA8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}, // Editor Scene Viz
           Texture::Specs{1, 1, Texture::Format::R32i, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}, // Mesh Ids
-          Texture::Specs{1, 1, Texture::Format::RGB8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}, // Outline
+          Texture::Specs{1, 1, Texture::Format::RGBA8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}, // Outline
         },
         Texture::Specs{1, 1, Texture::Format::Depth32fStencil8, Texture::Filter::Linear, Texture::Wrap::ClampToBorder}
       ),
@@ -51,8 +51,11 @@ EditorWindow::EditorWindow(Scene& scene)
       editorShader(ws::ASSETS_FOLDER / "shaders/editor.vert", ws::ASSETS_FOLDER / "shaders/editor.frag"),
       solidColorShader(ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"),
       outlineShader(ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_outline.frag"),
+      copyShader(ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"),
       gridShader(ws::ASSETS_FOLDER / "shaders/infinite_grid.vert", ws::ASSETS_FOLDER / "shaders/infinite_grid.frag"),
-      gridVao([]() { uint32_t id;glGenVertexArrays(1, &id); return id; }()) {}
+      gridVao([]() { uint32_t id;glGenVertexArrays(1, &id); return id; }()), 
+      emptyVao([]() { uint32_t id;glGenVertexArrays(1, &id); return id; }()) 
+  {}
 
 VObjectPtr EditorWindow::draw() {
   ImGui::Begin("Editor");
@@ -80,6 +83,7 @@ VObjectPtr EditorWindow::draw() {
   }
   glm::ivec2 sizei{size.x, size.y};
   fbo.resizeIfNeeded(sizei.x, sizei.y);
+  outlineFboA.resizeIfNeeded(sizei.x, sizei.y);
 
   ImGuiBeginMouseDragHelper("EditorDragDetector", size);
   static Camera cam0;
@@ -148,18 +152,22 @@ VObjectPtr EditorWindow::draw() {
 
   cam.aspectRatio = size.x / size.y;
 
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
   fbo.bind();
   // When drawing the scene render into first attachment, and put mesh ids into second attachment
-  uint32_t bothAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-  glDrawBuffers(2, bothAttachments);
+  uint32_t allAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+  glDrawBuffers(3, allAttachments);
   glViewport(0, 0, sizei.x, sizei.y);
   glDisable(GL_BLEND);
   glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
-  const float red[] = {0, 0, 0, 1};
-  glClearTexImage(fbo.getColorAttachments()[0].getId(), 0, GL_RGBA, GL_FLOAT, red);
+  const float background[] = {0, 0, 0, 1};
+  glClearTexImage(fbo.getColorAttachments()[0].getId(), 0, GL_RGBA, GL_FLOAT, background);
   const int clearValue = -1;
   glClearTexImage(fbo.getColorAttachments()[1].getId(), 0, GL_RED_INTEGER, GL_INT, &clearValue);
+  glClearTexImage(fbo.getColorAttachments()[2].getId(), 0, GL_RGBA, GL_FLOAT, background);
   glClear(GL_DEPTH_BUFFER_BIT);
   glPolygonMode(GL_FRONT_AND_BACK, shouldBeWireframe ? GL_LINE : GL_FILL);
   for (auto [ix, renderable] : scene.renderables | std::ranges::views::enumerate) {
@@ -171,6 +179,7 @@ VObjectPtr EditorWindow::draw() {
     editorShader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
     editorShader.setInteger("u_ShadingModel", shadingModel);
     editorShader.setInteger("u_MeshId", static_cast<int>(ix));
+    editorShader.setInteger("u_ShouldOutline", static_cast<int>(ix == 2));
     renderable.get().texture.bindToUnit(0);
     renderable.get().texture2.bindToUnit(1);
     renderable.get().mesh.bind();
@@ -199,6 +208,39 @@ VObjectPtr EditorWindow::draw() {
       gridShader.unbind();
     }
   }
+  fbo.unbind();
+
+  // Pass 3: Out-grow highlight solid color area
+  outlineFboA.bind();
+  glClearColor(0, 0, 0, 0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glDisable(GL_DEPTH_TEST);
+  outlineShader.bind();
+  glBindVertexArray(emptyVao);
+
+  fbo.getColorAttachments()[2].bind();
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+  fbo.getColorAttachments()[2].unbind();
+
+  glBindVertexArray(0);
+  outlineShader.unbind();
+  glEnable(GL_DEPTH_TEST);
+  outlineFboA.unbind();
+
+  // Pass 4: Draw highlights as overlay to screen
+  fbo.bind();
+  glDrawBuffer(GL_COLOR_ATTACHMENT0);
+  glDisable(GL_DEPTH_TEST);
+  copyShader.bind();
+  outlineFboA.getFirstColorAttachment().bind();
+
+  glBindVertexArray(emptyVao);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+  glBindVertexArray(0);
+
+  outlineFboA.getFirstColorAttachment().unbind();
+  copyShader.unbind();
+  glEnable(GL_DEPTH_TEST);
   fbo.unbind();
 
   // IsItemActivated checks whether InvisibleButton was clicked. IsItemClicked on the Image below didn't work for some reason. Probably because it's overlapping with the button.
