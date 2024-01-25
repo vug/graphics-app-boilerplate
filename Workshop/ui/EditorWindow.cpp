@@ -195,8 +195,7 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
 
   if (showGrid) {
     // when drawing gizmos (such as coordinate grid) only draw into first attachment, don't touch mesh ids
-    uint32_t onlyFirstAttachmetn[] = {GL_COLOR_ATTACHMENT0};
-    glDrawBuffers(1, onlyFirstAttachmetn);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_CULL_FACE);
