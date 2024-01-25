@@ -193,8 +193,9 @@ int main() {
 	  workshop.drawUI();
 	  lightMapper.drawUI(scene);
     textureViewer.draw();
-		ws::VObjectPtr clickedObject = editorWindow.draw();
-    ws::VObjectPtr selectedObject = hierarchyWindow.draw(clickedObject);
+    static ws::VObjectPtr selectedObject;
+    ws::VObjectPtr clickedObject = editorWindow.draw(selectedObject);
+    selectedObject = hierarchyWindow.draw(clickedObject);
     inspectorWindow.inspectObject(selectedObject);
 
     workshop.endFrame();
