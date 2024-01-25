@@ -28,6 +28,8 @@ class EditorWindow {
   Framebuffer fbo;
   Scene& scene;
   Shader editorShader;
+  Shader solidColorShader;
+  Shader outlineShader;
   Shader gridShader;
   uint32_t gridVao;
 };

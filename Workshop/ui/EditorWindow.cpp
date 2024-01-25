@@ -39,13 +39,18 @@ void ImGuiEndMouseDragHelper() {
 }
 
 EditorWindow::EditorWindow(Scene& scene)
-    : fbo(std::vector<Texture::Specs>{
-              Texture::Specs{1, 1, Texture::Format::RGBA8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder},
-              Texture::Specs{1, 1, Texture::Format::R32i, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder},
-          },
-          Texture::Specs{1, 1, Texture::Format::Depth32fStencil8, Texture::Filter::Linear, Texture::Wrap::ClampToBorder}),
+    : fbo(
+        std::vector<Texture::Specs>{
+          Texture::Specs{1, 1, Texture::Format::RGBA8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}, // Editor Scene Viz
+          Texture::Specs{1, 1, Texture::Format::R32i, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}, // Mesh Ids
+          Texture::Specs{1, 1, Texture::Format::RGB8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}, // Outline
+        },
+        Texture::Specs{1, 1, Texture::Format::Depth32fStencil8, Texture::Filter::Linear, Texture::Wrap::ClampToBorder}
+      ),
       scene(scene),
       editorShader(ws::ASSETS_FOLDER / "shaders/editor.vert", ws::ASSETS_FOLDER / "shaders/editor.frag"),
+      solidColorShader(ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"),
+      outlineShader(ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_outline.frag"),
       gridShader(ws::ASSETS_FOLDER / "shaders/infinite_grid.vert", ws::ASSETS_FOLDER / "shaders/infinite_grid.frag"),
       gridVao([]() { uint32_t id;glGenVertexArrays(1, &id); return id; }()) {}
 
