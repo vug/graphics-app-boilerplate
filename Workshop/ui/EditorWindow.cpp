@@ -264,7 +264,7 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
   fbo.unbind();
 
   // IsItemActivated checks whether InvisibleButton was clicked. IsItemClicked on the Image below didn't work for some reason. Probably because it's overlapping with the button.
-  bool wasViewportClicked = ImGui::IsItemActivated();
+  bool wasViewportClicked = ImGui::IsItemActivated() && ImGui::IsMouseDown(ImGuiMouseButton_Left);
 
   ImVec2 uv0 = {0, 0};
   ImVec2 uv1 = {1, 1};
@@ -290,7 +290,7 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
   }
 
   VObjectPtr clickedObject{};
-  if (wasViewportClicked) {
+  if (wasViewportClicked && !ImGui::IsKeyDown(ImGuiKey_LeftAlt)) {
     if (hoveredMeshId >= 0)
       clickedObject = &scene.renderables[hoveredMeshId].get();
     else if (hoveredMeshId == -1)
