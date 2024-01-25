@@ -81,7 +81,7 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
   ImVec2 size = ImGui::GetContentRegionAvail();
   if (size.y < 0) {  // happens when minimized
     ImGui::End();
-    return {};
+    return selectedObject;
   }
   glm::ivec2 sizei{size.x, size.y};
   fbo.resizeIfNeeded(sizei.x, sizei.y);
@@ -218,7 +218,7 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT);
   glDisable(GL_DEPTH_TEST);
-  const bool hasSelectedObject = std::visit([](auto&& ptr) { return ptr != nullptr; }, selectedObject);
+  const bool hasSelectedObject = std::visit([](auto&& ptr) { return ptr != nullptr; }, selectedObject) && std::holds_alternative<RenderableObject*>(selectedObject);
   if (hasSelectedObject) {
     RenderableObject* ptr = std::get<RenderableObject*>(selectedObject);
     solidColorShader.bind();
@@ -290,8 +290,13 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
   }
 
   VObjectPtr clickedObject{};
-  if (wasViewportClicked && hoveredMeshId >= 0)
-    clickedObject = &scene.renderables[hoveredMeshId].get();
+  if (wasViewportClicked) {
+    if (hoveredMeshId >= 0)
+      clickedObject = &scene.renderables[hoveredMeshId].get();
+    else if (hoveredMeshId == -1)
+      clickedObject = &scene.root;
+  }
+
   ImGui::End();
 
   return clickedObject;
