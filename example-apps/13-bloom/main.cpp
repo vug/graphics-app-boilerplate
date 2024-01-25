@@ -89,6 +89,7 @@ int main() {
     texRefs.push_back(bloomVerFbos[n].getFirstColorAttachment());  
   }
   ws::TextureViewer textureViewer{texRefs};
+  ws::EditorWindow editorWindow{scene};
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};
   workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("solid"), assetManager.shaders.at("lumi_tresh"), assetManager.shaders.at("blur")};

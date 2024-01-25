@@ -6,6 +6,7 @@
 
 #include <array>
 #include <ranges>
+#include <variant>
 
 namespace ws {
 static bool imguiMouseDragHelperHasBegun = false;
@@ -43,10 +44,11 @@ EditorWindow::EditorWindow(Scene& scene)
         std::vector<Texture::Specs>{
           Texture::Specs{1, 1, Texture::Format::RGBA8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}, // Editor Scene Viz
           Texture::Specs{1, 1, Texture::Format::R32i, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}, // Mesh Ids
-          Texture::Specs{1, 1, Texture::Format::RGBA8, Texture::Filter::Nearest, Texture::Wrap::ClampToBorder}, // Outline
         },
         Texture::Specs{1, 1, Texture::Format::Depth32fStencil8, Texture::Filter::Linear, Texture::Wrap::ClampToBorder}
       ),
+      outlineSolidFbo(Framebuffer::makeDefaultColorOnly(1, 1)),
+      outlineGrowthFbo(Framebuffer::makeDefaultColorOnly(1, 1)),
       scene(scene),
       editorShader(ws::ASSETS_FOLDER / "shaders/editor.vert", ws::ASSETS_FOLDER / "shaders/editor.frag"),
       solidColorShader(ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"),
@@ -83,7 +85,8 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
   }
   glm::ivec2 sizei{size.x, size.y};
   fbo.resizeIfNeeded(sizei.x, sizei.y);
-  outlineFboA.resizeIfNeeded(sizei.x, sizei.y);
+  outlineSolidFbo.resizeIfNeeded(sizei.x, sizei.y);
+  outlineGrowthFbo.resizeIfNeeded(sizei.x, sizei.y);
 
   ImGuiBeginMouseDragHelper("EditorDragDetector", size);
   static Camera cam0;
@@ -157,8 +160,8 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
 
   fbo.bind();
   // When drawing the scene render into first attachment, and put mesh ids into second attachment
-  uint32_t allAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
-  glDrawBuffers(3, allAttachments);
+  uint32_t allAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+  glDrawBuffers(2, allAttachments);
   glViewport(0, 0, sizei.x, sizei.y);
   glDisable(GL_BLEND);
   glEnable(GL_CULL_FACE);
@@ -167,7 +170,6 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
   glClearTexImage(fbo.getColorAttachments()[0].getId(), 0, GL_RGBA, GL_FLOAT, background);
   const int clearValue = -1;
   glClearTexImage(fbo.getColorAttachments()[1].getId(), 0, GL_RED_INTEGER, GL_INT, &clearValue);
-  glClearTexImage(fbo.getColorAttachments()[2].getId(), 0, GL_RGBA, GL_FLOAT, background);
   glClear(GL_DEPTH_BUFFER_BIT);
   glPolygonMode(GL_FRONT_AND_BACK, shouldBeWireframe ? GL_LINE : GL_FILL);
   for (auto [ix, renderable] : scene.renderables | std::ranges::views::enumerate) {
@@ -211,35 +213,52 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
   }
   fbo.unbind();
 
+  // Pass 2: Draw highlighted objects with solid color offscreen
+  outlineSolidFbo.bind();
+  glClearColor(0, 0, 0, 0);
+  glClear(GL_COLOR_BUFFER_BIT);
+  glDisable(GL_DEPTH_TEST);
+  const bool hasSelectedObject = std::visit([](auto&& ptr) { return ptr != nullptr; }, selectedObject);
+  if (hasSelectedObject) {
+    RenderableObject* ptr = std::get<RenderableObject*>(selectedObject);
+    solidColorShader.bind();
+    solidColorShader.setMatrix4("u_WorldFromObject", ptr->transform.getWorldFromObjectMatrix());
+    solidColorShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+    solidColorShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+    const glm::vec4 outlineColor{1, 1, 0, 1};
+    solidColorShader.setVector4("u_Color", outlineColor);
+    ptr->mesh.bind();
+    ptr->mesh.draw();
+    ptr->mesh.unbind();
+    solidColorShader.unbind();
+  }
+  outlineSolidFbo.unbind();
+
   // Pass 3: Out-grow highlight solid color area
-  outlineFboA.bind();
+  outlineGrowthFbo.bind();
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glDisable(GL_DEPTH_TEST);
   outlineShader.bind();
   glBindVertexArray(emptyVao);
-
-  fbo.getColorAttachments()[2].bind();
+  outlineSolidFbo.getFirstColorAttachment().bind();
   glDrawArrays(GL_TRIANGLES, 0, 6);
-  fbo.getColorAttachments()[2].unbind();
-
+  outlineSolidFbo.getFirstColorAttachment().unbind();
   glBindVertexArray(0);
   outlineShader.unbind();
   glEnable(GL_DEPTH_TEST);
-  outlineFboA.unbind();
+  outlineGrowthFbo.unbind();
 
   // Pass 4: Draw highlights as overlay to screen
   fbo.bind();
   glDrawBuffer(GL_COLOR_ATTACHMENT0);
   glDisable(GL_DEPTH_TEST);
   copyShader.bind();
-  outlineFboA.getFirstColorAttachment().bind();
-
+  outlineGrowthFbo.getFirstColorAttachment().bind();
   glBindVertexArray(emptyVao);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
-
-  outlineFboA.getFirstColorAttachment().unbind();
+  outlineGrowthFbo.getFirstColorAttachment().unbind();
   copyShader.unbind();
   glEnable(GL_DEPTH_TEST);
   fbo.unbind();

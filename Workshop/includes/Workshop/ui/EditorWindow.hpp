@@ -26,8 +26,8 @@ class EditorWindow {
  private:
   Camera cam;
   Framebuffer fbo;
-  Framebuffer outlineFboA{};
-  Framebuffer outlineFboB{};
+  Framebuffer outlineSolidFbo;
+  Framebuffer outlineGrowthFbo;
   Scene& scene;
   Shader editorShader;
   Shader solidColorShader;
