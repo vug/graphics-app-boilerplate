@@ -25,6 +25,7 @@ class Workshop {
   glm::uvec2 getWindowSize() const;
   uint32_t getFrameNo() const;
   float getFrameDurationMs() const;
+  float getFrameDurationSec() const;
   float getFrameRate() const;
   bool getVSync() const;
   void setVSync(bool should);

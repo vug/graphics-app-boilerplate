@@ -148,7 +148,7 @@ int main() {
 
  	  workshop.drawUI();
     static ws::VObjectPtr selectedObject;
-    ws::VObjectPtr clickedObject = editorWindow.draw(selectedObject);
+          ws::VObjectPtr clickedObject = editorWindow.draw(selectedObject, workshop.getFrameDurationSec());
     selectedObject = hierarchyWindow.draw(clickedObject);
     inspectorWindow.inspectObject(selectedObject);
 

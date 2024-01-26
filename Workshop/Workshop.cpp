@@ -145,6 +145,10 @@ float Workshop::getFrameDurationMs() const {
   return frameDurationSec * 1000.f;
 }
 
+float Workshop::getFrameDurationSec() const {
+  return frameDurationSec;
+}
+
 float Workshop::getFrameRate() const {
   return frameRate;
 }

@@ -59,7 +59,7 @@ EditorWindow::EditorWindow(Scene& scene)
       emptyVao([]() { uint32_t id;glGenVertexArrays(1, &id); return id; }()) 
   {}
 
-VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
+VObjectPtr EditorWindow::draw(VObjectPtr selectedObject, float deltaTimeSec) {
   ImGui::Begin("Editor");
 
   static bool shouldBeWireframe = false;
@@ -100,24 +100,24 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
     const ImVec2 deltaMiddle = ImGui::GetMouseDragDelta(ImGuiMouseButton_Middle, 0);
     const ImVec2 deltaRight = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right, 0);
     const float mouseSpeed = 0.005f;
-    float keySpeed = 0.1f;
+    float keySpeed = 8.0f;
 
     if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
       keySpeed *= 5;
 
     if (ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
       if (ImGui::IsKeyDown(ImGuiKey_A))
-        deltaPos -= cam.getRight() * keySpeed;
+        deltaPos -= cam.getRight() * keySpeed * deltaTimeSec;
       if (ImGui::IsKeyDown(ImGuiKey_D))
-        deltaPos += cam.getRight() * keySpeed;
+        deltaPos += cam.getRight() * keySpeed * deltaTimeSec;
       if (ImGui::IsKeyDown(ImGuiKey_W))
-        deltaPos += cam.getForward() * keySpeed;
+        deltaPos += cam.getForward() * keySpeed * deltaTimeSec;
       if (ImGui::IsKeyDown(ImGuiKey_S))
-        deltaPos -= cam.getForward() * keySpeed;
+        deltaPos -= cam.getForward() * keySpeed * deltaTimeSec;
       if (ImGui::IsKeyDown(ImGuiKey_Q))
-        deltaPos -= cam.getUp() * keySpeed;
+        deltaPos -= cam.getUp() * keySpeed * deltaTimeSec;
       if (ImGui::IsKeyDown(ImGuiKey_E))
-        deltaPos += cam.getUp() * keySpeed;
+        deltaPos += cam.getUp() * keySpeed * deltaTimeSec;
 
       // look around
       if (ImGui::IsKeyDown(ImGuiKey_LeftAlt)) {

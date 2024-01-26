@@ -21,7 +21,7 @@ void ImGuiEndMouseDragHelper();
 class EditorWindow {
  public:
   EditorWindow(Scene& scene);
-  VObjectPtr draw(VObjectPtr selectedObject);
+  VObjectPtr draw(VObjectPtr selectedObject, float deltaTimeSec);
 
  private:
   Camera cam;
