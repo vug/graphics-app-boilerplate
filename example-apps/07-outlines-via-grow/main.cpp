@@ -116,7 +116,7 @@ int main()
 
       obj.mesh.draw();
 
-      obj.texture.unbind();
+      ws::Texture::unbind();
       obj.mesh.unbind();
       obj.shader.unbind();
     }
@@ -156,7 +156,7 @@ int main()
 
     outlineA.getFirstColorAttachment().bind();
     glDrawArrays(GL_TRIANGLES, 0, 6);
-    outlineA.getFirstColorAttachment().unbind();
+    ws::Texture::unbind();
 
     glBindVertexArray(0);
     outlineShader.unbind();
@@ -173,7 +173,7 @@ int main()
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 
-    outlineB.getFirstColorAttachment().unbind();
+    ws::Texture::unbind();
     fullscreenShader.unbind();
     glEnable(GL_DEPTH_TEST);
 

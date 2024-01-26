@@ -65,7 +65,7 @@ class Texture {
   uint32_t getId() const { return id; }
   bool isValid() const { return id != INVALID; }
   void bind() const;
-  void unbind() const;
+  static void unbind();
   void bindToUnit(uint32_t unit) const;
   void unbindFromUnit(uint32_t unit) const;
   // should already be bound

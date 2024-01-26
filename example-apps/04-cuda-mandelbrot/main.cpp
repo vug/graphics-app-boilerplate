@@ -189,7 +189,7 @@ void main () {
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
-    tex.unbind();
+    ws::Texture::unbind();
     shader.unbind();
 
     workshop.endFrame();

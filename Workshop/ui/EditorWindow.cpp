@@ -240,7 +240,7 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
   glBindVertexArray(emptyVao);
   outlineSolidFbo.getFirstColorAttachment().bind();
   glDrawArrays(GL_TRIANGLES, 0, 6);
-  outlineSolidFbo.getFirstColorAttachment().unbind();
+  Texture::unbind();
   glBindVertexArray(0);
   outlineShader.unbind();
   glEnable(GL_DEPTH_TEST);
@@ -257,7 +257,7 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
   glBindVertexArray(emptyVao);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
-  outlineGrowthFbo.getFirstColorAttachment().unbind();
+  Texture::unbind();
   copyShader.unbind();
   glEnable(GL_DEPTH_TEST);
   fbo.unbind();

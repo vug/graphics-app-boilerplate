@@ -101,7 +101,7 @@ int main()
 
       obj.mesh.draw();
 
-      obj.texture.unbind();
+      ws::Texture::unbind();
       obj.mesh.unbind();
       obj.shader.unbind();
     }

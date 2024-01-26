@@ -32,7 +32,7 @@ Framebuffer::Framebuffer(const std::vector<Texture::Specs>& colorSpecs, std::opt
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
   } else {
-    glDrawBuffers(drawBuffers.size(), drawBuffers.data());
+    glDrawBuffers(static_cast<int>(drawBuffers.size()), drawBuffers.data());
   }
 
   assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
