@@ -166,10 +166,8 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject) {
   glDisable(GL_BLEND);
   glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
-  const float background[] = {0, 0, 0, 1};
-  glClearTexImage(fbo.getColorAttachments()[0].getId(), 0, GL_RGBA, GL_FLOAT, background);
-  const int clearValue = -1;
-  glClearTexImage(fbo.getColorAttachments()[1].getId(), 0, GL_RED_INTEGER, GL_INT, &clearValue);
+  fbo.getColorAttachments()[0].clear(glm::vec4(0, 0, 0, 1));
+  fbo.getColorAttachments()[1].clear(-1);
   glClear(GL_DEPTH_BUFFER_BIT);
   glPolygonMode(GL_FRONT_AND_BACK, shouldBeWireframe ? GL_LINE : GL_FILL);
   for (auto [ix, renderable] : scene.renderables | std::ranges::views::enumerate) {
