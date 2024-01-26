@@ -3,7 +3,11 @@
 #include "Common.hpp"
 
 #include <glad/gl.h>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+
 #include <filesystem>
+#include <variant>
 
 namespace ws {
 class Texture {
@@ -73,6 +77,8 @@ class Texture {
   void resize(uint32_t width, uint32_t height);
   const std::string& getName() const { return name; }
   int getNumComponents() const;
+  using ClearData = std::variant<int32_t, float, glm::vec3, glm::vec4, glm::ivec3>;//, glm::ivec3, , glm::ivec4>;
+  void clear(ClearData data, int level = 0) const;
 
   Specs specs;
 

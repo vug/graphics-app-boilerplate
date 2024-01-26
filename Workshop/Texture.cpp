@@ -1,6 +1,7 @@
 #include "Texture.hpp"
 
 #include <glad/gl.h>
+#include <glm/gtc/type_ptr.hpp>
 #include <stb_image.h>
 #include <stb_image_write.h>
 
@@ -230,6 +231,38 @@ int Texture::getNumComponents() const {
       assert(false); // add missing case
       std::unreachable();
   }
+}
+
+void Texture::clear(ClearData data, int level) const {
+  GlSpecs gs = getGlSpecs();
+  std::visit(Overloaded{
+    [&](int32_t integer) {
+      assert(gs.format == GL_RED_INTEGER);
+      //assert(gs.type == GL_INT);
+      glClearTexImage(id, level, gs.format, GL_INT, &data);
+    },
+    [&](float num) {
+      assert(gs.format == GL_RED);
+      glClearTexImage(id, level, gs.format, GL_FLOAT, &data);
+    },
+    [&](glm::vec3 rgbF) {
+      assert(gs.format == GL_RGB);
+      glClearTexImage(id, level, gs.format, GL_FLOAT, glm::value_ptr(rgbF));
+    },
+    [&](glm::vec4 rgbaF) {
+      assert(gs.format == GL_RGBA);
+      glClearTexImage(id, level, gs.format, GL_FLOAT, glm::value_ptr(rgbaF));
+    },
+    [&](glm::ivec3 rgbI) {
+      assert(gs.format == GL_RGB);
+      glClearTexImage(id, level, gs.format, GL_UNSIGNED_BYTE, glm::value_ptr(rgbI));
+    },
+    [&](glm::ivec4 rgbaI) {
+      assert(gs.format == GL_RGBA);
+      glClearTexImage(id, level, gs.format, GL_UNSIGNED_BYTE, glm::value_ptr(rgbaI));
+    },
+
+  }, data);
 }
 
 Texture::~Texture() {
