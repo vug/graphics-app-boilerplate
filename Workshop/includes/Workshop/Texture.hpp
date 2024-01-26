@@ -72,6 +72,7 @@ class Texture {
   void saveToImageFile(const std::filesystem::path& imgFile) const;
   void resize(uint32_t width, uint32_t height);
   const std::string& getName() const { return name; }
+  int getNumComponents() const;
 
   Specs specs;
 

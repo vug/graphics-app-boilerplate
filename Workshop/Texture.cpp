@@ -191,6 +191,47 @@ void Texture::resize(uint32_t width, uint32_t height) {
   unbind();
 }
 
+int Texture::getNumComponents() const {
+  GlSpecs gs = getGlSpecs();
+  switch (gs.internalFormat) {
+    case GL_RED:
+    case GL_R8:
+    case GL_R16:
+    case GL_R16F:
+    case GL_R32F:
+    case GL_RED_INTEGER:
+      return 1;
+
+    case GL_RG:
+    case GL_RG8:
+    case GL_RG16:
+    case GL_RG16F:
+    case GL_RG32F:
+    case GL_RG_INTEGER:
+      return 2;
+
+    case GL_RGB:
+    case GL_RGB8:
+    case GL_RGB16:
+    case GL_RGB16F:
+    case GL_RGB32F:
+    case GL_RGB_INTEGER:
+      return 3;
+
+    case GL_RGBA:
+    case GL_RGBA8:
+    case GL_RGBA16:
+    case GL_RGBA16F:
+    case GL_RGBA32F:
+    case GL_RGBA_INTEGER:
+      return 4;
+
+    default:
+      assert(false); // add missing case
+      std::unreachable();
+  }
+}
+
 Texture::~Texture() {
   // glDeleteTextures silently ignores 0's and names that do not correspond to existing textures.
   glDeleteTextures(1, &id);
