@@ -21,13 +21,14 @@ class Shader {
  public:
   // Just acquires a Shader Program Id from OpenGL context. No shaders compiled/linked. Invalid program.
   Shader();
-  // Create a shader program and compile shaders source codes.
-  // If fails, ends up in an invalid state
+  // Create a shader program and compile individual shaders from their source codes and link them to the program
+  // If compilation fails, the shader program ends up in an invalid state
+  Shader(const char* vertexShaderSource, const char* geometryShaderSource, const char* fragmentShaderSource);
   Shader(const char* vertexShaderSource, const char* fragmentShaderSource);
-  // Create a shader program and compile shaders from files. Keep track of files for further reload
-  Shader(std::filesystem::path vertexShader, std::filesystem::path fragmentShader);
-  // Same for compute shaders
   Shader(const char* computeSource);
+  // Create a shader program and compile shaders from files. Keep track of source files for reloads in the future
+  Shader(std::filesystem::path vertexShader, std::filesystem::path geometryShader, std::filesystem::path fragmentShader);
+  Shader(std::filesystem::path vertexShader, std::filesystem::path fragmentShader);
   Shader(std::filesystem::path computeShader);
   Shader(const Shader& other) = delete;
   Shader& operator=(const Shader& other) = delete;
@@ -52,9 +53,11 @@ class Shader {
   // Good for hard-coded shaders or recompiling generated shader code.
   // If compilation fails, keeps existing shaders if there are any.
   // If compilation succeeds, detaches existing shaders before linking new shaders to the program.
+  bool compile(const char* vertexShaderSource, const char* geometryShaderSource, const char* fragmentShaderSource);
   bool compile(const char* vertexShaderSource, const char* fragmentShaderSource);
   bool compile(const char* computeShaderSource);
   // Compile shaders into program from given shader files. Update shader files.
+  bool load(std::filesystem::path vertexShader, std::filesystem::path geometryShader, std::filesystem::path fragmentShader);
   bool load(std::filesystem::path vertexShader, std::filesystem::path fragmentShader);
   bool load(std::filesystem::path computeShader);
   // reload/recompile same shader files. Good for hot-reload.
@@ -79,6 +82,7 @@ class Shader {
 
  private:
   std::filesystem::path vertexShader;
+  std::filesystem::path geometryShader;
   std::filesystem::path fragmentShader;
   std::filesystem::path computeShader;
   ws::GlHandle id;

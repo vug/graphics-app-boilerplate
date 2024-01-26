@@ -21,6 +21,11 @@ std::string readFile(std::filesystem::path fp) {
 Shader::Shader()
     : id(glCreateProgram()) {}
 
+Shader::Shader(const char* vertexShaderSource, const char* geometryShaderSource, const char* fragmentShaderSource)
+    : id(glCreateProgram()) {
+  compile(vertexShaderSource, geometryShaderSource, fragmentShaderSource);
+}
+
 Shader::Shader(const char* vertexShaderSource, const char* fragmentShaderSource)
     : id(glCreateProgram()) {
   compile(vertexShaderSource, fragmentShaderSource);
@@ -29,6 +34,15 @@ Shader::Shader(const char* vertexShaderSource, const char* fragmentShaderSource)
 Shader::Shader(const char* computeSource)
     : id(glCreateProgram()) {
   compile(computeSource);
+}
+
+Shader::Shader(std::filesystem::path vertexShader, std::filesystem::path geometryShader, std::filesystem::path fragmentShader)
+    : vertexShader(vertexShader),
+      geometryShader(geometryShader),
+      fragmentShader(fragmentShader),
+      id(glCreateProgram()) {
+  if (!load(vertexShader, geometryShader, fragmentShader))
+    std::cerr << "ERROR in " << vertexShader << ", or" << geometryShader << ", or" << fragmentShader << '\n';
 }
 
 Shader::Shader(std::filesystem::path vertexShader, std::filesystem::path fragmentShader)
@@ -42,6 +56,70 @@ Shader::Shader(std::filesystem::path vertexShader, std::filesystem::path fragmen
 Shader::Shader(std::filesystem::path computeShader)
     : computeShader(computeShader), id(glCreateProgram()) {
   load(computeShader);
+}
+
+bool Shader::compile(const char* vertexShaderSource, const char* geometryShaderSource, const char* fragmentShaderSource) {
+  int success;
+  char infoLog[512];
+
+  unsigned int vertex = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vertex, 1, &vertexShaderSource, NULL);
+  glCompileShaderIncludeARB(vertex, 0, NULL, NULL);
+  glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+  if (!success) {
+    glGetShaderInfoLog(vertex, 512, NULL, infoLog);
+    std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
+              << infoLog << std::endl;
+    return success;
+  }
+
+  unsigned int geometry = glCreateShader(GL_GEOMETRY_SHADER);
+  glShaderSource(geometry, 1, &geometryShaderSource, NULL);
+  glCompileShaderIncludeARB(geometry, 0, NULL, NULL);
+  glGetShaderiv(geometry, GL_COMPILE_STATUS, &success);
+  if (!success) {
+    glGetShaderInfoLog(geometry, 512, NULL, infoLog);
+    std::cerr << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n"
+              << infoLog << std::endl;
+    return success;
+  }
+
+  unsigned int fragment = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fragment, 1, &fragmentShaderSource, NULL);
+  glCompileShaderIncludeARB(fragment, 0, NULL, NULL);
+  glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+  if (!success) {
+    glGetShaderInfoLog(fragment, 512, NULL, infoLog);
+    std::cerr << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
+              << infoLog << std::endl;
+
+    glDeleteShader(vertex);
+    return success;
+  }
+
+  if (isValid())
+    detachShaders();
+
+  glAttachShader(id, vertex);
+  glAttachShader(id, geometry);
+  glAttachShader(id, fragment);
+  glLinkProgram(id);
+  glGetProgramiv(id, GL_LINK_STATUS, &success);
+  if (!success) {
+    glGetProgramInfoLog(id, 512, NULL, infoLog);
+    std::cerr << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n"
+              << infoLog << std::endl;
+
+    glDeleteShader(vertex);
+    glDeleteShader(geometry);
+    glDeleteShader(fragment);
+    return success;
+  }
+
+  glDeleteShader(vertex);
+  glDeleteShader(geometry);
+  glDeleteShader(fragment);
+  return success;
 }
 
 bool Shader::compile(const char* vertexShaderSource, const char* fragmentShaderSource) {
@@ -128,6 +206,31 @@ bool Shader::compile(const char* computeShaderSource) {
   return success;
 }
 
+bool Shader::load(std::filesystem::path vertex, std::filesystem::path geometry, std::filesystem::path fragment) {
+  this->vertexShader = vertex;
+  this->geometryShader = geometry;
+  this->fragmentShader = fragment;
+
+  if (geometry.empty() || vertex.empty() || fragment.empty()) {
+    std::cerr << "shader object " << id << " is not associated with a shader file\n";
+    return false;
+  } else if (!std::filesystem::exists(vertex)) {
+    std::cerr << "no vertex shader file: " << vertex.string() << "\n";
+    return false;
+  } else if (!std::filesystem::exists(geometry)) {
+    std::cerr << "no geometry shader file: " << geometry.string() << "\n";
+    return false;
+  } else if (!std::filesystem::exists(fragment)) {
+    std::cerr << "no fragment shader file: " << fragment.string() << "\n";
+  }
+
+  const std::string vertexCode = readFile(vertex);
+  const std::string geometryCode = readFile(geometry);
+  const std::string fragmentCode = readFile(fragment);
+
+  return compile(vertexCode.c_str(), geometryCode.c_str(), fragmentCode.c_str());
+}
+
 bool Shader::load(std::filesystem::path vertex, std::filesystem::path fragment) {
   this->vertexShader = vertex;
   this->fragmentShader = fragment;
@@ -163,7 +266,9 @@ bool Shader::load(std::filesystem::path compute) {
 }
 
 bool Shader::reload() {
-  if (!vertexShader.empty() && !fragmentShader.empty())
+  if (!vertexShader.empty() && !geometryShader.empty() && !fragmentShader.empty())
+    return load(vertexShader, geometryShader, fragmentShader);
+  else if (!vertexShader.empty() && !fragmentShader.empty())
     return load(vertexShader, fragmentShader);
   else if (!computeShader.empty())
     return load(computeShader);
@@ -194,7 +299,7 @@ void Shader::unbind() const {
 }
 
 std::vector<uint32_t> Shader::getShaderIds() const {
-  const int maxShaders = 2;
+  const int maxShaders = 3;
   std::vector<uint32_t> shaderIds(maxShaders);
 
   int count{};
