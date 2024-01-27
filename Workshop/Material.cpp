@@ -26,7 +26,7 @@ void Material::setParameter(std::string name, ParamT value) {
 }
 
 void Material::uploadUniform(const std::string& name, const ParamT& value) const {
-  std::visit(overloaded{
+  std::visit(Overloaded{
                  [&](int val) { shader.setInteger(name.c_str(), val); },
                  [&](float val) { shader.setFloat(name.c_str(), val); },
                  [&](const glm::vec2& val) { shader.setVector2(name.c_str(), val); },
@@ -43,7 +43,7 @@ void Material::uploadParameters() const {
 std::string Material::parametersToString() const {
   std::stringstream ss;
   for (const auto& [name, value] : parameters) {
-    std::visit(overloaded{
+    std::visit(Overloaded{
                    [&](int val) { ss << fmt::format("{} = {}\n", name, val); },
                    [&](float val) { ss << fmt::format("{} = {}\n", name, val); },
                    [&](const glm::vec2& val) { ss << fmt::format("{} = {}\n", name, glm::to_string(val)); },
