@@ -35,7 +35,7 @@ TEST_F(WorkshopTest, HierarchyConstruction) {
   ws::Mesh quad{ws::loadOBJ(ws::ASSETS_FOLDER / "models/quad.obj")};
 
   ws::Texture wood{ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg"};
-  ws::Texture metal{ws::ASSETS_FOLDER / "images/LearnOpenGL/metal.jpg"};
+  ws::Texture metal{ws::ASSETS_FOLDER / "images/LearnOpenGL/metal.png"};
   ws::Shader unlit{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"};
 
   ws::RenderableObject ground = {
