@@ -64,6 +64,7 @@ class Mesh {
   void bind() const;
   void unbind() const;
   void draw() const;
+  void drawPoints() const;
 
  private:
   void createBuffers();

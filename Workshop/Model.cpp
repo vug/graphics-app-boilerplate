@@ -333,7 +333,10 @@ void Mesh::unbind() const {
 
 void Mesh::draw() const {
   glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(meshData.indices.size()), GL_UNSIGNED_INT, 0);
-  // glDrawElements(GL_POINTS, static_cast<GLsizei>(idxs.size()), GL_UNSIGNED_INT, 0);
+}
+
+void Mesh::drawPoints() const {
+  glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(meshData.vertices.size()));
   // glDrawElements(GL_LINES, static_cast<GLsizei>(idxs.size()), GL_UNSIGNED_INT, 0);
 }
 }  // namespace ws
