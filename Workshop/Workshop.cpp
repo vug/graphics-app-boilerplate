@@ -183,6 +183,15 @@ void Workshop::drawUI() {
     ImGui::Combo("Shader", &shaderToReloadIx, items2.data(), static_cast<int32_t>(items2.size()));
     if (ImGui::Button(std::format("Reload {}", items[shaderToReloadIx]).c_str()))
       shadersToReload[shaderToReloadIx].get().reload();
+    ImGui::SameLine();
+    if (ImGui::Button("Attributes"))
+      shadersToReload[shaderToReloadIx].get().printAttributes();
+    ImGui::SameLine();
+    if (ImGui::Button("Uniforms"))
+      shadersToReload[shaderToReloadIx].get().printUniforms();
+    ImGui::SameLine();
+    if (ImGui::Button("UBOs"))
+      shadersToReload[shaderToReloadIx].get().printUniformBlocks();
   }
   ImGui::Separator();
   ImGui::End();
