@@ -55,6 +55,7 @@ EditorWindow::EditorWindow(Scene& scene)
       outlineShader(ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_outline.frag"),
       copyShader(ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"),
       gridShader(ws::ASSETS_FOLDER / "shaders/infinite_grid.vert", ws::ASSETS_FOLDER / "shaders/infinite_grid.frag"),
+      normalVizShader(ws::ASSETS_FOLDER / "shaders/normal_viz.vert", ws::ASSETS_FOLDER / "shaders/normal_viz.geom", ws::ASSETS_FOLDER / "shaders/normal_viz.frag"),
       gridVao([]() { uint32_t id;glGenVertexArrays(1, &id); return id; }()), 
       emptyVao([]() { uint32_t id;glGenVertexArrays(1, &id); return id; }()) 
   {}
@@ -74,9 +75,14 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject, float deltaTimeSec) {
   static std::string hoveredObjectName = "None";  // static because it'll be set after editor image is drawn
   ImGui::Text("Hovered: %s", hoveredObjectName.c_str());
 
-  ImGui::SameLine();
   static bool showGrid = true;
   ImGui::Checkbox("Grid", &showGrid);
+  ImGui::SameLine();
+  static bool showNormalViz = true;
+  ImGui::Checkbox("Normals", &showNormalViz);
+  ImGui::SameLine();
+  static float normalVizLength = 0.2f;
+  ImGui::SliderFloat("Normal Length", &normalVizLength, 0.f, 1.f);
 
   ImVec2 size = ImGui::GetContentRegionAvail();
   if (size.y < 0) {  // happens when minimized
@@ -189,6 +195,23 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject, float deltaTimeSec) {
     renderable.get().texture.unbindFromUnit(0);
     renderable.get().texture2.unbindFromUnit(1);
     editorShader.unbind();
+  }
+
+  if (showNormalViz) {
+    glDisable(GL_BLEND);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    glEnable(GL_DEPTH_TEST);
+    normalVizShader.bind();
+    for (auto [ix, renderable] : scene.renderables | std::ranges::views::enumerate) {
+      normalVizShader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
+      normalVizShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+      normalVizShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+      normalVizShader.setFloat("u_NormalVizLength", normalVizLength);
+      renderable.get().mesh.bind();
+      renderable.get().mesh.drawPoints();
+      renderable.get().mesh.unbind();
+    }
+    normalVizShader.unbind();  
   }
 
   if (showGrid) {
