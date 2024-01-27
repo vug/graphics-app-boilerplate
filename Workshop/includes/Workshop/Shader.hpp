@@ -91,6 +91,9 @@ public:
   static void makeNamedStringFromFile(const std::string& name, const std::filesystem::path& fp);
   // Glob shaderLibFolder (say assets/shaders/lib) and create a NamedString for each glsl file (say /lib/lights/PointLight.glsl)
   static void makeNamedStringsFromFolder(const std::filesystem::path& shaderLibFolder);
+  void printAttributes() const;
+  void printUniforms() const;
+  void printUniformBlocks() const;
 
   inline static std::unordered_map<GLenum, std::string> UNIFORM_AND_ATTRIBUTE_TYPES = {
     {GL_FLOAT, "float"},

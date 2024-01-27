@@ -385,4 +385,53 @@ void Shader::makeNamedStringsFromFolder(const std::filesystem::path& shaderLibFo
     Shader::makeNamedStringFromFile(namedString, shaderFullPath);
   }
 }
+
+void Shader::printAttributes() const {
+  int32_t longestNameLength{};
+  glGetProgramiv(id, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &longestNameLength);
+  std::string name(longestNameLength, '\0');
+  int32_t numActive;
+  glGetProgramiv(id, GL_ACTIVE_ATTRIBUTES, &numActive);
+  for (int i = 0; i < numActive; ++i) {
+    int32_t nameLength;
+    int32_t size;
+    uint32_t type;
+    glGetActiveAttrib(id, i, longestNameLength, &nameLength, &size, &type, name.data());
+    name.resize(nameLength);
+    std::println("attribute {} {}[{}] {}", i, name, size, ws::Shader::UNIFORM_AND_ATTRIBUTE_TYPES[type]);
+  }
+}
+
+void Shader::printUniforms() const {
+  int32_t longestNameLength{};
+  glGetProgramiv(id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &longestNameLength);
+  std::string name(longestNameLength, '\0');
+  int32_t numActive;
+  glGetProgramiv(id, GL_ACTIVE_UNIFORMS, &numActive);
+  for (int i = 0; i < numActive; i++) {
+    int32_t nameLength;
+    int32_t size;
+    uint32_t type;
+    glGetActiveUniform(id, i, longestNameLength, &nameLength, &size, &type, name.data());
+    name.resize(nameLength);
+    std::println("uniform {} {}[{}]", i, name, size, ws::Shader::UNIFORM_AND_ATTRIBUTE_TYPES[type]);
+  }
+}
+
+void Shader::printUniformBlocks() const {
+  int32_t longestNameLength{};
+  glGetProgramiv(id, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &longestNameLength);
+  std::string name(longestNameLength, '\0');
+  int32_t numActive;
+  glGetProgramiv(id, GL_ACTIVE_UNIFORM_BLOCKS, &numActive);
+  for (int ix = 0; ix < numActive; ++ix) {
+    int32_t nameLength;
+    glGetActiveUniformBlockName(id, ix, longestNameLength, &nameLength, name.data());
+    name.resize(nameLength);
+    std::println("Uniform Block ix {}, name {}", ix, name);
+
+    // TODO: loop over uniform variables in the block
+  }
+}
+
 }  // namespace ws
