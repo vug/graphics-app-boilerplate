@@ -29,6 +29,7 @@ add_subdirectory(example-apps/10-uv-atlas)
 add_subdirectory(example-apps/11-rendering-cookbook-infinite-grid)
 add_subdirectory(example-apps/12-normal-mapping)
 add_subdirectory(example-apps/13-bloom)
+add_subdirectory(example-apps/14-material-system)
 
 file(GLOB_RECURSE ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/assets/*)
 set(WORKSHOP_ASSETS ${ASSETS} PARENT_SCOPE)
