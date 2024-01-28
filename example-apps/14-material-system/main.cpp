@@ -45,7 +45,7 @@ int main() {
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("boilerplate", ws::Shader{SRC / "boilerplate.vert", SRC / "boilerplate.frag"});
   ws::Shader debugShader{ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag"};
-  ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
+  ws::Framebuffer offscreenFbo;
 
   ws::RenderableObject ground = {
       {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
@@ -107,9 +107,8 @@ int main() {
     offscreenFbo.bind();
     glViewport(0, 0, winSize.x, winSize.y);
     glDisable(GL_CULL_FACE);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     assetManager.shaders.at("boilerplate").bind();
     assetManager.shaders.at("boilerplate").setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
     assetManager.shaders.at("boilerplate").setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());

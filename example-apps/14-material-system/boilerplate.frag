@@ -1,15 +1,8 @@
 #version 460
 
-struct VertexData {
-  vec3 objectPosition;
-  vec3 worldPosition;
-  vec3 objectNormal;
-  vec3 worldNormal;
-  vec2 texCoord;
-  vec2 texCoord2;
-  vec4 color;
-  vec4 custom;
-};
+#extension GL_ARB_shading_language_include : require
+#include "/lib/VertexData.glsl"
+
 in VertexData vertexData;
 
 layout(binding = 0) uniform sampler2D mainTex;
@@ -35,7 +28,7 @@ void main() {
   // objectNorm
   //FragColor = vec4(objectNormal * 0.5 + 0.5, 1);
   // worldNorm
-  //FragColor = vec4(worldNormal * 0.5 + 0.5, 1);
+  FragColor = vec4(worldNormal * 0.5 + 0.5, 1);
   // front-back faces
   //FragColor = gl_FrontFacing ? vec4(1, 0, 0, 1) : vec4(0, 0, 1, 1);
   // first texture
@@ -43,5 +36,5 @@ void main() {
   // second texture
   //FragColor = vec4(secondTexColor, 1);
 
-  FragColor = vec4((mainTexColor + secondTexColor + vec3(vertexData.texCoord, 0))/3, 1);
+  //FragColor = vec4((mainTexColor + secondTexColor + vec3(vertexData.texCoord, 0))/3, 1);
 }

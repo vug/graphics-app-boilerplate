@@ -1,16 +1,8 @@
 #version 460
 
-// TODO: get from VertexData.glsl
-struct VertexData {
-  vec3 objectPosition;
-  vec3 worldPosition;
-  vec3 objectNormal;
-  vec3 worldNormal;
-  vec2 texCoord;
-  vec2 texCoord2;
-  vec4 color;
-  vec4 custom;
-};
+#extension GL_ARB_shading_language_include : require
+#include "/lib/VertexData.glsl"
+
 in VertexData vertexData;
 
 

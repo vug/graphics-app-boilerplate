@@ -10,6 +10,7 @@
 #include <vector>
 
 namespace ws {
+// Should be in sync with DefaultVertexAttributes.glsl
 struct DefaultVertex {
   glm::vec3 position{0, 0, 0};
   glm::vec2 texCoord{0, 0};
