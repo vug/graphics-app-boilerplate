@@ -5,6 +5,7 @@
 #include <Workshop/Scene.hpp>
 #include <Workshop/Shader.hpp>
 #include <Workshop/UI.hpp>
+#include <Workshop/UniformBuffer.hpp>
 #include <Workshop/Workshop.hpp>
 
 #include <glad/gl.h>
@@ -104,12 +105,7 @@ int main() {
   workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("unlit"), assetManager.shaders.at("boilerplate"), debugShader};
   
   glEnable(GL_DEPTH_TEST);
-  SceneUniforms sceneUniforms;
-  uint32_t uboScene;
-  glCreateBuffers(1, &uboScene);
-  glNamedBufferStorage(uboScene, sizeof(SceneUniforms), nullptr, GL_DYNAMIC_STORAGE_BIT);
-  const uint32_t sceneUniformBlockBindingPoint = 1;
-  glBindBufferBase(GL_UNIFORM_BUFFER, sceneUniformBlockBindingPoint, uboScene);
+  ws::UniformBuffer<SceneUniforms> sceneUbo{1};
   
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
@@ -127,10 +123,10 @@ int main() {
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
-    sceneUniforms.u_ViewFromWorld = cam.getViewFromWorld();
-    sceneUniforms.u_ProjectionFromView = cam.getProjectionFromView();
-    sceneUniforms.u_CameraPosition = cam.position;
-    glNamedBufferSubData(uboScene, 0, sizeof(SceneUniforms), &sceneUniforms);
+    sceneUbo.uniforms.u_ViewFromWorld = cam.getViewFromWorld();
+    sceneUbo.uniforms.u_ProjectionFromView = cam.getProjectionFromView();
+    sceneUbo.uniforms.u_CameraPosition = cam.position;
+    sceneUbo.upload();
 
     offscreenFbo.bind();
     glViewport(0, 0, winSize.x, winSize.y);
