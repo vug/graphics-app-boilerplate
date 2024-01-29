@@ -7,7 +7,12 @@ in VertexData vertexData;
 
 layout(binding = 0) uniform sampler2D mainTex;
 layout(binding = 1) uniform sampler2D secondTex;
-uniform vec3 u_CameraPosition = vec3(0, 0, -5);
+
+layout(std140, binding = 1) uniform SceneUniforms {
+  mat4 u_ProjectionFromView;
+  mat4 u_ViewFromWorld;
+  vec3 u_CameraPosition;
+} su;
 
 out vec4 FragColor;
 

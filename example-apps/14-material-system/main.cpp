@@ -28,9 +28,26 @@ class AssetManager {
   std::unordered_map<std::string, ws::Shader> shaders;
 };
 
+struct SceneUniforms {
+  glm::mat4 u_ProjectionFromView;
+  glm::mat4 u_ViewFromWorld;
+  glm::vec3 u_CameraPosition;
+};
+
 int main() {
   std::println("Hi!");
   ws::Workshop workshop{1920, 1080, "Material System"};
+  // Print some info on uniform block limits
+  int32_t maxVertexUniformBlocks;
+  glGetIntegerv(GL_MAX_VERTEX_UNIFORM_BLOCKS, &maxVertexUniformBlocks);
+  int32_t maxGeometryUniformBlocks;
+  glGetIntegerv(GL_MAX_GEOMETRY_UNIFORM_BLOCKS, &maxGeometryUniformBlocks);
+  int32_t maxFragmentUniformBlocks;
+  glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &maxFragmentUniformBlocks);
+  int32_t maxUniformBlockSize;
+  glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxUniformBlockSize);
+  std::println("GL_MAX_VERTEX_UNIFORM_BLOCKS {}, GL_MAX_GEOMETRY_UNIFORM_BLOCKS {}, GL_MAX_FRAGMENT_UNIFORM_BLOCKS {}, GL_MAX_UNIFORM_BLOCK_SIZE {} Bytes", 
+    maxVertexUniformBlocks, maxGeometryUniformBlocks, maxFragmentUniformBlocks, maxUniformBlockSize);
 
   AssetManager assetManager;
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
@@ -87,6 +104,12 @@ int main() {
   workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("unlit"), assetManager.shaders.at("boilerplate"), debugShader};
   
   glEnable(GL_DEPTH_TEST);
+  SceneUniforms sceneUniforms;
+  uint32_t uboScene;
+  glCreateBuffers(1, &uboScene);
+  glNamedBufferStorage(uboScene, sizeof(SceneUniforms), nullptr, GL_DYNAMIC_STORAGE_BIT);
+  const uint32_t sceneUniformBlockBindingPoint = 1;
+  glBindBufferBase(GL_UNIFORM_BUFFER, sceneUniformBlockBindingPoint, uboScene);
   
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
@@ -104,14 +127,17 @@ int main() {
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
+    sceneUniforms.u_ViewFromWorld = cam.getViewFromWorld();
+    sceneUniforms.u_ProjectionFromView = cam.getProjectionFromView();
+    sceneUniforms.u_CameraPosition = cam.position;
+    glNamedBufferSubData(uboScene, 0, sizeof(SceneUniforms), &sceneUniforms);
+
     offscreenFbo.bind();
     glViewport(0, 0, winSize.x, winSize.y);
     glDisable(GL_CULL_FACE);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     assetManager.shaders.at("boilerplate").bind();
-    assetManager.shaders.at("boilerplate").setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-    assetManager.shaders.at("boilerplate").setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
     for (auto& renderable : scene.renderables) {
       renderable.get().texture.bindToUnit(0);
       assetManager.shaders.at("boilerplate").setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
