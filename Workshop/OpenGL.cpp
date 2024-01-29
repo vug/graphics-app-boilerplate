@@ -30,4 +30,17 @@ void printFeatures() {
     std::println("glEnabled {}? {}", name, glIsEnabled(e));
   }
 }
+
+void printUniformBlockLimits() {
+  int32_t maxVertexUniformBlocks;
+  glGetIntegerv(GL_MAX_VERTEX_UNIFORM_BLOCKS, &maxVertexUniformBlocks);
+  int32_t maxGeometryUniformBlocks;
+  glGetIntegerv(GL_MAX_GEOMETRY_UNIFORM_BLOCKS, &maxGeometryUniformBlocks);
+  int32_t maxFragmentUniformBlocks;
+  glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &maxFragmentUniformBlocks);
+  int32_t maxUniformBlockSize;
+  glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxUniformBlockSize);
+  std::println("GL_MAX_VERTEX_UNIFORM_BLOCKS {}, GL_MAX_GEOMETRY_UNIFORM_BLOCKS {}, GL_MAX_FRAGMENT_UNIFORM_BLOCKS {}, GL_MAX_UNIFORM_BLOCK_SIZE {} Bytes",
+               maxVertexUniformBlocks, maxGeometryUniformBlocks, maxFragmentUniformBlocks, maxUniformBlockSize);
+}
 }

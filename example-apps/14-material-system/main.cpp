@@ -38,17 +38,6 @@ struct SceneUniforms {
 int main() {
   std::println("Hi!");
   ws::Workshop workshop{1920, 1080, "Material System"};
-  // Print some info on uniform block limits
-  int32_t maxVertexUniformBlocks;
-  glGetIntegerv(GL_MAX_VERTEX_UNIFORM_BLOCKS, &maxVertexUniformBlocks);
-  int32_t maxGeometryUniformBlocks;
-  glGetIntegerv(GL_MAX_GEOMETRY_UNIFORM_BLOCKS, &maxGeometryUniformBlocks);
-  int32_t maxFragmentUniformBlocks;
-  glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &maxFragmentUniformBlocks);
-  int32_t maxUniformBlockSize;
-  glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxUniformBlockSize);
-  std::println("GL_MAX_VERTEX_UNIFORM_BLOCKS {}, GL_MAX_GEOMETRY_UNIFORM_BLOCKS {}, GL_MAX_FRAGMENT_UNIFORM_BLOCKS {}, GL_MAX_UNIFORM_BLOCK_SIZE {} Bytes", 
-    maxVertexUniformBlocks, maxGeometryUniformBlocks, maxFragmentUniformBlocks, maxUniformBlockSize);
 
   AssetManager assetManager;
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
