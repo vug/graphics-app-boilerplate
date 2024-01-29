@@ -127,6 +127,11 @@ int main() {
     sceneUbo.uniforms.u_ProjectionFromView = cam.getProjectionFromView();
     sceneUbo.uniforms.u_CameraPosition = cam.position;
     sceneUbo.upload();
+    //auto& uniforms = sceneUbo.map();
+    //uniforms.u_ViewFromWorld = cam.getViewFromWorld();
+    //uniforms.u_ProjectionFromView = cam.getProjectionFromView();
+    //uniforms.u_CameraPosition = cam.position;
+    //sceneUbo.unmap();
 
     offscreenFbo.bind();
     glViewport(0, 0, winSize.x, winSize.y);
