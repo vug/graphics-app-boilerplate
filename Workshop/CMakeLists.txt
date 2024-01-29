@@ -28,6 +28,7 @@ add_library(${TARGET} STATIC
   includes/Workshop/ui/HierarchyWindow.hpp ui/HierarchyWindow.cpp
   includes/Workshop/ui/InspectorWindow.hpp ui/InspectorWindow.cpp
   includes/Workshop/ui/EditorWindow.hpp ui/EditorWindow.cpp
+  includes/Workshop/UniformBuffer.hpp UniformBuffer.cpp
 )
 
 target_link_libraries(${TARGET} PUBLIC
