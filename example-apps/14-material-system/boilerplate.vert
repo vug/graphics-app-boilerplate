@@ -3,13 +3,7 @@
 #extension GL_ARB_shading_language_include : require
 #include "/lib/DefaultVertexAttributes.glsl"
 #include "/lib/VertexData.glsl"
-
-layout(std140, binding = 1) uniform SceneUniforms {
-  mat4 u_ProjectionFromView;
-  mat4 u_ViewFromWorld;
-  vec3 u_CameraPosition;
-} su;
-
+#include "/lib/SceneUniforms.glsl"
 
 uniform mat4 u_WorldFromObject = mat4(1);
 

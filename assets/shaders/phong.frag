@@ -2,6 +2,7 @@
 
 #extension GL_ARB_shading_language_include : require
 #include "/lib/VertexData.glsl"
+#include "/lib/SceneUniforms.glsl"
 
 in VertexData vertexData;
 
@@ -57,7 +58,6 @@ vec3 illuminate(DirectionalLight light, vec3 position, vec3 normal, vec3 eyePos,
 }
 
 // TODO: get from SceneUniforms.glsl
-uniform vec3 u_CameraPosition = vec3(0, 0, -5);
 uniform PointLight pointLight = PointLight(vec3(0, 0, 3), vec3(1, 1, 1), 1.0f);
 uniform DirectionalLight directionalLight = DirectionalLight(vec3(1, 1, 1), vec3(-1, -1, -1), vec3(1, 1, 1), 0.5f);
 // Material uniforms
@@ -75,10 +75,10 @@ void main() {
   vec3 specularColor = texture(specularTexture, vertexData.texCoord).rgb;
 
   vec3 directionalDiffuse = illuminateDiffuse(directionalLight, normal);
-  vec3 directionalSpecular = illuminateSpecular(directionalLight, surfPos, normal, u_CameraPosition, specCoeff);
+  vec3 directionalSpecular = illuminateSpecular(directionalLight, surfPos, normal, su.u_CameraPosition, specCoeff);
 
   vec3 pointDiffuse = illuminateDiffuse(pointLight, surfPos, normal);
-  vec3 pointSpecular = illuminateSpecular(pointLight, surfPos, normal, u_CameraPosition, specCoeff);
+  vec3 pointSpecular = illuminateSpecular(pointLight, surfPos, normal, su.u_CameraPosition, specCoeff);
   vec3 color = diffuseColor * (directionalDiffuse + pointDiffuse) + specularColor * (directionalSpecular + pointSpecular);
   FragColor = vec4(color, 1);
 }

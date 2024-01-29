@@ -2,17 +2,12 @@
 
 #extension GL_ARB_shading_language_include : require
 #include "/lib/VertexData.glsl"
+#include "/lib/SceneUniforms.glsl"
 
 in VertexData vertexData;
 
 layout(binding = 0) uniform sampler2D mainTex;
 layout(binding = 1) uniform sampler2D secondTex;
-
-layout(std140, binding = 1) uniform SceneUniforms {
-  mat4 u_ProjectionFromView;
-  mat4 u_ViewFromWorld;
-  vec3 u_CameraPosition;
-} su;
 
 out vec4 FragColor;
 
