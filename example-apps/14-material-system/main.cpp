@@ -29,6 +29,7 @@ class AssetManager {
   std::unordered_map<std::string, ws::Shader> shaders;
 };
 
+const int MAX_POINT_LIGHTS = 8;
 struct PointLight {
   glm::vec3 position;
   float intensity;
@@ -36,16 +37,35 @@ struct PointLight {
   float _pad0;
 };
 
-const int MAX_POINT_LIGHTS = 8;
+const int MAX_DIRECTIONAL_LIGHTS = 4;
+struct DirectionalLight {
+  glm::vec3 position;
+  float intensity;
+  //
+  glm::vec3 direction;
+  float _pad0;
+  //
+  glm::vec3 color;
+  float _pad1;
+};
+
 
 struct SceneUniforms {
   glm::mat4 u_ProjectionFromView;
   glm::mat4 u_ViewFromWorld;
+  //
   glm::vec3 u_CameraPosition;
   float _pad0;
+  //
   glm::vec3 _pad1;
   int numPointLights;
+  //
   PointLight pointLights[MAX_POINT_LIGHTS];
+  //
+  glm::vec3 _pad2;
+  int numDirectionalLights;
+  //
+  DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
 };
 
 int main() {
@@ -134,6 +154,12 @@ int main() {
     sceneUbo.uniforms.pointLights[0].position = glm::vec3(0, 0, 3);
     sceneUbo.uniforms.pointLights[0].color = glm::vec3(1, 1, 1);
     sceneUbo.uniforms.pointLights[0].intensity = 1.f;
+    // uniform DirectionalLight directionalLight = DirectionalLight(vec3(1, 1, 1), vec3(-1, -1, -1), vec3(1, 1, 1), 0.5f);
+    sceneUbo.uniforms.numDirectionalLights = 1;
+    sceneUbo.uniforms.directionalLights[0].position = glm::vec3(1, 1, 1);
+    sceneUbo.uniforms.directionalLights[0].intensity = 0.5f;
+    sceneUbo.uniforms.directionalLights[0].direction = glm::vec3(-1, -1, -1);
+    sceneUbo.uniforms.directionalLights[0].color = glm::vec3(1, 1, 1);
     sceneUbo.upload();
     //auto& uniforms = sceneUbo.map();
     //uniforms.u_ViewFromWorld = cam.getViewFromWorld();

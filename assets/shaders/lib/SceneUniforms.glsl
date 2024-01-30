@@ -1,6 +1,8 @@
 #include "/lib/lights/PointLights.glsl"
+#include "/lib/lights/DirectionalLights.glsl"
 
 #define MAX_POINT_LIGHTS 8
+#define MAX_DIRECTIONAL_LIGHTS 4
 
 layout(std140, binding = 1) uniform SceneUniforms {
   mat4 u_ProjectionFromView;
@@ -13,4 +15,9 @@ layout(std140, binding = 1) uniform SceneUniforms {
   int numPointLights;
   //
   PointLight pointLights[MAX_POINT_LIGHTS];
+  //
+  vec3 _pad2;
+  int numDirectionalLights;
+  //
+  DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
 } su;

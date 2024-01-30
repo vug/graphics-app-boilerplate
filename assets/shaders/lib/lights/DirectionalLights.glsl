@@ -1,12 +1,13 @@
 struct DirectionalLight {
-  vec3 direction;
-  vec3 color;
+  vec3 position;
   float intensity;
+  //
+  vec3 direction;
+  float _pad0;
+  //
+  vec3 color;
+  float _pad1;
 };
-
-#define MAX_DIRECTIONAL_LIGHTS 8
-uniform DirectionalLight[MAX_DIRECTIONAL_LIGHTS] directionalLights;
-uniform int numDirectionalLights;
 
 vec3 illuminateDiffuse(DirectionalLight light, vec3 normal) {
   vec3 fragToLightN = normalize(-light.direction);
@@ -14,8 +15,8 @@ vec3 illuminateDiffuse(DirectionalLight light, vec3 normal) {
 }
 
 vec3 illuminateSpecular(DirectionalLight light, vec3 position, vec3 normal, vec3 eyePos, float coeff) {
-  vec3 fragToLightN = normalize(light.direction); // shouldn't this be negated??
-  vec3 fragToLightReflected = reflect(fragToLightN, normal);
+  vec3 fragToLightN = normalize(-light.direction);
+  vec3 fragToLightReflected = reflect(-fragToLightN, normal);
   vec3 fragToEyeN = normalize(eyePos - position);
   float specular = pow(max(dot(fragToEyeN, fragToLightReflected), 0.0), coeff);
   return light.intensity * light.color * specular;
