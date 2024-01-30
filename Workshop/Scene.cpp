@@ -34,33 +34,47 @@ void traverse(ws::VObjectPtr node, int depth, NodeProcessor processNode) {
     traverse(childPtr, depth + 1, processNode);
 }
 
+SceneUniforms::PaddedAmbientLight::PaddedAmbientLight(const AmbientLight& ambient) : 
+  color(ambient.color) 
+{ }
+
+SceneUniforms::PaddedHemisphericalLight::PaddedHemisphericalLight(const HemisphericalLight& hemispherical) :
+  northColor(hemispherical.northColor),
+  intensity(hemispherical.intensity),
+  southColor(hemispherical.southColor)
+{ }
+
+SceneUniforms::PaddedPointLight::PaddedPointLight(const PointLight& point) : 
+  position(point.position),
+  intensity(point.intensity),
+  color(point.color)
+{ }
+
+SceneUniforms::PaddedDirectionalLight::PaddedDirectionalLight(const DirectionalLight& directional) :
+  position(directional.position),
+  intensity(directional.intensity),
+  direction(directional.direction),
+  color(directional.color)
+{ }
+
 void Scene::uploadUniforms() {
   ubo.uniforms.u_ViewFromWorld = camera.getViewFromWorld();
   ubo.uniforms.u_ProjectionFromView = camera.getProjectionFromView();
   ubo.uniforms.u_CameraPosition = camera.position;
   // AmbientLight -> PaddedAmbientLight
-  ubo.uniforms.ambientLight.color = ambientLight.color;
+  ubo.uniforms.ambientLight = ambientLight;
   // HemisphericalLight -> PaddedHemisphericalLight
-  ubo.uniforms.hemisphericalLight.northColor = hemisphericalLight.northColor;
-  ubo.uniforms.hemisphericalLight.intensity = hemisphericalLight.intensity;
-  ubo.uniforms.hemisphericalLight.southColor = hemisphericalLight.southColor;
-  assert(pointLights.size() <= MAX_POINT_LIGHTS);
+  ubo.uniforms.hemisphericalLight = hemisphericalLight;
   // PointLight -> PaddedPointLight
+  assert(pointLights.size() <= MAX_POINT_LIGHTS);
   ubo.uniforms.numPointLights = static_cast<int32_t>(pointLights.size());
-  for (const auto& [ix, pl] : pointLights | std::ranges::views::enumerate) {
-    ubo.uniforms.pointLights[ix].position = pl.position;
-    ubo.uniforms.pointLights[ix].intensity = pl.intensity;
-    ubo.uniforms.pointLights[ix].color = pl.color;
-  }
+  for (const auto& [ix, pl] : pointLights | std::ranges::views::enumerate)
+    ubo.uniforms.pointLights[ix] = pl;
   // DirectionalLight -> PaddedDirectionalLight
   assert(directionalLights.size() <= MAX_DIRECTIONAL_LIGHTS);
   ubo.uniforms.numDirectionalLights = static_cast<int32_t>(directionalLights.size());
-  for (const auto& [ix, dl] : directionalLights | std::ranges::views::enumerate) {
-    ubo.uniforms.directionalLights[ix].position = dl.position;
-    ubo.uniforms.directionalLights[ix].intensity = dl.intensity;
-    ubo.uniforms.directionalLights[ix].direction = dl.direction;
-    ubo.uniforms.directionalLights[ix].color = dl.color;
-  }
+  for (const auto& [ix, dl] : directionalLights | std::ranges::views::enumerate)
+    ubo.uniforms.directionalLights[ix] = dl;
 
   ubo.upload();
 }

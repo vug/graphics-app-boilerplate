@@ -57,29 +57,41 @@ const int MAX_DIRECTIONAL_LIGHTS = 4;
 struct SceneUniforms {
   struct PaddedAmbientLight {
     glm::vec3 color;
-    float _pad0;
+    float _pad0{};
+
+    PaddedAmbientLight() = default;
+    PaddedAmbientLight(const AmbientLight& ambient);
   };
   struct PaddedHemisphericalLight {
     glm::vec3 northColor;
     float intensity;
     glm::vec3 southColor;
-    float _pad0;
+    float _pad0{};
+
+    PaddedHemisphericalLight() = default;
+    PaddedHemisphericalLight(const HemisphericalLight& hemispherical);
   };
   struct PaddedPointLight {
     glm::vec3 position;
     float intensity;
     glm::vec3 color;
-    float _pad0;
+    float _pad0{};
+
+    PaddedPointLight() = default;
+    PaddedPointLight(const PointLight& hemispherical);
   };
   struct PaddedDirectionalLight {
     glm::vec3 position;
     float intensity;
     //
     glm::vec3 direction;
-    float _pad0;
+    float _pad0{};
     //
     glm::vec3 color;
-    float _pad1;
+    float _pad1{};
+
+    PaddedDirectionalLight() = default;
+    PaddedDirectionalLight(const DirectionalLight& directional);
   };
 
   glm::mat4 u_ProjectionFromView;
