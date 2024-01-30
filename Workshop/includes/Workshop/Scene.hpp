@@ -53,7 +53,8 @@ class Scene {
  public:
   DummyObject root{"SceneRoot", {glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{1, 1, 1}}};
   std::vector<std::reference_wrapper<RenderableObject>> renderables;
-  std::vector<std::reference_wrapper<CameraObject>> cameras;
+  // Cameras
+  Camera camera;
 };
 
 using NodeProcessor = std::function<void(ws::VObjectPtr node, int depth)>;

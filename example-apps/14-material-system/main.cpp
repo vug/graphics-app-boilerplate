@@ -95,7 +95,6 @@ int main() {
       assetManager.textures.at("wood"),
       assetManager.textures.at("checkerboard"),
   };
-  ws::Camera cam;
   ws::Scene scene{
       .renderables{ground, monkey, box},
   };
@@ -103,7 +102,7 @@ int main() {
   ws::setParent(&monkey, &scene.root);
   ws::setParent(&box, &scene.root);
 
-  ws::AutoOrbitingCameraController orbitingCamController{cam};
+  ws::AutoOrbitingCameraController orbitingCamController{scene.camera};
   orbitingCamController.radius = 10.f;
   orbitingCamController.theta = 0.3f;
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{offscreenFbo.getFirstColorAttachment()};
@@ -131,11 +130,11 @@ int main() {
     ImGui::End();
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
-    cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
+    scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
-    sceneUbo.uniforms.u_ViewFromWorld = cam.getViewFromWorld();
-    sceneUbo.uniforms.u_ProjectionFromView = cam.getProjectionFromView();
-    sceneUbo.uniforms.u_CameraPosition = cam.position;
+    sceneUbo.uniforms.u_ViewFromWorld = scene.camera.getViewFromWorld();
+    sceneUbo.uniforms.u_ProjectionFromView = scene.camera.getProjectionFromView();
+    sceneUbo.uniforms.u_CameraPosition = scene.camera.position;
     sceneUbo.uniforms.ambientLight.color = glm::vec3(0.05, 0.0, 0.05);
     sceneUbo.uniforms.hemisphericalLight.northColor = glm::vec3(0.05, 0.15, 0.95);
     sceneUbo.uniforms.hemisphericalLight.southColor = glm::vec3(0.85, 0.75, 0.05);
@@ -178,11 +177,11 @@ int main() {
     for (auto& renderable : scene.renderables) {
       ws::Shader& shader = debugScene ? debugShader : renderable.get().shader;
       shader.bind();
-      shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-      shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      shader.setVector3("u_CameraPosition", cam.position);
+      shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
+      shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
+      shader.setVector3("u_CameraPosition", scene.camera.position);
       if (debugScene)
-        shader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
+        shader.setVector2("u_CameraNearFar", glm::vec2{scene.camera.nearClip, scene.camera.farClip});
 	    renderable.get().texture.bindToUnit(0);
 	    renderable.get().texture2.bindToUnit(1);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
