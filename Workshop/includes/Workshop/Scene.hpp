@@ -2,10 +2,12 @@
 
 #include "Common.hpp"
 #include "Camera.hpp"
+#include "Lights.hpp"
 #include "Model.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "Transform.hpp"
+#include "UniformBuffer.hpp"
 
 #include <functional>
 #include <string>
@@ -49,12 +51,45 @@ struct CameraObject : public Object {
 // TODO: how can I move this into Object as a static member function
 void setParent(VObjectPtr child, VObjectPtr parent1);
 
+const int MAX_POINT_LIGHTS = 8;
+const int MAX_DIRECTIONAL_LIGHTS = 4;
+
+struct SceneUniforms {
+  glm::mat4 u_ProjectionFromView;
+  glm::mat4 u_ViewFromWorld;
+  //
+  glm::vec3 u_CameraPosition;
+  float _pad0;
+  //
+  ws::AmbientLight ambientLight;
+  //
+  ws::HemisphericalLight hemisphericalLight;
+  //
+  glm::vec3 _pad1;
+  int numPointLights;
+  //
+  ws::PointLight pointLights[MAX_POINT_LIGHTS];
+  //
+  glm::vec3 _pad2;
+  int numDirectionalLights;
+  //
+  ws::DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
+};
+
 class Scene {
  public:
   DummyObject root{"SceneRoot", {glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{1, 1, 1}}};
   std::vector<std::reference_wrapper<RenderableObject>> renderables;
   // Cameras
   Camera camera;
+  // Lights
+  AmbientLight ambientLight;
+  HemisphericalLight hemisphericalLight;
+  std::vector<PointLight> pointLights;
+  std::vector<DirectionalLight> directionalLights;
+  // not scene data
+  UniformBuffer<SceneUniforms> ubo{1};
+  void uploadUniforms();
 };
 
 using NodeProcessor = std::function<void(ws::VObjectPtr node, int depth)>;

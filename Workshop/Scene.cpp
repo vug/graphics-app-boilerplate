@@ -1,5 +1,7 @@
 #include "Scene.hpp"
 
+#include <ranges>
+
 namespace ws {
 glm::mat4 Object::getLocalTransformMatrix() {
   return transform.getWorldFromObjectMatrix();
@@ -30,5 +32,23 @@ void traverse(ws::VObjectPtr node, int depth, NodeProcessor processNode) {
   const auto& children = std::visit([](auto&& ptr) { return ptr->children; }, node);
   for (auto childPtr : children)
     traverse(childPtr, depth + 1, processNode);
+}
+
+void Scene::uploadUniforms() {
+  ubo.uniforms.u_ViewFromWorld = camera.getViewFromWorld();
+  ubo.uniforms.u_ProjectionFromView = camera.getProjectionFromView();
+  ubo.uniforms.u_CameraPosition = camera.position;
+  ubo.uniforms.ambientLight.color = ambientLight.color;
+  ubo.uniforms.hemisphericalLight = hemisphericalLight;
+  assert(pointLights.size() <= MAX_POINT_LIGHTS);
+  ubo.uniforms.numPointLights = static_cast<int32_t>(pointLights.size());
+  for (const auto& [ix, pl] : pointLights | std::ranges::views::enumerate)
+    ubo.uniforms.pointLights[ix] = pl;
+  assert(directionalLights.size() <= MAX_DIRECTIONAL_LIGHTS);
+  ubo.uniforms.numDirectionalLights = static_cast<int32_t>(directionalLights.size());
+  for (const auto& [ix, dl] : directionalLights | std::ranges::views::enumerate)
+    ubo.uniforms.directionalLights[ix] = dl;
+
+  ubo.upload();
 }
 }

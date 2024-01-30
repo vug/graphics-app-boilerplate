@@ -23,7 +23,6 @@ struct PointLight {
   float _pad0;
 };
 
-const int MAX_DIRECTIONAL_LIGHTS = 4;
 struct DirectionalLight {
   glm::vec3 position;
   float intensity;

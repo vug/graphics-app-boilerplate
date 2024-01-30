@@ -30,31 +30,6 @@ class AssetManager {
   std::unordered_map<std::string, ws::Shader> shaders;
 };
 
-const int MAX_POINT_LIGHTS = 8;
-const int MAX_DIRECTIONAL_LIGHTS = 4;
-
-struct SceneUniforms {
-  glm::mat4 u_ProjectionFromView;
-  glm::mat4 u_ViewFromWorld;
-  //
-  glm::vec3 u_CameraPosition;
-  float _pad0;
-  //
-  ws::AmbientLight ambientLight;
-  //
-  ws::HemisphericalLight hemisphericalLight;
-  //
-  glm::vec3 _pad1;
-  int numPointLights;
-  //
-  ws::PointLight pointLights[MAX_POINT_LIGHTS];
-  //
-  glm::vec3 _pad2;
-  int numDirectionalLights;
-  //
-  ws::DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
-};
-
 int main() {
   std::println("Hi!");
   ws::Workshop workshop{1920, 1080, "Material System"};
@@ -95,8 +70,30 @@ int main() {
       assetManager.textures.at("wood"),
       assetManager.textures.at("checkerboard"),
   };
+
   ws::Scene scene{
-      .renderables{ground, monkey, box},
+    .renderables{ground, monkey, box},
+    .ambientLight = ws::AmbientLight{.color = glm::vec3(0.05, 0.0, 0.05)},
+    .hemisphericalLight = ws::HemisphericalLight{
+      .northColor = glm::vec3(0.05, 0.15, 0.95),
+      .intensity = 1.0f,
+      .southColor = glm::vec3(0.85, 0.75, 0.05),
+    },
+    .pointLights = std::vector<ws::PointLight>{
+      ws::PointLight{
+        .position = glm::vec3(0, 0, 3),
+        .intensity = 1.f,
+        .color = glm::vec3(1, 1, 1),
+      },
+    },
+    .directionalLights = std::vector<ws::DirectionalLight>{
+      ws::DirectionalLight{
+        .position = glm::vec3(1, 1, 1),
+        .intensity = 0.5f,
+        .direction = glm::vec3(-1, -1, -1),
+        .color = glm::vec3(1, 1, 1),
+      },
+    },
   };
   ws::setParent(&ground, &scene.root);
   ws::setParent(&monkey, &scene.root);
@@ -113,8 +110,7 @@ int main() {
   workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("unlit"), assetManager.shaders.at("boilerplate"), debugShader};
   
   glEnable(GL_DEPTH_TEST);
-  ws::UniformBuffer<SceneUniforms> sceneUbo{1};
-  sceneUbo.compareSizeWithUniformBlock(assetManager.shaders.at("boilerplate").getId(), "SceneUniforms");
+  scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("boilerplate").getId(), "SceneUniforms");
   
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
@@ -131,24 +127,7 @@ int main() {
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
     scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
-
-    sceneUbo.uniforms.u_ViewFromWorld = scene.camera.getViewFromWorld();
-    sceneUbo.uniforms.u_ProjectionFromView = scene.camera.getProjectionFromView();
-    sceneUbo.uniforms.u_CameraPosition = scene.camera.position;
-    sceneUbo.uniforms.ambientLight.color = glm::vec3(0.05, 0.0, 0.05);
-    sceneUbo.uniforms.hemisphericalLight.northColor = glm::vec3(0.05, 0.15, 0.95);
-    sceneUbo.uniforms.hemisphericalLight.southColor = glm::vec3(0.85, 0.75, 0.05);
-    sceneUbo.uniforms.hemisphericalLight.intensity = 1.0f;
-    sceneUbo.uniforms.numPointLights = 1;
-    sceneUbo.uniforms.pointLights[0].position = glm::vec3(0, 0, 3);
-    sceneUbo.uniforms.pointLights[0].color = glm::vec3(1, 1, 1);
-    sceneUbo.uniforms.pointLights[0].intensity = 1.f;
-    sceneUbo.uniforms.numDirectionalLights = 1;
-    sceneUbo.uniforms.directionalLights[0].position = glm::vec3(1, 1, 1);
-    sceneUbo.uniforms.directionalLights[0].intensity = 0.5f;
-    sceneUbo.uniforms.directionalLights[0].direction = glm::vec3(-1, -1, -1);
-    sceneUbo.uniforms.directionalLights[0].color = glm::vec3(1, 1, 1);
-    sceneUbo.upload();
+    scene.uploadUniforms();
 
     offscreenFbo.bind();
     glViewport(0, 0, winSize.x, winSize.y);
