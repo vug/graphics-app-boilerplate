@@ -5,6 +5,7 @@
 #include <glad/gl.h>
 
 #include <format>
+#include <print>
 #include <string>
 
 namespace ws {
@@ -36,6 +37,16 @@ class UniformBuffer {
 
   void unmap() {
     glUnmapNamedBuffer(id); 
+  }
+
+  bool compareSizeWithUniformBlock(int32_t shaderId, std::string blockName) {
+    int32_t blockIx = glGetUniformBlockIndex(shaderId, blockName.c_str());
+    int32_t blockSize = -1;
+    glGetActiveUniformBlockiv(shaderId, blockIx, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
+    int32_t structSize = sizeof(TUniformStruct);
+    bool result = blockSize == structSize;
+    //std::println("block name \"{}\", uniform block data size {}, struct size {}. Match? {}", blockName, blockSize, structSize, result);
+    return result;
   }
 
   TUniformStruct uniforms{};
