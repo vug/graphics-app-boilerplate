@@ -1,6 +1,7 @@
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
 #include <Workshop/Framebuffer.hpp>
+#include <Workshop/Lights.hpp>
 #include <Workshop/Model.hpp>
 #include <Workshop/Scene.hpp>
 #include <Workshop/Shader.hpp>
@@ -29,38 +30,8 @@ class AssetManager {
   std::unordered_map<std::string, ws::Shader> shaders;
 };
 
-struct AmbientLight {
-  glm::vec3 color;
-  float _pad0;
-};
-
-struct HemisphericalLight {
-  glm::vec3 northColor;
-  float intensity;
-  glm::vec3 southColor;
-  float _pad0;
-};
-
 const int MAX_POINT_LIGHTS = 8;
-struct PointLight {
-  glm::vec3 position;
-  float intensity;
-  glm::vec3 color;
-  float _pad0;
-};
-
 const int MAX_DIRECTIONAL_LIGHTS = 4;
-struct DirectionalLight {
-  glm::vec3 position;
-  float intensity;
-  //
-  glm::vec3 direction;
-  float _pad0;
-  //
-  glm::vec3 color;
-  float _pad1;
-};
-
 
 struct SceneUniforms {
   glm::mat4 u_ProjectionFromView;
@@ -69,19 +40,19 @@ struct SceneUniforms {
   glm::vec3 u_CameraPosition;
   float _pad0;
   //
-  AmbientLight ambientLight;
+  ws::AmbientLight ambientLight;
   //
-  HemisphericalLight hemisphericalLight;
+  ws::HemisphericalLight hemisphericalLight;
   //
   glm::vec3 _pad1;
   int numPointLights;
   //
-  PointLight pointLights[MAX_POINT_LIGHTS];
+  ws::PointLight pointLights[MAX_POINT_LIGHTS];
   //
   glm::vec3 _pad2;
   int numDirectionalLights;
   //
-  DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
+  ws::DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
 };
 
 int main() {
