@@ -20,7 +20,9 @@ void main() {
   vec3 diffuseColor = texture(diffuseTexture, vertexData.texCoord).rgb;
   vec3 specularColor = texture(specularTexture, vertexData.texCoord).rgb;
 
-  vec3 ambient = illuminate(su.ambientLight);
+  vec3 ambientColor = illuminate(su.ambientLight);
+
+  vec3 hemisphericalDiffuse = illuminate(su.hemisphericalLight, normal);
 
   vec3 directionalDiffuse = vec3(0);
   vec3 directionalSpecular = vec3(0);
@@ -36,6 +38,8 @@ void main() {
     pointSpecular += illuminateSpecular(su.pointLights[i], surfPos, normal, su.u_CameraPosition, specCoeff);
   }
 
-  vec3 color = ambient + diffuseColor * (directionalDiffuse + pointDiffuse) + specularColor * (directionalSpecular + pointSpecular);
+  vec3 diffuseLight = hemisphericalDiffuse + directionalDiffuse + pointDiffuse;
+  vec3 specularLight = directionalSpecular + pointSpecular;
+  vec3 color = ambientColor + diffuseColor * diffuseLight + specularColor * specularLight;
   FragColor = vec4(color, 1);
 }

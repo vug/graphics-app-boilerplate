@@ -1,4 +1,5 @@
 #include "/lib/lights/AmbientLight.glsl"
+#include "/lib/lights/HemisphericalLight.glsl"
 #include "/lib/lights/PointLights.glsl"
 #include "/lib/lights/DirectionalLights.glsl"
 
@@ -13,6 +14,8 @@ layout(std140, binding = 1) uniform SceneUniforms {
   float _pad0;
   //
   AmbientLight ambientLight;
+  //
+  HemisphericalLight hemisphericalLight;
   //
   vec3 _pad1;
   int numPointLights;

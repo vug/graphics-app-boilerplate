@@ -34,6 +34,13 @@ struct AmbientLight {
   float _pad0;
 };
 
+struct HemisphericalLight {
+  glm::vec3 northColor;
+  float intensity;
+  glm::vec3 southColor;
+  float _pad0;
+};
+
 const int MAX_POINT_LIGHTS = 8;
 struct PointLight {
   glm::vec3 position;
@@ -63,6 +70,8 @@ struct SceneUniforms {
   float _pad0;
   //
   AmbientLight ambientLight;
+  //
+  HemisphericalLight hemisphericalLight;
   //
   glm::vec3 _pad1;
   int numPointLights;
@@ -104,7 +113,7 @@ int main() {
   ws::RenderableObject monkey = {
       {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey"),
-      assetManager.shaders.at("unlit"),
+      assetManager.shaders.at("phong"),
       assetManager.textures.at("checkerboard"),
       whiteTex,
   };
@@ -157,23 +166,19 @@ int main() {
     sceneUbo.uniforms.u_ProjectionFromView = cam.getProjectionFromView();
     sceneUbo.uniforms.u_CameraPosition = cam.position;
     sceneUbo.uniforms.ambientLight.color = glm::vec3(0.05, 0.0, 0.05);
-    // uniform PointLight pointLight = PointLight(vec3(0, 0, 3), vec3(1, 1, 1), 1.0f);
+    sceneUbo.uniforms.hemisphericalLight.northColor = glm::vec3(0.05, 0.15, 0.95);
+    sceneUbo.uniforms.hemisphericalLight.southColor = glm::vec3(0.85, 0.75, 0.05);
+    sceneUbo.uniforms.hemisphericalLight.intensity = 1.0f;
     sceneUbo.uniforms.numPointLights = 1;
     sceneUbo.uniforms.pointLights[0].position = glm::vec3(0, 0, 3);
     sceneUbo.uniforms.pointLights[0].color = glm::vec3(1, 1, 1);
     sceneUbo.uniforms.pointLights[0].intensity = 1.f;
-    // uniform DirectionalLight directionalLight = DirectionalLight(vec3(1, 1, 1), vec3(-1, -1, -1), vec3(1, 1, 1), 0.5f);
     sceneUbo.uniforms.numDirectionalLights = 1;
     sceneUbo.uniforms.directionalLights[0].position = glm::vec3(1, 1, 1);
     sceneUbo.uniforms.directionalLights[0].intensity = 0.5f;
     sceneUbo.uniforms.directionalLights[0].direction = glm::vec3(-1, -1, -1);
     sceneUbo.uniforms.directionalLights[0].color = glm::vec3(1, 1, 1);
     sceneUbo.upload();
-    //auto& uniforms = sceneUbo.map();
-    //uniforms.u_ViewFromWorld = cam.getViewFromWorld();
-    //uniforms.u_ProjectionFromView = cam.getProjectionFromView();
-    //uniforms.u_CameraPosition = cam.position;
-    //sceneUbo.unmap();
 
     offscreenFbo.bind();
     glViewport(0, 0, winSize.x, winSize.y);
