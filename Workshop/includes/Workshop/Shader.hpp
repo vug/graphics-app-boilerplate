@@ -202,5 +202,46 @@ public:
     {GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY, "uimage2DMSArray"},
     {GL_UNSIGNED_INT_ATOMIC_COUNTER, "atomic_uint"},
   };
+
+  inline static std::unordered_map<GLenum, size_t> UNIFORM_SIZES = {
+    {GL_FLOAT, sizeof(GLfloat) * 1},
+    {GL_FLOAT_VEC2, sizeof(GLfloat) * 2},
+    {GL_FLOAT_VEC3, sizeof(GLfloat) * 3},
+    {GL_FLOAT_VEC4, sizeof(GLfloat) * 4},
+    //{GL_DOUBLE, sizeof(GLdouble) * 1}, // ?
+    //{GL_DOUBLE_VEC2, sizeof(GLdouble) * 2},
+    //{GL_DOUBLE_VEC3, sizeof(GLdouble) * 3},
+    //{GL_DOUBLE_VEC4, sizeof(GLdouble) * 4},
+    {GL_INT, sizeof(GLint) * 1},
+    {GL_INT_VEC2, sizeof(GLint) * 2},
+    {GL_INT_VEC3, sizeof(GLint) * 3},
+    {GL_INT_VEC4, sizeof(GLint) * 4},
+    {GL_UNSIGNED_INT, sizeof(GLuint) * 1},
+    {GL_UNSIGNED_INT_VEC2, sizeof(GLuint) * 2},
+    {GL_UNSIGNED_INT_VEC3, sizeof(GLuint) * 3},
+    {GL_UNSIGNED_INT_VEC4, sizeof(GLuint) * 4},
+    //{GL_BOOL, sizeof(GLfloat) * 1}, // ?
+    //{GL_BOOL_VEC2, sizeof(GLfloat) * 2},
+    //{GL_BOOL_VEC3, sizeof(GLfloat) * 3},
+    //{GL_BOOL_VEC4, sizeof(GLfloat) * 4},
+    {GL_FLOAT_MAT2, sizeof(GLfloat) * 2 * 2},
+    {GL_FLOAT_MAT3, sizeof(GLfloat) * 3 * 3},
+    {GL_FLOAT_MAT4, sizeof(GLfloat) * 4 * 4},
+    //{GL_FLOAT_MAT2x3, sizeof(GLfloat) * 2 * 3}, // ?
+    //{GL_FLOAT_MAT2x4, sizeof(GLfloat) * 2 * 4},
+    //{GL_FLOAT_MAT3x2, sizeof(GLfloat) * 3 * 2},
+    //{GL_FLOAT_MAT3x4, sizeof(GLfloat) * 3 * 4},
+    //{GL_FLOAT_MAT4x2, sizeof(GLfloat) * 4 * 2},
+    //{GL_FLOAT_MAT4x3, sizeof(GLfloat) * 4 * 3},
+    //{GL_DOUBLE_MAT2, sizeof(GLdouble) * 2 * 2}, // ?
+    //{GL_DOUBLE_MAT3, sizeof(GLdouble) * 3 * 3},
+    //{GL_DOUBLE_MAT4, sizeof(GLdouble) * 4 * 4},
+    //{GL_DOUBLE_MAT2x3, sizeof(GLdouble) * 2 * 3}, // ?
+    //{GL_DOUBLE_MAT2x4, sizeof(GLdouble) * 2 * 4},
+    //{GL_DOUBLE_MAT3x2, sizeof(GLdouble) * 3 * 2},
+    //{GL_DOUBLE_MAT3x4, sizeof(GLdouble) * 3 * 4},
+    //{GL_DOUBLE_MAT4x2, sizeof(GLdouble) * 4 * 2},
+    //{GL_DOUBLE_MAT4x3, sizeof(GLdouble) * 4 * 3},
+  };
 };
 }  // namespace ws
