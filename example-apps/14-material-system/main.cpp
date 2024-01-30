@@ -29,10 +29,23 @@ class AssetManager {
   std::unordered_map<std::string, ws::Shader> shaders;
 };
 
+struct PointLight {
+  glm::vec3 position;
+  float intensity;
+  glm::vec3 color;
+  float _pad0;
+};
+
+const int MAX_POINT_LIGHTS = 8;
+
 struct SceneUniforms {
   glm::mat4 u_ProjectionFromView;
   glm::mat4 u_ViewFromWorld;
   glm::vec3 u_CameraPosition;
+  float _pad0;
+  glm::vec3 _pad1;
+  int numPointLights;
+  PointLight pointLights[MAX_POINT_LIGHTS];
 };
 
 int main() {
@@ -95,6 +108,7 @@ int main() {
   
   glEnable(GL_DEPTH_TEST);
   ws::UniformBuffer<SceneUniforms> sceneUbo{1};
+  sceneUbo.compareSizeWithUniformBlock(assetManager.shaders.at("boilerplate").getId(), "SceneUniforms");
   
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
@@ -115,6 +129,11 @@ int main() {
     sceneUbo.uniforms.u_ViewFromWorld = cam.getViewFromWorld();
     sceneUbo.uniforms.u_ProjectionFromView = cam.getProjectionFromView();
     sceneUbo.uniforms.u_CameraPosition = cam.position;
+    // uniform PointLight pointLight = PointLight(vec3(0, 0, 3), vec3(1, 1, 1), 1.0f);
+    sceneUbo.uniforms.numPointLights = 1;
+    sceneUbo.uniforms.pointLights[0].position = glm::vec3(0, 0, 3);
+    sceneUbo.uniforms.pointLights[0].color = glm::vec3(1, 1, 1);
+    sceneUbo.uniforms.pointLights[0].intensity = 1.f;
     sceneUbo.upload();
     //auto& uniforms = sceneUbo.map();
     //uniforms.u_ViewFromWorld = cam.getViewFromWorld();

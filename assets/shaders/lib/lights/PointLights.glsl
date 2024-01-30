@@ -1,12 +1,10 @@
 struct PointLight {
   vec3 position;
-  vec3 color;
   float intensity;
+  vec3 color;
+  float _pad0;
 };
 
-#define MAX_POINT_LIGHTS 8
-uniform PointLight[MAX_POINT_LIGHTS] pointLights;
-uniform int numPointLights;
 
 vec3 illuminateDiffuse(PointLight light, vec3 position, vec3 normal) {
   vec3 fragToLight = light.position - position;
