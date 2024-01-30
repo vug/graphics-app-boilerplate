@@ -6,7 +6,6 @@ struct PointLight {
   float _pad0;
 };
 
-
 vec3 illuminateDiffuse(PointLight light, vec3 position, vec3 normal) {
   vec3 fragToLight = light.position - position;
   vec3 fragToLightN = normalize(fragToLight);

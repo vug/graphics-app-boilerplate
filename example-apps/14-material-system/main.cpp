@@ -29,6 +29,11 @@ class AssetManager {
   std::unordered_map<std::string, ws::Shader> shaders;
 };
 
+struct AmbientLight {
+  glm::vec3 color;
+  float _pad0;
+};
+
 const int MAX_POINT_LIGHTS = 8;
 struct PointLight {
   glm::vec3 position;
@@ -56,6 +61,8 @@ struct SceneUniforms {
   //
   glm::vec3 u_CameraPosition;
   float _pad0;
+  //
+  AmbientLight ambientLight;
   //
   glm::vec3 _pad1;
   int numPointLights;
@@ -149,6 +156,7 @@ int main() {
     sceneUbo.uniforms.u_ViewFromWorld = cam.getViewFromWorld();
     sceneUbo.uniforms.u_ProjectionFromView = cam.getProjectionFromView();
     sceneUbo.uniforms.u_CameraPosition = cam.position;
+    sceneUbo.uniforms.ambientLight.color = glm::vec3(0.05, 0.0, 0.05);
     // uniform PointLight pointLight = PointLight(vec3(0, 0, 3), vec3(1, 1, 1), 1.0f);
     sceneUbo.uniforms.numPointLights = 1;
     sceneUbo.uniforms.pointLights[0].position = glm::vec3(0, 0, 3);
