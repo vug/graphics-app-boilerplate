@@ -464,12 +464,16 @@ void Shader::printUniformBlocks() const {
       assert(ws::Shader::UNIFORM_SIZES.contains(uType));
       uniformInfos.emplace_back(uName, uType, uIx, uOffset, uSize, ws::Shader::UNIFORM_AND_ATTRIBUTE_TYPES[uType], static_cast<int32_t>(ws::Shader::UNIFORM_SIZES[uType]));
     }
-    std::ranges::sort(uniformInfos, {},  & UniformInfo::offset);
 
-    for (const auto& ui: uniformInfos)
+    std::ranges::sort(uniformInfos, {},  & UniformInfo::offset);
+    for (const auto& [ix, ui] : uniformInfos | std::ranges::views::enumerate)
       std::println("{:4d} {:4d} [{:3d}] {:10s} {} {}", ui.offset, ui.sizeBytes, ui.index, ui.typeName, ui.name, ui.numItems);
 
-    // TODO: print offsets, alignments etc
+    // Check whether padding was done correctly
+    for (const auto& [curr, next] : std::ranges::views::adjacent<2>(uniformInfos))
+      assert(next.offset == curr.offset + curr.sizeBytes);
+    assert(blockDataSize == uniformInfos.back().offset + uniformInfos.back().sizeBytes);
+
   }
 }
 
