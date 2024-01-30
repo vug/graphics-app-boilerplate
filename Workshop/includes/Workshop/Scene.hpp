@@ -55,25 +55,52 @@ const int MAX_POINT_LIGHTS = 8;
 const int MAX_DIRECTIONAL_LIGHTS = 4;
 
 struct SceneUniforms {
+  struct PaddedAmbientLight {
+    glm::vec3 color;
+    float _pad0;
+  };
+  struct PaddedHemisphericalLight {
+    glm::vec3 northColor;
+    float intensity;
+    glm::vec3 southColor;
+    float _pad0;
+  };
+  struct PaddedPointLight {
+    glm::vec3 position;
+    float intensity;
+    glm::vec3 color;
+    float _pad0;
+  };
+  struct PaddedDirectionalLight {
+    glm::vec3 position;
+    float intensity;
+    //
+    glm::vec3 direction;
+    float _pad0;
+    //
+    glm::vec3 color;
+    float _pad1;
+  };
+
   glm::mat4 u_ProjectionFromView;
   glm::mat4 u_ViewFromWorld;
   //
   glm::vec3 u_CameraPosition;
   float _pad0;
   //
-  ws::AmbientLight ambientLight;
+  PaddedAmbientLight ambientLight;
   //
-  ws::HemisphericalLight hemisphericalLight;
+  PaddedHemisphericalLight hemisphericalLight;
   //
   glm::vec3 _pad1;
   int numPointLights;
   //
-  ws::PointLight pointLights[MAX_POINT_LIGHTS];
+  PaddedPointLight pointLights[MAX_POINT_LIGHTS];
   //
   glm::vec3 _pad2;
   int numDirectionalLights;
   //
-  ws::DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
+  PaddedDirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
 };
 
 class Scene {
