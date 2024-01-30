@@ -405,32 +405,49 @@ void Shader::printAttributes() const {
 void Shader::printUniforms() const {
   int32_t longestNameLength{};
   glGetProgramiv(id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &longestNameLength);
-  std::string name(longestNameLength, '\0');
   int32_t numActive;
   glGetProgramiv(id, GL_ACTIVE_UNIFORMS, &numActive);
   for (int i = 0; i < numActive; i++) {
+    std::string name(longestNameLength, '\0');
     int32_t nameLength;
     int32_t size;
     uint32_t type;
     glGetActiveUniform(id, i, longestNameLength, &nameLength, &size, &type, name.data());
     name.resize(nameLength);
-    std::println("uniform {} {}[{}]", i, name, size, ws::Shader::UNIFORM_AND_ATTRIBUTE_TYPES[type]);
+    std::println("uniform {} {} {}[{}]", i, name, ws::Shader::UNIFORM_AND_ATTRIBUTE_TYPES[type], size);
   }
 }
 
 void Shader::printUniformBlocks() const {
-  int32_t longestNameLength{};
-  glGetProgramiv(id, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &longestNameLength);
-  std::string name(longestNameLength, '\0');
-  int32_t numActive;
-  glGetProgramiv(id, GL_ACTIVE_UNIFORM_BLOCKS, &numActive);
-  for (int ix = 0; ix < numActive; ++ix) {
-    int32_t nameLength;
-    glGetActiveUniformBlockName(id, ix, longestNameLength, &nameLength, name.data());
-    name.resize(nameLength);
-    std::println("Uniform Block ix {}, name {}", ix, name);
+  int32_t longestBlockNameLength{};
+  glGetProgramiv(id, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &longestBlockNameLength);
+  int32_t longestUniformNameLength{};
+  glGetProgramiv(id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &longestUniformNameLength);
+  int32_t numBlocks;
+  glGetProgramiv(id, GL_ACTIVE_UNIFORM_BLOCKS, &numBlocks);
+  for (int ix = 0; ix < numBlocks; ++ix) {
+    std::string blockName(longestBlockNameLength, '\0');
+    int32_t blockNameLength;
+    glGetActiveUniformBlockName(id, ix, longestBlockNameLength, &blockNameLength, blockName.data());
+    blockName.resize(blockNameLength);
+    int32_t blockDataSize = -1;
+    glGetActiveUniformBlockiv(id, ix, GL_UNIFORM_BLOCK_DATA_SIZE, &blockDataSize);
+    int32_t numUniforms = -1;
+    glGetActiveUniformBlockiv(id, ix, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &numUniforms);
+    std::vector<int32_t> uniformIndices(numUniforms);
+    glGetActiveUniformBlockiv(id, ix, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, uniformIndices.data());
+    std::println("Uniform Block ix {}, name {} data size {} num active uniforms {}", ix, blockName, blockDataSize, numUniforms);
+    for (int32_t uIx : uniformIndices) {
+      std::string uName(longestUniformNameLength, '\0');
+      int32_t uNameLength = -1;
+      int32_t uSize;
+      uint32_t uType;
+      glGetActiveUniform(id, uIx, longestUniformNameLength, &uNameLength, &uSize, &uType, uName.data());
+      uName.resize(uNameLength);
+      std::println("uniform index {} {} {}[{}]", uIx, uName, ws::Shader::UNIFORM_AND_ATTRIBUTE_TYPES[uType], uSize);
+    }
 
-    // TODO: loop over uniform variables in the block
+    // TODO: print offsets, alignments etc
   }
 }
 
