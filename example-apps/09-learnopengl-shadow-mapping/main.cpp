@@ -118,21 +118,18 @@ int main() {
     assetManager.textures["wood"],
     assetManager.textures["checkerboard"],
   };
-  ws::CameraObject cam1{
-    ws::Object{std::string{"SceneCamera"}, ws::Transform{glm::vec3{0, 0, -5.f}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}}},
-  };
   ws::Scene scene{
     .renderables{ground, cube1, cube2, cube3, axes},
-    .cameras{cam1}
   };
   ws::setParent(&ground, &scene.root);
   ws::setParent(&cube1, &scene.root);
   ws::setParent(&cube2, &scene.root);
   ws::setParent(&cube3, &scene.root);
-  ws::setParent(&cam1, &scene.root);
   ws::setParent(&axes, &scene.root);
+  scene.camera.position = glm::vec3{0, 0, -5.f};
+  scene.camera.target = glm::vec3{0, 0, 0};
 
-  ws::Camera& cam = scene.cameras[0].get().camera;
+  ws::Camera& cam = scene.camera;
   ws::AutoOrbitingCameraController orbitingCamController{cam};
   orbitingCamController.radius = 7.7f;
   orbitingCamController.theta = 0.5;
@@ -185,7 +182,7 @@ int main() {
     ImGui::End();
 
     assetManager.framebuffers.at("shadowFBO").resizeIfNeeded(light.shadowWidth, light.shadowHeight);
-    orbitingCamController.update(0.01f);
+    orbitingCamController.update(workshop.getFrameDurationSec());
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
 
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
