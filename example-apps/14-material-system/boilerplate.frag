@@ -6,6 +6,9 @@
 
 in VertexData vertexData;
 
+uniform vec3 color1 = vec3(0.8, 0.8, 0.8);
+uniform vec3 color2 = vec3(0.2, 0.2, 0.2);
+uniform int numCells = 4;
 layout(binding = 0) uniform sampler2D mainTex;
 layout(binding = 1) uniform sampler2D secondTex;
 
@@ -36,5 +39,8 @@ void main() {
   // second texture
   //FragColor = vec4(secondTexColor, 1);
 
-  //FragColor = vec4((mainTexColor + secondTexColor + vec3(vertexData.texCoord, 0))/3, 1);
+  vec2 ij = floor(vertexData.texCoord * numCells);
+  vec2 uv = fract(vertexData.texCoord * numCells);
+  vec3 color = mod(ij.x + ij.y, 2) == 0 ? color1 : color2;
+  FragColor = vec4(color, 1);
 }
