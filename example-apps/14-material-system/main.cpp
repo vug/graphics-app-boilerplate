@@ -2,6 +2,7 @@
 #include <Workshop/Camera.hpp>
 #include <Workshop/Framebuffer.hpp>
 #include <Workshop/Lights.hpp>
+#include <Workshop/Material.hpp>
 #include <Workshop/Model.hpp>
 #include <Workshop/Scene.hpp>
 #include <Workshop/Shader.hpp>
@@ -111,6 +112,13 @@ int main() {
   
   glEnable(GL_DEPTH_TEST);
   scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("boilerplate").getId(), "SceneUniforms");
+
+  ws::Material mat1{assetManager.shaders.at("boilerplate")};
+  mat1.parameters = {
+    {"color1", glm::vec3(1, 0, 0)},
+    {"color2", glm::vec3(0, 0, 1)},
+    {"numCells", 2},
+  };
   
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
@@ -123,6 +131,9 @@ int main() {
     ImGui::Checkbox("Debug Scene using debug shader", &debugScene);
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
+    ImGui::DragFloat3("color1", glm::value_ptr(std::get<glm::vec3>(mat1.parameters.at("color1"))));
+    ImGui::DragFloat3("color2", glm::value_ptr(std::get<glm::vec3>(mat1.parameters["color2"])));
+    ImGui::DragInt("numCells", &std::get<int>(mat1.parameters["numCells"]));
     ImGui::End();
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
@@ -135,6 +146,7 @@ int main() {
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     assetManager.shaders.at("boilerplate").bind();
+    mat1.uploadParameters();
     for (auto& renderable : scene.renderables) {
       renderable.get().texture.bindToUnit(0);
       assetManager.shaders.at("boilerplate").setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
