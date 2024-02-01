@@ -46,7 +46,7 @@ int main() {
   whiteTex.uploadPixels(whiteTexPixels.data());
   assetManager.shaders.emplace("phong", ws::Shader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
-  assetManager.shaders.emplace("boilerplate", ws::Shader{SRC / "boilerplate.vert", SRC / "boilerplate.frag"});
+  assetManager.shaders.emplace("checkered", ws::Shader{SRC / "boilerplate.vert", SRC / "boilerplate.frag"});
   ws::Shader debugShader{ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag"};
   ws::Framebuffer offscreenFbo;
 
@@ -67,7 +67,7 @@ int main() {
   ws::RenderableObject box = {
       {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
       assetManager.meshes.at("cube"),
-      assetManager.shaders.at("boilerplate"),
+      assetManager.shaders.at("checkered"),
       assetManager.textures.at("wood"),
       assetManager.textures.at("checkerboard"),
   };
@@ -108,12 +108,12 @@ int main() {
   ws::EditorWindow editorWindow{scene};
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};
-  workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("unlit"), assetManager.shaders.at("boilerplate"), debugShader};
+  workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("unlit"), assetManager.shaders.at("checkered"), debugShader};
   
   glEnable(GL_DEPTH_TEST);
-  scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("boilerplate").getId(), "SceneUniforms");
+  scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("checkered").getId(), "SceneUniforms");
 
-  ws::Material mat1{assetManager.shaders.at("boilerplate")};
+  ws::Material mat1{assetManager.shaders.at("checkered")};
   mat1.parameters = {
     {"color1", glm::vec3(1, 0, 0)},
     {"color2", glm::vec3(0, 0, 1)},
@@ -147,18 +147,18 @@ int main() {
     glDisable(GL_CULL_FACE);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    assetManager.shaders.at("boilerplate").bind();
+    assetManager.shaders.at("checkered").bind();
     mat1.uploadParameters();
     for (auto& renderable : scene.renderables) {
       renderable.get().texture.bindToUnit(0);
-      assetManager.shaders.at("boilerplate").setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
+      assetManager.shaders.at("checkered").setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       const ws::Mesh& mesh = renderable.get().mesh;
       mesh.bind();
       mesh.draw();
       mesh.unbind();
       renderable.get().texture.unbindFromUnit(0);
     }
-    assetManager.shaders.at("boilerplate").unbind();
+    assetManager.shaders.at("checkered").unbind();
     offscreenFbo.unbind();
 
     glViewport(0, 0, winSize.x, winSize.y);
