@@ -8,6 +8,7 @@
 #include <iostream>
 #include <print>
 #include <ranges>
+#include <regex>
 #include <sstream>
 #include <string>
 
@@ -359,12 +360,15 @@ void Shader::blockBinding(const char* name, uint32_t binding) const {
   glUniformBlockBinding(id, index, binding);
 }
 
+std::unordered_map<std::string, std::string> Shader::namedStrings;
+
 void Shader::makeNamedStringFromFile(const std::string& name, const std::filesystem::path& fp) {
   assert(std::filesystem::exists(fp));
   std::ifstream file{fp};
   std::ostringstream ss;
   ss << file.rdbuf();
   std::string content = ss.str();
+  Shader::namedStrings.emplace(name, content);
   glNamedStringARB(GL_SHADER_INCLUDE_ARB,
                    static_cast<int32_t>(name.length()), name.data(),
                    static_cast<int32_t>(content.length()), content.data());
@@ -466,7 +470,7 @@ void Shader::printUniformBlocks() const {
     }
 
     std::ranges::sort(uniformInfos, {},  & UniformInfo::offset);
-    for (const auto& [ix, ui] : uniformInfos | std::ranges::views::enumerate)
+    for (const auto& ui : uniformInfos)
       std::println("{:4d} {:4d} [{:3d}] {:10s} {} {}", ui.offset, ui.sizeBytes, ui.index, ui.typeName, ui.name, ui.numItems);
 
     // Check whether padding was done correctly
@@ -474,6 +478,32 @@ void Shader::printUniformBlocks() const {
       assert(next.offset == curr.offset + curr.sizeBytes);
     assert(blockDataSize == uniformInfos.back().offset + uniformInfos.back().sizeBytes);
 
+  }
+}
+
+void Shader::printSource() const {
+  static std::regex patternName("\"(.*?)\"");
+
+  for (uint32_t sId : getShaderIds()) {
+    GLint sourceLength;
+    glGetShaderiv(sId, GL_SHADER_SOURCE_LENGTH, &sourceLength);
+    std::string sourceCode(sourceLength, '\0');
+    glGetShaderSource(sId, sourceLength, nullptr, sourceCode.data());
+    std::println("shader[{}] source:", sId);
+
+    while (sourceCode.contains("#include")) {
+      size_t pos1 = sourceCode.find("#include");
+      size_t pos2 = sourceCode.find("\n", pos1);
+      std::string includeLine = sourceCode.substr(pos1, pos2 - pos1);
+      std::smatch matches;
+      bool hasFound = std::regex_search(includeLine, matches, patternName);
+      assert(hasFound);
+      std::string name = matches[1].str();
+      std::string replacement = std::format("// INCLUDED '{}'\n{}", name, Shader::namedStrings[name]);
+      sourceCode.replace(pos1, pos2 - pos1, replacement);
+    }
+
+    std::println("{}\n// END OF SHADER\n\n\n\n\n\n\n\n\n", sourceCode);
   }
 }
 

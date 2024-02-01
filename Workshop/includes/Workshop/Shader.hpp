@@ -74,6 +74,7 @@ class Shader {
   void unbind() const;
   // getter for ids of attached shaders to the program
   std::vector<uint32_t> getShaderIds() const;
+  static std::unordered_map<std::string, std::string> namedStrings;
 
  private:
   // detach attached shaders, if there are any
@@ -94,6 +95,7 @@ public:
   void printAttributes() const;
   void printUniforms() const;
   void printUniformBlocks() const;
+  void printSource() const;
 
   inline static std::unordered_map<GLenum, std::string> UNIFORM_AND_ATTRIBUTE_TYPES = {
     {GL_FLOAT, "float"},

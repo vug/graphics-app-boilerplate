@@ -192,6 +192,10 @@ void Workshop::drawUI() {
     ImGui::SameLine();
     if (ImGui::Button("UBOs"))
       shadersToReload[shaderToReloadIx].get().printUniformBlocks();
+    ImGui::SameLine();
+    if (ImGui::Button("Source"))
+      shadersToReload[shaderToReloadIx].get().printSource();
+      
   }
   ImGui::Separator();
   ImGui::End();
