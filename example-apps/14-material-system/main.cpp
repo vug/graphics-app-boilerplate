@@ -47,7 +47,6 @@ int main() {
   assetManager.shaders.emplace("phong", ws::Shader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("checkered", ws::Shader{SRC / "boilerplate.vert", SRC / "boilerplate.frag"});
-  ws::Shader debugShader{ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag"};
   ws::Framebuffer offscreenFbo;
 
   ws::RenderableObject ground = {
@@ -60,16 +59,16 @@ int main() {
   ws::RenderableObject monkey = {
       {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey"),
-      assetManager.shaders.at("phong"),
-      assetManager.textures.at("checkerboard"),
+      assetManager.shaders.at("checkered"),
+      whiteTex,
       whiteTex,
   };
   ws::RenderableObject box = {
       {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
       assetManager.meshes.at("cube"),
       assetManager.shaders.at("checkered"),
-      assetManager.textures.at("wood"),
-      assetManager.textures.at("checkerboard"),
+      whiteTex,
+      whiteTex,
   };
 
   ws::Scene scene{
@@ -108,7 +107,7 @@ int main() {
   ws::EditorWindow editorWindow{scene};
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};
-  workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("unlit"), assetManager.shaders.at("checkered"), debugShader};
+  workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("unlit"), assetManager.shaders.at("checkered")};
   
   glEnable(GL_DEPTH_TEST);
   scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("checkered").getId(), "SceneUniforms");
@@ -119,8 +118,17 @@ int main() {
     {"color2", glm::vec3(0, 0, 1)},
     {"numCells", 2},
   };
-  const bool hasMismatch = mat1.doParametersAndUniformsMatch();
-  assert(!hasMismatch);
+  const bool hasMismatch1 = mat1.doParametersAndUniformsMatch();
+  assert(!hasMismatch1);
+
+  ws::Material mat2{assetManager.shaders.at("checkered")};
+  mat2.parameters = {
+      {"color1", glm::vec3(1, 1, 0)},
+      {"color2", glm::vec3(0, 1, 1)},
+      {"numCells", 3},
+  };
+  const bool hasMismatch2 = mat2.doParametersAndUniformsMatch();
+  assert(!hasMismatch2);
   
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
@@ -133,9 +141,12 @@ int main() {
     ImGui::Checkbox("Debug Scene using debug shader", &debugScene);
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
-    ImGui::DragFloat3("color1", glm::value_ptr(std::get<glm::vec3>(mat1.parameters.at("color1"))));
-    ImGui::DragFloat3("color2", glm::value_ptr(std::get<glm::vec3>(mat1.parameters["color2"])));
-    ImGui::DragInt("numCells", &std::get<int>(mat1.parameters["numCells"]));
+    ImGui::DragFloat3("A color1", glm::value_ptr(std::get<glm::vec3>(mat1.parameters.at("color1"))));
+    ImGui::DragFloat3("A color2", glm::value_ptr(std::get<glm::vec3>(mat1.parameters["color2"])));
+    ImGui::DragInt("A numCells", &std::get<int>(mat1.parameters["numCells"]));
+    ImGui::DragFloat3("B color1", glm::value_ptr(std::get<glm::vec3>(mat2.parameters.at("color1"))));
+    ImGui::DragFloat3("B color2", glm::value_ptr(std::get<glm::vec3>(mat2.parameters["color2"])));
+    ImGui::DragInt("B numCells", &std::get<int>(mat2.parameters["numCells"]));
     ImGui::End();
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
@@ -148,8 +159,11 @@ int main() {
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     assetManager.shaders.at("checkered").bind();
-    mat1.uploadParameters();
     for (auto& renderable : scene.renderables) {
+      if (renderable.get().name == "Monkey")
+        mat1.uploadParameters();
+      if (renderable.get().name == "Box")
+        mat2.uploadParameters();
       renderable.get().texture.bindToUnit(0);
       assetManager.shaders.at("checkered").setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       const ws::Mesh& mesh = renderable.get().mesh;
@@ -168,13 +182,12 @@ int main() {
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (auto& renderable : scene.renderables) {
-      ws::Shader& shader = debugScene ? debugShader : renderable.get().shader;
+      ws::Shader& shader = renderable.get().shader;
       shader.bind();
-      shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
-      shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
-      shader.setVector3("u_CameraPosition", scene.camera.position);
-      if (debugScene)
-        shader.setVector2("u_CameraNearFar", glm::vec2{scene.camera.nearClip, scene.camera.farClip});
+      if (renderable.get().name == "Monkey")
+        mat1.uploadParameters();
+      if (renderable.get().name == "Box")
+        mat2.uploadParameters();
 	    renderable.get().texture.bindToUnit(0);
 	    renderable.get().texture2.bindToUnit(1);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
