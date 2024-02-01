@@ -15,6 +15,24 @@
 #include <vector>
 
 namespace ws {
+struct UniformBlockInfo {
+  std::string name;
+  int32_t index;
+  int32_t dataSize;
+  int32_t numUniforms;
+  int32_t longestUniformNameLength;
+};
+
+struct UniformInfo {
+  std::string name;
+  uint32_t glType;
+  int32_t index;
+  int32_t offset;
+  int32_t numItems;
+  std::string typeName;
+  int32_t sizeBytes;
+};
+
 // Abstraction corresponding to a Shader Program in OpenGL
 // Keeps the same id throughout its lifetime
 class Shader {
@@ -74,6 +92,8 @@ class Shader {
   void unbind() const;
   // getter for ids of attached shaders to the program
   std::vector<uint32_t> getShaderIds() const;
+
+ public:
   static std::unordered_map<std::string, std::string> namedStrings;
 
  private:
@@ -93,8 +113,10 @@ public:
   // Glob shaderLibFolder (say assets/shaders/lib) and create a NamedString for each glsl file (say /lib/lights/PointLight.glsl)
   static void makeNamedStringsFromFolder(const std::filesystem::path& shaderLibFolder);
   void printAttributes() const;
-  void printUniforms() const;
+  std::vector<UniformBlockInfo> getUniformBlockInfos() const;
   void printUniformBlocks() const;
+  std::vector<UniformInfo> getUniformInfos() const;
+  void printUniforms() const;
   void printSource() const;
 
   inline static std::unordered_map<GLenum, std::string> UNIFORM_AND_ATTRIBUTE_TYPES = {

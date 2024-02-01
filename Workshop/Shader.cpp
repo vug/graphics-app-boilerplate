@@ -12,6 +12,9 @@
 #include <sstream>
 #include <string>
 
+namespace rng = std::ranges;
+namespace vws = rng::views;
+
 namespace ws {
 std::string readFile(std::filesystem::path fp) {
   std::ifstream stream(fp, std::ios::in | std::ios::binary);
@@ -407,33 +410,41 @@ void Shader::printAttributes() const {
   }
 }
 
-void Shader::printUniforms() const {
+std::vector<UniformInfo> Shader::getUniformInfos() const {
+  std::vector<UniformInfo> uniformInfos;
+
   int32_t longestNameLength{};
   glGetProgramiv(id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &longestNameLength);
   int32_t numActive;
   glGetProgramiv(id, GL_ACTIVE_UNIFORMS, &numActive);
-  for (int i = 0; i < numActive; i++) {
+  std::vector<int32_t> uniformIndices(numActive);
+  for (int32_t i = 0; i < numActive; ++i)
+    uniformIndices[i] = i;
+  std::vector<int32_t> uniformOffsets(numActive);
+  glGetActiveUniformsiv(id, numActive, (uint32_t*)uniformIndices.data(), GL_UNIFORM_OFFSET, uniformOffsets.data());
+
+  for (int ix = 0; ix < numActive; ++ix) {
     std::string name(longestNameLength, '\0');
     int32_t nameLength;
-    int32_t size;
+    int32_t numItems;
     uint32_t type;
-    glGetActiveUniform(id, i, longestNameLength, &nameLength, &size, &type, name.data());
+    glGetActiveUniform(id, ix, longestNameLength, &nameLength, &numItems, &type, name.data());
     name.resize(nameLength);
-    std::println("uniform {} {} {}[{}]", i, name, ws::Shader::UNIFORM_AND_ATTRIBUTE_TYPES[type], size);
+    uniformInfos.emplace_back(name, type, ix, uniformOffsets[ix], numItems, ws::Shader::UNIFORM_AND_ATTRIBUTE_TYPES[type], static_cast<int32_t>(ws::Shader::UNIFORM_SIZES[type]));
   }
+  return uniformInfos;
 }
 
-struct UniformInfo {
-  std::string name;
-  uint32_t glType;
-  int32_t index;
-  int32_t offset;
-  int32_t numItems;
-  std::string typeName;
-  int32_t sizeBytes;
-};
+void Shader::printUniforms() const {
+  const std::vector<UniformInfo>& uniformInfos = getUniformInfos();
+  std::println("Offset Size Index Type Name NumItems");
+  for (const auto& ui : uniformInfos)
+    std::println("{:4d} {:4d} [{:3d}] {:10s} {} {}", ui.offset, ui.sizeBytes, ui.index, ui.typeName, ui.name, ui.numItems);
+}
 
-void Shader::printUniformBlocks() const {
+std::vector<UniformBlockInfo> Shader::getUniformBlockInfos() const {
+  std::vector<UniformBlockInfo> uniformBlockInfos;
+
   int32_t longestBlockNameLength{};
   glGetProgramiv(id, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &longestBlockNameLength);
   int32_t longestUniformNameLength{};
@@ -450,34 +461,31 @@ void Shader::printUniformBlocks() const {
     glGetActiveUniformBlockiv(id, ix, GL_UNIFORM_BLOCK_DATA_SIZE, &blockDataSize);
     int32_t numUniforms = -1;
     glGetActiveUniformBlockiv(id, ix, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &numUniforms);
-    std::vector<int32_t> uniformIndices(numUniforms);
+
+    uniformBlockInfos.emplace_back(blockName, ix, blockDataSize, numUniforms, longestUniformNameLength);
+  }
+  return uniformBlockInfos;
+}
+
+void Shader::printUniformBlocks() const {
+  const std::vector<UniformBlockInfo>& uniformBlockInfos = getUniformBlockInfos();
+  const std::vector<UniformInfo>& allUniformInfos = getUniformInfos();
+
+  for (const auto& [ix, ubi] : uniformBlockInfos | vws::enumerate) {
+    std::vector<int32_t> uniformIndices(ubi.numUniforms);
     glGetActiveUniformBlockiv(id, ix, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, uniformIndices.data());
-    std::vector<int32_t> uniformOffsets(numUniforms);
-    glGetActiveUniformsiv(id, numUniforms, (uint32_t*)uniformIndices.data(), GL_UNIFORM_OFFSET, uniformOffsets.data());
-    std::println("Uniform Block ix {}, name {} data size {} num active uniforms {}", ix, blockName, blockDataSize, numUniforms);
-    std::println("Offset Size Index Type Name numItems");
+    auto blockUniformInfos = uniformIndices | vws::transform([&](int32_t ix) { return allUniformInfos[ix]; }) | rng::to<std::vector>();
+    rng::sort(blockUniformInfos, {}, &UniformInfo::offset);
 
-    std::vector<UniformInfo> uniformInfos;
-    for (const auto [uIx, uOffset] : std::ranges::views::zip(uniformIndices, uniformOffsets)) {
-      std::string uName(longestUniformNameLength, '\0');
-      int32_t uNameLength = -1;
-      int32_t uSize;
-      uint32_t uType;
-      glGetActiveUniform(id, uIx, longestUniformNameLength, &uNameLength, &uSize, &uType, uName.data());
-      uName.resize(uNameLength);
-      assert(ws::Shader::UNIFORM_SIZES.contains(uType));
-      uniformInfos.emplace_back(uName, uType, uIx, uOffset, uSize, ws::Shader::UNIFORM_AND_ATTRIBUTE_TYPES[uType], static_cast<int32_t>(ws::Shader::UNIFORM_SIZES[uType]));
-    }
-
-    std::ranges::sort(uniformInfos, {},  & UniformInfo::offset);
-    for (const auto& ui : uniformInfos)
+    std::println("Uniform Block ix {}, name {} data size {} num active uniforms {}", ubi.index, ubi.name, ubi.dataSize, ubi.numUniforms);
+    std::println("Offset Size Index Type Name NumItems");
+    for (const auto& ui : blockUniformInfos)
       std::println("{:4d} {:4d} [{:3d}] {:10s} {} {}", ui.offset, ui.sizeBytes, ui.index, ui.typeName, ui.name, ui.numItems);
 
     // Check whether padding was done correctly
-    for (const auto& [curr, next] : std::ranges::views::adjacent<2>(uniformInfos))
+    for (const auto& [curr, next] : vws::adjacent<2>(blockUniformInfos))
       assert(next.offset == curr.offset + curr.sizeBytes);
-    assert(blockDataSize == uniformInfos.back().offset + uniformInfos.back().sizeBytes);
-
+    assert(ubi.dataSize == blockUniformInfos.back().offset + blockUniformInfos.back().sizeBytes);
   }
 }
 
