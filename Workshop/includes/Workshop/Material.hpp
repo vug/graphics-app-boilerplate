@@ -7,6 +7,7 @@
 #include <cassert>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <variant>
 
 namespace ws {
@@ -16,16 +17,19 @@ using ParamT = std::variant<int, float, glm::vec2, glm::vec3>;
 
 class Material {
  private:
-
   void uploadUniform(const std::string& name, const ParamT& value) const;
+
+ public:
+  Material(Shader& shader);
+
+  bool doParametersAndUniformsMatch() const;
+  void uploadParameters() const;
+  std::string parametersToString() const;
 
  public:
   Shader& shader;
   std::unordered_map<std::string, ParamT> parameters;
-  Material(Shader& shader);
-
-  void uploadParameters() const;
-  std::string parametersToString() const;
+  static std::unordered_set<std::string> perMeshUniforms;
 };
 
 }  // namespace ws

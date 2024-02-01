@@ -119,6 +119,8 @@ int main() {
     {"color2", glm::vec3(0, 0, 1)},
     {"numCells", 2},
   };
+  const bool hasMismatch = mat1.doParametersAndUniformsMatch();
+  assert(!hasMismatch);
   
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
