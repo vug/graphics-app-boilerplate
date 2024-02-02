@@ -141,12 +141,10 @@ int main() {
     ImGui::Checkbox("Debug Scene using debug shader", &debugScene);
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
-    ImGui::DragFloat3("A color1", glm::value_ptr(std::get<glm::vec3>(mat1.parameters.at("color1"))));
-    ImGui::DragFloat3("A color2", glm::value_ptr(std::get<glm::vec3>(mat1.parameters["color2"])));
-    ImGui::DragInt("A numCells", &std::get<int>(mat1.parameters["numCells"]));
-    ImGui::DragFloat3("B color1", glm::value_ptr(std::get<glm::vec3>(mat2.parameters.at("color1"))));
-    ImGui::DragFloat3("B color2", glm::value_ptr(std::get<glm::vec3>(mat2.parameters["color2"])));
-    ImGui::DragInt("B numCells", &std::get<int>(mat2.parameters["numCells"]));
+    ImGui::Text("Material1");
+    ImGuiMaterialWidget(mat1);
+    ImGui::Text("Material2");
+    ImGuiMaterialWidget(mat2);
     ImGui::End();
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
