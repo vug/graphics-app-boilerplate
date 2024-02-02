@@ -406,6 +406,17 @@ void Shader::makeNamedStringsFromFolder(const std::filesystem::path& shaderLibFo
   }
 }
 
+int32_t Shader::getSamplerBindingUnit(const char* name) const {
+  const int location = glGetUniformLocation(id, name);
+  auto uiPtr = rng::find_if(uniformInfos, [&name](auto& ui) { return ui.name == name; });
+  assert(uiPtr != uniformInfos.end());  // uniform does not exist
+  const auto& ui = *uiPtr;
+  int32_t binding{-1};
+  assert(location >= 0 && ui.glType == GL_SAMPLER_2D);
+  glGetUniformiv(id, location, &binding);
+  return binding;
+}
+
 void Shader::printAttributes() const {
   int32_t longestNameLength{};
   glGetProgramiv(id, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &longestNameLength);
