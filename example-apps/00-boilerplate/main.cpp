@@ -1,3 +1,4 @@
+#include <Workshop/AssetManager.hpp>
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
 #include <Workshop/Framebuffer.hpp>
@@ -21,18 +22,11 @@
 
 const std::filesystem::path SRC{SOURCE_DIR};
 
-class AssetManager {
- public:
-  std::unordered_map<std::string, ws::Mesh> meshes;
-  std::unordered_map<std::string, ws::Texture> textures;
-  std::unordered_map<std::string, ws::Shader> shaders;
-};
-
 int main() {
   std::println("Hi!");
   ws::Workshop workshop{1920, 1080, "Boilerplate app"};
 
-  AssetManager assetManager;
+  ws::AssetManager assetManager;
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
   assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
   assetManager.textures.emplace("uv_grid", ws::ASSETS_FOLDER / "images/Wikipedia/UV_checker_Map_byValle.jpg");

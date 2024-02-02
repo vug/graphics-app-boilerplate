@@ -1,3 +1,4 @@
+#include <Workshop/AssetManager.hpp>
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
 #include <Workshop/Framebuffer.hpp>
@@ -24,18 +25,11 @@
 
 const std::filesystem::path SRC{SOURCE_DIR};
 
-class AssetManager {
- public:
-  std::unordered_map<std::string, ws::Mesh> meshes;
-  std::unordered_map<std::string, ws::Texture> textures;
-  std::unordered_map<std::string, ws::Shader> shaders;
-};
-
 int main() {
   std::println("Hi!");
   ws::Workshop workshop{1920, 1080, "Material System"};
 
-  AssetManager assetManager;
+  ws::AssetManager assetManager;
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
   assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
   assetManager.textures.emplace("uv_grid", ws::ASSETS_FOLDER / "images/Wikipedia/UV_checker_Map_byValle.jpg");
@@ -143,15 +137,20 @@ int main() {
     ImGui::Checkbox("Debug Scene using debug shader", &debugScene);
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
+    // bring vector of references to texture to material widget (?)
     ImGui::Text("Material1");
-    ImGuiMaterialWidget(mat1);
+    static int32_t mat1TexIx;
+    auto texNames = assetManager.textures | std::views::transform([](auto& items) { return items.second.getName().c_str(); }) | std::ranges::to<std::vector<const char*>>();
+    ImGui::Combo("Texture", &mat1TexIx, texNames.data(), static_cast<uint32_t>(texNames.size()));
+    const auto& tex = assetManager.textures[texNames[mat1TexIx]];
+    ImGuiMaterialWidget(mat1, assetManager);
     if (ImGui::Button("Param/Unif Match1"))
       mat1.doParametersAndUniformsMatch();
     ImGui::SameLine();
     if (ImGui::Button("Print Params1"))
       std::println("{}", mat1.parametersToString());
     ImGui::Text("Material2");
-    ImGuiMaterialWidget(mat2);
+    ImGuiMaterialWidget(mat2, assetManager);
     if (ImGui::Button("Param/Unif Math2"))
       mat2.doParametersAndUniformsMatch();
     ImGui::SameLine();

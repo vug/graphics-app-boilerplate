@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Model.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
