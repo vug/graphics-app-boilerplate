@@ -147,10 +147,16 @@ int main() {
     ImGuiMaterialWidget(mat1);
     if (ImGui::Button("Param/Unif Match1"))
       mat1.doParametersAndUniformsMatch();
+    ImGui::SameLine();
+    if (ImGui::Button("Print Params1"))
+      std::println("{}", mat1.parametersToString());
     ImGui::Text("Material2");
     ImGuiMaterialWidget(mat2);
     if (ImGui::Button("Param/Unif Math2"))
       mat2.doParametersAndUniformsMatch();
+    ImGui::SameLine();
+    if (ImGui::Button("Print Params2"))
+      std::println("{}", mat2.parametersToString());
     ImGui::End();
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
