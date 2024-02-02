@@ -21,7 +21,7 @@ add_library(${TARGET} STATIC
   includes/Workshop/Lights.hpp Lights.cpp
   includes/Workshop/Input.hpp Input.cpp
   includes/Workshop/OpenGL.hpp OpenGL.cpp
-  includes/Workshop/UI.hpp 
+  includes/Workshop/UI.hpp UI.cpp
   includes/Workshop/Scene.hpp Scene.cpp
   includes/Workshop/AssetManager.hpp AssetManager.cpp
   includes/Workshop/ui/TextureViewer.hpp ui/TextureViewer.cpp
