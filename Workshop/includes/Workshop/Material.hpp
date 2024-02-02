@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Shader.hpp"
+#include "Texture.hpp"
 
 #include <glm/glm.hpp>
 
@@ -12,7 +13,7 @@
 
 namespace ws {
 
-using ParamT = std::variant<int, float, glm::vec2, glm::vec3>;
+using ParamT = std::variant<int, float, glm::vec2, glm::vec3, std::reference_wrapper<Texture>>;
 
 
 class Material {

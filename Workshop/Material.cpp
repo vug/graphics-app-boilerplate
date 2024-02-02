@@ -43,12 +43,15 @@ bool Material::doParametersAndUniformsMatch() const {
   auto uniformsWithParameters = uniformInfos | vws::filter([&](auto& ui) { return parameterNames.contains(ui.name); });
   bool typesMatch = true;
   for (const UniformInfo& ui : uniformsWithParameters) {
+    assert(ui.glType == GL_INT || ui.glType == GL_FLOAT || ui.glType == GL_FLOAT_VEC2 || ui.glType == GL_FLOAT_VEC3 || ui.glType == GL_SAMPLER_2D);
     const ParamT& param = parameters.at(ui.name);
     const bool match = std::visit(Overloaded{
       [&]([[maybe_unused]] int _) { return ui.glType == GL_INT; },
       [&]([[maybe_unused]] float _) { return ui.glType == GL_FLOAT; },
       [&]([[maybe_unused]] const glm::vec2& _) { return ui.glType == GL_FLOAT_VEC2; },
       [&]([[maybe_unused]] const glm::vec3& _) { return ui.glType == GL_FLOAT_VEC3; },
+      // TODO: make a bettery comparison. Texture can be 1D, 2D or 3D etc.
+      [&]([[maybe_unused]] const Texture& _) { return ui.glType == GL_SAMPLER_2D; },
     }, param);
     if (!match)
       std::println("Material parameter '{}' is of type '{}' which is different than the type of the corresponding shader uniform, '{}'.", 
@@ -65,6 +68,7 @@ void Material::uploadUniform(const std::string& name, const ParamT& value) const
                  [&](float val) { shader.setFloat(name.c_str(), val); },
                  [&](const glm::vec2& val) { shader.setVector2(name.c_str(), val); },
                  [&](const glm::vec3& val) { shader.setVector3(name.c_str(), val); },
+                 [&](const Texture& tex) { tex.bindToUnit(shader.getSamplerBindingUnit(name.c_str())); },
              },
              value);
 }
@@ -82,6 +86,7 @@ std::string Material::parametersToString() const {
                    [&](float val) { ss << fmt::format("{} = {}\n", name, val); },
                    [&](const glm::vec2& val) { ss << fmt::format("{} = {}\n", name, glm::to_string(val)); },
                    [&](const glm::vec3& val) { ss << fmt::format("{} = {}\n", name, glm::to_string(val)); },
+                   [&](const Texture& val) { ss << fmt::format("{} = {}\n", name, val.getName()); },
                },
                value);
   }
