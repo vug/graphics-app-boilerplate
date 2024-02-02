@@ -118,8 +118,8 @@ int main() {
     {"color2", glm::vec3(0, 0, 1)},
     {"numCells", 2},
   };
-  const bool hasMismatch1 = mat1.doParametersAndUniformsMatch();
-  assert(!hasMismatch1);
+  const bool doMatch1 = mat1.doParametersAndUniformsMatch();
+  assert(doMatch1);
 
   ws::Material mat2{assetManager.shaders.at("checkered")};
   mat2.parameters = {
@@ -127,8 +127,8 @@ int main() {
       {"color2", glm::vec3(0, 1, 1)},
       {"numCells", 3},
   };
-  const bool hasMismatch2 = mat2.doParametersAndUniformsMatch();
-  assert(!hasMismatch2);
+  const bool doMatch2 = mat2.doParametersAndUniformsMatch();
+  assert(doMatch2);
   
   while (!workshop.shouldStop()) {
     workshop.beginFrame();

@@ -56,7 +56,7 @@ bool Material::doParametersAndUniformsMatch() const {
     typesMatch &= match;
   }
 
-  return !uniformsWithoutParameters.empty() || !parametersWithoutUniforms.empty() || !typesMatch;
+  return uniformsWithoutParameters.empty() && parametersWithoutUniforms.empty() && typesMatch;
 }
 
 void Material::uploadUniform(const std::string& name, const ParamT& value) const {
