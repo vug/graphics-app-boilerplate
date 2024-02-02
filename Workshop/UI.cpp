@@ -16,14 +16,17 @@ void ImGuiMaterialWidget(Material& mat, AssetManager& assetManager) {
       [&](Texture& val) { 
         const auto texNames = assetManager.textures | std::views::transform([](auto& items) { return items.second.getName(); }) | std::ranges::to<std::vector>();
         const auto texLabels = assetManager.textures | std::views::transform([](auto& items) { return items.first; }) | std::ranges::to<std::vector>();
-        // Combo works with const char*
-        const auto texNamesCstr = texNames | std::views::transform([](auto& str) { return str.c_str(); }) | std::ranges::to<std::vector>();
-        // Get currently chosen texture's name's index in texNames vector
+        // Combo works with const char* but for some reason putting a c_str() after format() does not work.
+        // It complains about "pointer dangling because it points at a temporary instance that was destroyed".
+        // Therefore I need to first store them in std::vector<string> texLabelNames then convert that to c_str() in a next pass.
+        const auto texLabelNames = std::views::zip_transform([](auto& a, auto& b) { return std::format("{}/{}", a, b); }, texLabels, texNames) | std::ranges::to<std::vector>();
+        const auto texLabelNamesCstr = texLabelNames | std::views::transform([](auto& str) { return str.c_str(); }) | std::ranges::to<std::vector>();
+        // Get currently the index of the chosen texture's name in texNames vector
         auto it = std::ranges::find(texNames, val.getName());
         assert(it != texNames.end());
         int32_t vectorIx = std::distance(texNames.begin(), it);
         // control vectorIx via UI, and if updated, set material texture parameter to the newly chosen one
-        if (ImGui::Combo("Texture", &vectorIx, texNamesCstr.data(), static_cast<uint32_t>(texNamesCstr.size()))) {
+        if (ImGui::Combo("Texture", &vectorIx, texLabelNamesCstr.data(), static_cast<uint32_t>(texLabelNamesCstr.size()))) {
           std::string chosenTexName = texLabels[vectorIx];
           mat.parameters.at(name) = assetManager.textures[chosenTexName];
         }
