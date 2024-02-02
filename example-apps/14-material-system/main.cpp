@@ -145,8 +145,12 @@ int main() {
     ImGui::Separator();
     ImGui::Text("Material1");
     ImGuiMaterialWidget(mat1);
+    if (ImGui::Button("Param/Unif Match1"))
+      mat1.doParametersAndUniformsMatch();
     ImGui::Text("Material2");
     ImGuiMaterialWidget(mat2);
+    if (ImGui::Button("Param/Unif Math2"))
+      mat2.doParametersAndUniformsMatch();
     ImGui::End();
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);

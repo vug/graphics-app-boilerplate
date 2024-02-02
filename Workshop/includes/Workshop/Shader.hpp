@@ -100,6 +100,8 @@ class Shader {
   // detach attached shaders, if there are any
   // don't call on actively used shaders, if no new compiled shaders are going to be attached.
   void detachShaders();
+  void prepareUniformBlockInfos();
+  void prepareUniformInfos();
 
  private:
   std::filesystem::path vertexShader;
@@ -107,15 +109,17 @@ class Shader {
   std::filesystem::path fragmentShader;
   std::filesystem::path computeShader;
   ws::GlHandle id;
+  std::vector<UniformBlockInfo> uniformBlockInfos;
+  std::vector<UniformInfo> uniformInfos;
 
 public:
   static void makeNamedStringFromFile(const std::string& name, const std::filesystem::path& fp);
   // Glob shaderLibFolder (say assets/shaders/lib) and create a NamedString for each glsl file (say /lib/lights/PointLight.glsl)
   static void makeNamedStringsFromFolder(const std::filesystem::path& shaderLibFolder);
   void printAttributes() const;
-  std::vector<UniformBlockInfo> getUniformBlockInfos() const;
+  const std::vector<UniformBlockInfo>& getUniformBlockInfos() const;
   void printUniformBlocks() const;
-  std::vector<UniformInfo> getUniformInfos() const;
+  const std::vector<UniformInfo>& getUniformInfos() const;
   void printUniforms() const;
   void printSource() const;
 

@@ -122,6 +122,10 @@ bool Shader::compile(const char* vertexShaderSource, const char* geometryShaderS
   glDeleteShader(vertex);
   glDeleteShader(geometry);
   glDeleteShader(fragment);
+
+  prepareUniformInfos();
+  prepareUniformBlockInfos();
+
   return success;
 }
 
@@ -167,6 +171,10 @@ bool Shader::compile(const char* vertexShaderSource, const char* fragmentShaderS
 
   glDeleteShader(vertex);
   glDeleteShader(fragment);
+
+  prepareUniformInfos();
+  prepareUniformBlockInfos();
+
   return success;
 }
 
@@ -198,6 +206,10 @@ bool Shader::compile(const char* computeShaderSource) {
   }
 
   glDeleteShader(compute);
+
+  prepareUniformInfos();
+  prepareUniformBlockInfos();
+
   return success;
 }
 
@@ -410,8 +422,8 @@ void Shader::printAttributes() const {
   }
 }
 
-std::vector<UniformInfo> Shader::getUniformInfos() const {
-  std::vector<UniformInfo> uniformInfos;
+void Shader::prepareUniformInfos() {
+  uniformInfos.clear();
 
   int32_t longestNameLength{};
   glGetProgramiv(id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &longestNameLength);
@@ -432,6 +444,9 @@ std::vector<UniformInfo> Shader::getUniformInfos() const {
     name.resize(nameLength);
     uniformInfos.emplace_back(name, type, ix, uniformOffsets[ix], numItems, ws::Shader::UNIFORM_AND_ATTRIBUTE_TYPES[type], static_cast<int32_t>(ws::Shader::UNIFORM_SIZES[type]));
   }
+}
+
+const std::vector<UniformInfo>& Shader::getUniformInfos() const {
   return uniformInfos;
 }
 
@@ -442,8 +457,8 @@ void Shader::printUniforms() const {
     std::println("{:4d} {:4d} [{:3d}] {:10s} {} {}", ui.offset, ui.sizeBytes, ui.index, ui.typeName, ui.name, ui.numItems);
 }
 
-std::vector<UniformBlockInfo> Shader::getUniformBlockInfos() const {
-  std::vector<UniformBlockInfo> uniformBlockInfos;
+void Shader::prepareUniformBlockInfos() {
+  uniformBlockInfos.clear();
 
   int32_t longestBlockNameLength{};
   glGetProgramiv(id, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &longestBlockNameLength);
@@ -464,6 +479,9 @@ std::vector<UniformBlockInfo> Shader::getUniformBlockInfos() const {
 
     uniformBlockInfos.emplace_back(blockName, ix, blockDataSize, numUniforms, longestUniformNameLength);
   }
+}
+
+const std::vector<UniformBlockInfo>& Shader::getUniformBlockInfos() const {
   return uniformBlockInfos;
 }
 
