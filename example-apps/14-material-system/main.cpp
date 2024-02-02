@@ -166,8 +166,12 @@ int main() {
     for (auto& renderable : scene.renderables) {
       if (renderable.get().name == "Monkey")
         mat1.uploadParameters();
-      if (renderable.get().name == "Box")
+      else if (renderable.get().name == "Box")
         mat2.uploadParameters();
+      else {
+        renderable.get().texture.bindToUnit(3);
+        renderable.get().texture2.bindToUnit(7);
+      }
       assetManager.shaders.at("checkered").setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       const ws::Mesh& mesh = renderable.get().mesh;
       mesh.bind();
@@ -187,12 +191,14 @@ int main() {
     for (auto& renderable : scene.renderables) {
       ws::Shader& shader = renderable.get().shader;
       shader.bind();
-	    renderable.get().texture.bindToUnit(3);
-	    renderable.get().texture2.bindToUnit(7);
       if (renderable.get().name == "Monkey")
         mat1.uploadParameters();
-      if (renderable.get().name == "Box")
+      else if (renderable.get().name == "Box")
         mat2.uploadParameters();
+      else {
+        renderable.get().texture.bindToUnit(3);
+        renderable.get().texture2.bindToUnit(7);
+      }
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       renderable.get().mesh.bind();
       renderable.get().mesh.draw();
