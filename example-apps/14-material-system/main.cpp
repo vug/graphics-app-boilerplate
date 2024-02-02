@@ -139,10 +139,6 @@ int main() {
     ImGui::Separator();
     // bring vector of references to texture to material widget (?)
     ImGui::Text("Material1");
-    static int32_t mat1TexIx;
-    auto texNames = assetManager.textures | std::views::transform([](auto& items) { return items.second.getName().c_str(); }) | std::ranges::to<std::vector<const char*>>();
-    ImGui::Combo("Texture", &mat1TexIx, texNames.data(), static_cast<uint32_t>(texNames.size()));
-    const auto& tex = assetManager.textures[texNames[mat1TexIx]];
     ImGuiMaterialWidget(mat1, assetManager);
     if (ImGui::Button("Param/Unif Match1"))
       mat1.doParametersAndUniformsMatch();

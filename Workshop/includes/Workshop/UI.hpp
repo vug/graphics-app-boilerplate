@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AssetManager.hpp"
 #include "Material.hpp"
 #include "ui/EditorWindow.hpp"
 #include "ui/HierarchyWindow.hpp"
@@ -7,5 +8,5 @@
 #include "ui/TextureViewer.hpp"
 
 namespace ws {
-void ImGuiMaterialWidget(Material& mat);
+void ImGuiMaterialWidget(Material& mat, AssetManager& assetManager);
 }
