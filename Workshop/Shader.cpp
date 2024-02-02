@@ -462,10 +462,11 @@ const std::vector<UniformInfo>& Shader::getUniformInfos() const {
 }
 
 void Shader::printUniforms() const {
-  const std::vector<UniformInfo>& uniformInfos = getUniformInfos();
-  std::println("Offset Size Index Type Name NumItems");
-  for (const auto& ui : uniformInfos)
-    std::println("{:4d} {:4d} [{:3d}] {:10s} {} {}", ui.offset, ui.sizeBytes, ui.index, ui.typeName, ui.name, ui.numItems);
+  std::println("Offset Size Index Type Name NumItems | Location");
+  for (const auto& ui : uniformInfos) {
+    const int location = glGetUniformLocation(id, ui.name.c_str());
+    std::println("{:4d} {:4d} [{:3d}] {:10s} {} {} | {}", ui.offset, ui.sizeBytes, ui.index, ui.typeName, ui.name, ui.numItems, location);
+  }
 }
 
 void Shader::prepareUniformBlockInfos() {
