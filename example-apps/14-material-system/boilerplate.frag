@@ -9,8 +9,8 @@ in VertexData vertexData;
 uniform vec3 color1 = vec3(0.8, 0.8, 0.8);
 uniform vec3 color2 = vec3(0.2, 0.2, 0.2);
 uniform int numCells = 4;
-layout(binding = 0) uniform sampler2D mainTex;
-layout(binding = 1) uniform sampler2D secondTex;
+layout(binding = 3) uniform sampler2D mainTex;
+layout(binding = 7) uniform sampler2D secondTex;
 
 out vec4 FragColor;
 
@@ -42,5 +42,6 @@ void main() {
   vec2 ij = floor(vertexData.texCoord * numCells);
   vec2 uv = fract(vertexData.texCoord * numCells);
   vec3 color = mod(ij.x + ij.y, 2) == 0 ? color1 : color2;
+  color *= mainTexColor;
   FragColor = vec4(color, 1);
 }

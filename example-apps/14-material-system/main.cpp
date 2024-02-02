@@ -117,6 +117,7 @@ int main() {
     {"color1", glm::vec3(1, 0, 0)},
     {"color2", glm::vec3(0, 0, 1)},
     {"numCells", 2},
+    {"mainTex", assetManager.textures.at("uv_grid")},
   };
   const bool doMatch1 = mat1.doParametersAndUniformsMatch();
   assert(doMatch1);
@@ -126,6 +127,7 @@ int main() {
       {"color1", glm::vec3(1, 1, 0)},
       {"color2", glm::vec3(0, 1, 1)},
       {"numCells", 3},
+      {"mainTex", assetManager.textures.at("wood")},
   };
   const bool doMatch2 = mat2.doParametersAndUniformsMatch();
   assert(doMatch2);
@@ -162,7 +164,6 @@ int main() {
         mat1.uploadParameters();
       if (renderable.get().name == "Box")
         mat2.uploadParameters();
-      renderable.get().texture.bindToUnit(0);
       assetManager.shaders.at("checkered").setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       const ws::Mesh& mesh = renderable.get().mesh;
       mesh.bind();
@@ -182,12 +183,12 @@ int main() {
     for (auto& renderable : scene.renderables) {
       ws::Shader& shader = renderable.get().shader;
       shader.bind();
+	    renderable.get().texture.bindToUnit(3);
+	    renderable.get().texture2.bindToUnit(7);
       if (renderable.get().name == "Monkey")
         mat1.uploadParameters();
       if (renderable.get().name == "Box")
         mat2.uploadParameters();
-	    renderable.get().texture.bindToUnit(0);
-	    renderable.get().texture2.bindToUnit(1);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       renderable.get().mesh.bind();
       renderable.get().mesh.draw();
