@@ -176,7 +176,6 @@ int main() {
       renderable.get().mesh.bind();
       renderable.get().mesh.draw();
       renderable.get().mesh.unbind();
-      // TODO: unbind texture units?
       shader.unbind();
     }
 

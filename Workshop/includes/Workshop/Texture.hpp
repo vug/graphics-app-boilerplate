@@ -67,6 +67,7 @@ class Texture {
   void bind() const;
   static void unbind();
   void bindToUnit(uint32_t unit) const;
+  // Not needed in DSA see https://stackoverflow.com/q/50113147/5394043
   void unbindFromUnit(uint32_t unit) const;
   // should already be bound
   void bindImageTexture(uint32_t textureUnit, Access access) const;
