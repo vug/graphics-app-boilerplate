@@ -19,10 +19,6 @@ namespace ws {
 
 std::unordered_set<std::string> Material::perMeshUniforms = {"u_WorldFromObject"};
 
-Material::Material(Shader& shader)
-    : shader(shader) 
-{ }
-
 bool Material::doParametersAndUniformsMatch() const {
   std::vector<UniformInfo> uniformInfos = shader.getUniformInfos();
   std::unordered_set<std::string> uniformNames = uniformInfos | vws::transform(&UniformInfo::name) | rng::to<std::unordered_set>();

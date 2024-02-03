@@ -21,8 +21,6 @@ class Material {
   void uploadUniform(const std::string& name, const ParamT& value) const;
 
  public:
-  Material(Shader& shader);
-
   bool doParametersAndUniformsMatch() const;
   void uploadParameters() const;
   std::string parametersToString() const;
@@ -30,6 +28,7 @@ class Material {
  public:
   Shader& shader;
   std::unordered_map<std::string, ParamT> parameters;
+
   static std::unordered_set<std::string> perMeshUniforms;
 };
 
