@@ -3,6 +3,7 @@
 #include "Common.hpp"
 #include "Camera.hpp"
 #include "Lights.hpp"
+#include "Material.hpp"
 #include "Model.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
@@ -16,12 +17,13 @@
 
 namespace ws {
 struct RenderableObject;
+struct RenderableObject2;
 struct CameraObject;
 struct DummyObject;
 // using RenderableObjectRef = std::reference_wrapper<RenderableObject>;
 // using CameraObjectRef = std::reference_wrapper<CameraObject>;
 // using VObject = std::variant<RenderableObjectRef, CameraObjectRef>;
-using VObjectPtr = std::variant<DummyObject*, RenderableObject*, CameraObject*>;
+using VObjectPtr = std::variant<DummyObject*, RenderableObject*, RenderableObject2*, CameraObject*>;
 
 
 struct Object {
@@ -42,6 +44,11 @@ struct RenderableObject : public Object {
   ws::Shader& shader;
   ws::Texture& texture;
   ws::Texture& texture2;
+};
+
+struct RenderableObject2 : public Object {
+  ws::Mesh& mesh;
+  ws::Material& material;
 };
 
 struct CameraObject : public Object {
