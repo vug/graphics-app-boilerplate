@@ -81,6 +81,9 @@ TEST_F(WorkshopTest, HierarchyConstruction) {
                    [&](ws::RenderableObject* ptr) {
                      objectNames.push_back(ptr->name);
                    },
+                   [&](ws::RenderableObject2* ptr) {
+                     objectNames.push_back(ptr->name);
+                   },
                    [&](ws::CameraObject* ptr) {
                      objectNames.push_back(ptr->name);
                    },
