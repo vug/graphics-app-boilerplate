@@ -14,8 +14,8 @@ void ImGuiMaterialWidget(Material& mat, AssetManager& assetManager) {
       [&](glm::vec2& val) { ImGui::DragFloat2(name.c_str(), glm::value_ptr(val)); },
       [&](glm::vec3& val) { ImGui::DragFloat3(name.c_str(), glm::value_ptr(val)); },
       [&](Texture& val) { 
-        const auto texNames = assetManager.textures | std::views::transform([](auto& items) { return items.second.getName(); }) | std::ranges::to<std::vector>();
-        const auto texLabels = assetManager.textures | std::views::transform([](auto& items) { return items.first; }) | std::ranges::to<std::vector>();
+        const auto texNames = assetManager.textures | std::views::values | std::views::transform([](auto& tex) { return tex.getName(); }) | std::ranges::to<std::vector>();
+        const auto texLabels = assetManager.textures | std::views::keys | std::ranges::to<std::vector>();
         // Combo works with const char* but for some reason putting a c_str() after format() does not work.
         // It complains about "pointer dangling because it points at a temporary instance that was destroyed".
         // Therefore I need to first store them in std::vector<string> texLabelNames then convert that to c_str() in a next pass.
