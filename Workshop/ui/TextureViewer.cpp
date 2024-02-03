@@ -13,6 +13,10 @@ TextureViewer::TextureViewer(const std::vector<std::reference_wrapper<ws::Textur
 void TextureViewer::draw() {
   ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
   ImGui::Begin("Texture Viewer", nullptr, ImGuiWindowFlags_NoScrollbar);
+  if (textures.empty()) {
+    ImGui::End();
+    return;
+  }
   auto items = textures | std::views::transform([](const ws::Texture& tex) { return tex.getName().c_str(); }) | std::ranges::to<std::vector<const char*>>();
   ImGui::Combo("Texture", &ix, items.data(), static_cast<uint32_t>(items.size()));
   const auto& tex = textures[ix].get();
