@@ -41,6 +41,28 @@ int main() {
   assetManager.shaders.emplace("phong", ws::Shader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("checkered", ws::Shader{SRC / "boilerplate.vert", SRC / "boilerplate.frag"});
+  assetManager.materials.emplace("checkered1", 
+    ws::Material{
+      .shader = assetManager.shaders.at("checkered"),
+      .parameters = {
+          {"color1", glm::vec3(1, 0, 0)},
+          {"color2", glm::vec3(0, 0, 1)},
+          {"numCells", 2},
+          {"mainTex", assetManager.textures.at("uv_grid")},
+      }
+    }
+  );
+  assetManager.materials.emplace("checkered2",
+    ws::Material{
+      .shader = assetManager.shaders.at("checkered"),
+      .parameters = {
+          {"color1", glm::vec3(1, 1, 0)},
+          {"color2", glm::vec3(0, 1, 1)},
+          {"numCells", 3},
+          {"mainTex", assetManager.textures.at("wood")},
+      }
+    }
+  );
   ws::Framebuffer offscreenFbo;
 
   ws::RenderableObject ground = {
@@ -105,27 +127,7 @@ int main() {
   
   glEnable(GL_DEPTH_TEST);
   scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("checkered").getId(), "SceneUniforms");
-
-  ws::Material mat1{assetManager.shaders.at("checkered")};
-  mat1.parameters = {
-    {"color1", glm::vec3(1, 0, 0)},
-    {"color2", glm::vec3(0, 0, 1)},
-    {"numCells", 2},
-    {"mainTex", assetManager.textures.at("uv_grid")},
-  };
-  const bool doMatch1 = mat1.doParametersAndUniformsMatch();
-  assert(doMatch1);
-
-  ws::Material mat2{assetManager.shaders.at("checkered")};
-  mat2.parameters = {
-      {"color1", glm::vec3(1, 1, 0)},
-      {"color2", glm::vec3(0, 1, 1)},
-      {"numCells", 3},
-      {"mainTex", assetManager.textures.at("wood")},
-  };
-  const bool doMatch2 = mat2.doParametersAndUniformsMatch();
-  assert(doMatch2);
-  
+ 
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
     const glm::uvec2 winSize = workshop.getWindowSize();
@@ -139,19 +141,19 @@ int main() {
     ImGui::Separator();
     // bring vector of references to texture to material widget (?)
     ImGui::Text("Material1");
-    ImGuiMaterialWidget(mat1, assetManager);
+    ImGuiMaterialWidget(assetManager.materials.at("checkered1"), assetManager);
     if (ImGui::Button("Param/Unif Match1"))
-      mat1.doParametersAndUniformsMatch();
+      assetManager.materials.at("checkered1").doParametersAndUniformsMatch();
     ImGui::SameLine();
     if (ImGui::Button("Print Params1"))
-      std::println("{}", mat1.parametersToString());
+      std::println("{}", assetManager.materials.at("checkered1").parametersToString());
     ImGui::Text("Material2");
-    ImGuiMaterialWidget(mat2, assetManager);
+    ImGuiMaterialWidget(assetManager.materials.at("checkered2"), assetManager);
     if (ImGui::Button("Param/Unif Math2"))
-      mat2.doParametersAndUniformsMatch();
+      assetManager.materials.at("checkered2").doParametersAndUniformsMatch();
     ImGui::SameLine();
     if (ImGui::Button("Print Params2"))
-      std::println("{}", mat2.parametersToString());
+      std::println("{}", assetManager.materials.at("checkered2").parametersToString());
     ImGui::End();
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
@@ -166,9 +168,9 @@ int main() {
     assetManager.shaders.at("checkered").bind();
     for (auto& renderable : scene.renderables) {
       if (renderable.get().name == "Monkey")
-        mat1.uploadParameters();
+        assetManager.materials.at("checkered1").uploadParameters();
       else if (renderable.get().name == "Box")
-        mat2.uploadParameters();
+        assetManager.materials.at("checkered2").uploadParameters();
       else {
         renderable.get().texture.bindToUnit(3);
         renderable.get().texture2.bindToUnit(7);
@@ -193,9 +195,9 @@ int main() {
       ws::Shader& shader = renderable.get().shader;
       shader.bind();
       if (renderable.get().name == "Monkey")
-        mat1.uploadParameters();
+        assetManager.materials.at("checkered1").uploadParameters();
       else if (renderable.get().name == "Box")
-        mat2.uploadParameters();
+        assetManager.materials.at("checkered2").uploadParameters();
       else {
         renderable.get().texture.bindToUnit(3);
         renderable.get().texture2.bindToUnit(7);
