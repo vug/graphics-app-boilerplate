@@ -50,12 +50,12 @@ EditorWindow::EditorWindow(Scene& scene)
       outlineSolidFbo(Framebuffer::makeDefaultColorOnly(1, 1)),
       outlineGrowthFbo(Framebuffer::makeDefaultColorOnly(1, 1)),
       scene(scene),
-      editorShader(ws::ASSETS_FOLDER / "shaders/editor.vert", ws::ASSETS_FOLDER / "shaders/editor.frag"),
+      editorShader(ws::ASSETS_FOLDER / "shaders/editor/editor.vert", ws::ASSETS_FOLDER / "shaders/editor/editor.frag"),
       solidColorShader(ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"),
       outlineShader(ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_outline.frag"),
       copyShader(ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"),
-      gridShader(ws::ASSETS_FOLDER / "shaders/infinite_grid.vert", ws::ASSETS_FOLDER / "shaders/infinite_grid.frag"),
-      normalVizShader(ws::ASSETS_FOLDER / "shaders/normal_viz.vert", ws::ASSETS_FOLDER / "shaders/normal_viz.geom", ws::ASSETS_FOLDER / "shaders/normal_viz.frag"),
+      gridShader(ws::ASSETS_FOLDER / "shaders/editor/infinite_grid.vert", ws::ASSETS_FOLDER / "shaders/editor/infinite_grid.frag"),
+      normalVizShader(ws::ASSETS_FOLDER / "shaders/editor/normal_viz.vert", ws::ASSETS_FOLDER / "shaders/editor/normal_viz.geom", ws::ASSETS_FOLDER / "shaders/editor/normal_viz.frag"),
       gridVao([]() { uint32_t id;glGenVertexArrays(1, &id); return id; }()), 
       emptyVao([]() { uint32_t id;glGenVertexArrays(1, &id); return id; }()) 
   {}
