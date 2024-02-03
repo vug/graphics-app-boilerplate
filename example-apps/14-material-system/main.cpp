@@ -63,6 +63,7 @@ int main() {
       }
     }
   );
+  assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
   ws::Framebuffer offscreenFbo;
 
   ws::RenderableObject ground = {
