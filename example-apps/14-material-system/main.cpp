@@ -41,6 +41,15 @@ int main() {
   assetManager.shaders.emplace("phong", ws::Shader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("checkered", ws::Shader{SRC / "boilerplate.vert", SRC / "boilerplate.frag"});
+  assetManager.materials.emplace("phong1", 
+    ws::Material{
+      .shader = assetManager.shaders.at("phong"),
+      .parameters = {
+          {"diffuseTexture", assetManager.textures.at("uv_grid")},
+          {"specularTexture", assetManager.white,
+      }
+    }
+  });
   assetManager.materials.emplace("checkered1", 
     ws::Material{
       .shader = assetManager.shaders.at("checkered"),
@@ -64,32 +73,25 @@ int main() {
     }
   );
   assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
-  ws::Framebuffer offscreenFbo;
 
-  ws::RenderableObject ground = {
+  ws::RenderableObject2 ground = {
       {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
       assetManager.meshes.at("cube"),
-      assetManager.shaders.at("phong"),
-      assetManager.textures.at("uv_grid"),
-      whiteTex,
+      assetManager.materials.at("phong1"),
   };
-  ws::RenderableObject monkey = {
+  ws::RenderableObject2 monkey = {
       {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey"),
-      assetManager.shaders.at("checkered"),
-      whiteTex,
-      whiteTex,
+      assetManager.materials.at("checkered1"),
   };
-  ws::RenderableObject box = {
+  ws::RenderableObject2 box = {
       {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
       assetManager.meshes.at("cube"),
-      assetManager.shaders.at("checkered"),
-      whiteTex,
-      whiteTex,
+      assetManager.materials.at("checkered2"),
   };
 
   ws::Scene scene{
-    .renderables{ground, monkey, box},
+    .renderables2{ground, monkey, box},
     .ambientLight = ws::AmbientLight{.color = glm::vec3(0.05, 0.0, 0.05)},
     .hemisphericalLight = ws::HemisphericalLight{
       .northColor = glm::vec3(0.05, 0.15, 0.95),
@@ -119,7 +121,7 @@ int main() {
   ws::AutoOrbitingCameraController orbitingCamController{scene.camera};
   orbitingCamController.radius = 10.f;
   orbitingCamController.theta = 0.3f;
-  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{offscreenFbo.getFirstColorAttachment()};
+  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{};
   ws::TextureViewer textureViewer{texRefs};
   ws::EditorWindow editorWindow{scene};
   ws::HierarchyWindow hierarchyWindow{scene};
@@ -132,7 +134,6 @@ int main() {
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
     const glm::uvec2 winSize = workshop.getWindowSize();
-    offscreenFbo.resizeIfNeeded(winSize.x, winSize.y); // can be resized by something else
 
     ImGui::Begin("Material System");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
@@ -161,54 +162,21 @@ int main() {
     scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
     scene.uploadUniforms();
 
-    offscreenFbo.bind();
-    glViewport(0, 0, winSize.x, winSize.y);
-    glDisable(GL_CULL_FACE);
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    assetManager.shaders.at("checkered").bind();
-    for (auto& renderable : scene.renderables) {
-      if (renderable.get().name == "Monkey")
-        assetManager.materials.at("checkered1").uploadParameters();
-      else if (renderable.get().name == "Box")
-        assetManager.materials.at("checkered2").uploadParameters();
-      else {
-        renderable.get().texture.bindToUnit(3);
-        renderable.get().texture2.bindToUnit(7);
-      }
-      assetManager.shaders.at("checkered").setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-      const ws::Mesh& mesh = renderable.get().mesh;
-      mesh.bind();
-      mesh.draw();
-      mesh.unbind();
-      renderable.get().texture.unbindFromUnit(0);
-    }
-    assetManager.shaders.at("checkered").unbind();
-    offscreenFbo.unbind();
-
     glViewport(0, 0, winSize.x, winSize.y);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for (auto& renderable : scene.renderables) {
-      ws::Shader& shader = renderable.get().shader;
+    for (auto& renderable : scene.renderables2) {
+      ws::Shader& shader = renderable.get().material.shader;
       shader.bind();
-      if (renderable.get().name == "Monkey")
-        assetManager.materials.at("checkered1").uploadParameters();
-      else if (renderable.get().name == "Box")
-        assetManager.materials.at("checkered2").uploadParameters();
-      else {
-        renderable.get().texture.bindToUnit(3);
-        renderable.get().texture2.bindToUnit(7);
-      }
+      renderable.get().material.uploadParameters();
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       renderable.get().mesh.bind();
       renderable.get().mesh.draw();
       renderable.get().mesh.unbind();
-	    renderable.get().texture.unbindFromUnit(0);
-	    renderable.get().texture2.unbindFromUnit(1);
+      // TODO: unbind texture units?
       shader.unbind();
     }
 
