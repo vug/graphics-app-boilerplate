@@ -24,7 +24,7 @@ void ImGuiMaterialWidget(Material& mat, AssetManager& assetManager) {
         // Get currently the index of the chosen texture's name in texNames vector
         auto it = std::ranges::find(texNames, val.getName());
         assert(it != texNames.end());
-        int32_t vectorIx = std::distance(texNames.begin(), it);
+        int32_t vectorIx = static_cast<int32_t>(std::distance(texNames.begin(), it));
         // control vectorIx via UI, and if updated, set material texture parameter to the newly chosen one
         if (ImGui::Combo("Texture", &vectorIx, texLabelNamesCstr.data(), static_cast<uint32_t>(texLabelNamesCstr.size()))) {
           std::string chosenTexName = texLabels[vectorIx];

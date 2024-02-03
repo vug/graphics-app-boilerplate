@@ -239,11 +239,11 @@ void Texture::clear(ClearData data, int level) const {
     [&](int32_t integer) {
       assert(gs.format == GL_RED_INTEGER);
       //assert(gs.type == GL_INT);
-      glClearTexImage(id, level, gs.format, GL_INT, &data);
+      glClearTexImage(id, level, gs.format, GL_INT, &integer);
     },
     [&](float num) {
       assert(gs.format == GL_RED);
-      glClearTexImage(id, level, gs.format, GL_FLOAT, &data);
+      glClearTexImage(id, level, gs.format, GL_FLOAT, &num);
     },
     [&](glm::vec3 rgbF) {
       assert(gs.format == GL_RGB);
