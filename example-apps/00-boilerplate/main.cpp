@@ -38,7 +38,6 @@ int main() {
   assetManager.shaders.emplace("phong", ws::Shader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("boilerplate", ws::Shader{SRC / "boilerplate.vert", SRC / "boilerplate.frag"});
-  ws::Shader debugShader{ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag"};
   ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   ws::RenderableObject ground = {
@@ -78,7 +77,7 @@ int main() {
   ws::EditorWindow editorWindow{scene};
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};
-  workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("unlit"), assetManager.shaders.at("boilerplate"), debugShader};
+  workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("unlit"), assetManager.shaders.at("boilerplate")};
   
   glEnable(GL_DEPTH_TEST);
   
@@ -89,8 +88,6 @@ int main() {
 
     ImGui::Begin("Boilerplate");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
-    static bool debugScene = false;
-    ImGui::Checkbox("Debug Scene using debug shader", &debugScene);
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
     ImGui::End();
@@ -126,13 +123,11 @@ int main() {
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (auto& renderable : scene.renderables) {
-      ws::Shader& shader = debugScene ? debugShader : renderable.get().shader;
+      ws::Shader& shader = renderable.get().shader;
       shader.bind();
       shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
       shader.setVector3("u_CameraPosition", cam.position);
-      if (debugScene)
-        shader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
 	    renderable.get().texture.bindToUnit(0);
 	    renderable.get().texture2.bindToUnit(1);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());

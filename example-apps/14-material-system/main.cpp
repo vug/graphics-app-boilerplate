@@ -137,8 +137,6 @@ int main() {
 
     ImGui::Begin("Material System");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
-    static bool debugScene = false;
-    ImGui::Checkbox("Debug Scene using debug shader", &debugScene);
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
     // bring vector of references to texture to material widget (?)

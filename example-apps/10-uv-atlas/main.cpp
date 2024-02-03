@@ -51,7 +51,6 @@ int main() {
   assetManager.textures.emplace("white", std::move(whiteTex));
   ws::Shader mainShader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"};
   ws::Shader unlitShader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"};
-  ws::Shader debugShader{ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag"};
   ws::Shader uvAtlasShader{SRC / "uv_atlas.vert", SRC / "uv_atlas.frag"};
   ws::Shader lightmapShader{SRC / "lightmap.vert", SRC / "lightmap.frag"};
   ws::Framebuffer atlasFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
@@ -122,7 +121,7 @@ int main() {
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};
   ws::EditorWindow editorWindow{scene};
-  workshop.shadersToReload = {mainShader, unlitShader, debugShader, uvAtlasShader, lightmapShader};
+  workshop.shadersToReload = {mainShader, unlitShader, uvAtlasShader, lightmapShader};
   
   glEnable(GL_DEPTH_TEST);
   
@@ -134,8 +133,6 @@ int main() {
 
     ImGui::Begin("LightMapper");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
-    static bool debugScene = false;
-    ImGui::Checkbox("Debug Scene using debug shader", &debugScene);
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
 
@@ -172,13 +169,11 @@ int main() {
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (auto& renderable : scene.renderables) {
-      ws::Shader& shader = debugScene ? debugShader : renderable.get().shader;
+      ws::Shader& shader = renderable.get().shader;
       shader.bind();
       shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
       shader.setVector3("u_CameraPosition", cam.position);
-      if (debugScene)
-        shader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
 	    renderable.get().texture.bindToUnit(0);
 	    renderable.get().texture2.bindToUnit(1);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());

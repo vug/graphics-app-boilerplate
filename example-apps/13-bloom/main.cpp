@@ -38,7 +38,6 @@ int main() {
   assetManager.shaders.emplace("copy", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"});
   assetManager.shaders.emplace("lumi_tresh", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", SRC / "lumi_tresh.frag"});
   assetManager.shaders.emplace("blur", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", SRC / "blur.frag"});
-  ws::Shader debugShader{ws::ASSETS_FOLDER / "shaders/debug.vert", ws::ASSETS_FOLDER / "shaders/debug.frag"};
   ws::Framebuffer sceneFbo{1, 1};
   ws::Framebuffer lumTreshFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
   const int numMaxBlooms = 8;
@@ -110,8 +109,6 @@ int main() {
 
     ImGui::Begin("Bloom");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
-    static bool debugScene = false;
-    ImGui::Checkbox("Debug Scene using debug shader", &debugScene);
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
     static float luminanceThreshold = 0.75f;
@@ -133,13 +130,11 @@ int main() {
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (auto& renderable : scene.renderables) {
-      ws::Shader& shader = debugScene ? debugShader : renderable.get().shader;
+      ws::Shader& shader = renderable.get().shader;
       shader.bind();
       shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
       shader.setVector3("u_CameraPosition", cam.position);
-      if (debugScene)
-        shader.setVector2("u_CameraNearFar", glm::vec2{cam.nearClip, cam.farClip});
 	    renderable.get().texture.bindToUnit(0);
 	    renderable.get().texture2.bindToUnit(1);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
