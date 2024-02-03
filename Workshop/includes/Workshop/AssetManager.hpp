@@ -20,6 +20,8 @@ class AssetManager {
 
   Texture white;
   void drawWithEmptyVao(uint32_t numVertices) const;
+  bool doAllMaterialsHaveMatchingParametersAndUniforms() const;
+
 
  private:
   uint32_t vaoEmpty;
