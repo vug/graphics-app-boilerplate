@@ -78,4 +78,39 @@ void Scene::uploadUniforms() {
 
   ubo.upload();
 }
+
+void Scene::draw() const {
+  for (const auto& renderable : renderables2 | std::views::transform([](const auto& r) { return r.get(); })) {
+    renderable.material.shader.bind();
+    renderable.material.uploadParameters();
+    renderable.material.shader.setMatrix4("u_WorldFromObject", renderable.transform.getWorldFromObjectMatrix());
+    renderable.mesh.draw();
+    renderable.material.shader.unbind();
+  }
+}
+
+void Scene::draw(const Shader& overrideShader) const {
+  for (const auto& renderable : renderables | std::views::transform([](const auto& r) { return r.get(); })) {
+    overrideShader.bind();
+    overrideShader.setMatrix4("u_WorldFromObject", renderable.transform.getWorldFromObjectMatrix());
+    renderable.mesh.draw();
+    overrideShader.unbind();
+  }
+  for (const auto& renderable : renderables2 | std::views::transform([](const auto& r) { return r.get(); })) {
+    overrideShader.bind();
+    overrideShader.setMatrix4("u_WorldFromObject", renderable.transform.getWorldFromObjectMatrix());
+    renderable.mesh.draw();
+    overrideShader.unbind();
+  }
+}
+
+void Scene::draw(const Material& overrideMaterial) const {
+  for (const auto& renderable : renderables2 | std::views::transform([](const auto& r) { return r.get(); })) {
+    overrideMaterial.shader.bind();
+    overrideMaterial.uploadParameters();
+    overrideMaterial.shader.setMatrix4("u_WorldFromObject", renderable.transform.getWorldFromObjectMatrix());
+    renderable.mesh.draw();
+    overrideMaterial.shader.unbind();
+  }
+}
 }

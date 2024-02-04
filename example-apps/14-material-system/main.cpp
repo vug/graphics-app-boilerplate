@@ -166,14 +166,7 @@ int main() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for (auto& renderable : scene.renderables2) {
-      ws::Shader& shader = renderable.get().material.shader;
-      shader.bind();
-      renderable.get().material.uploadParameters();
-      shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-      renderable.get().mesh.draw();
-      shader.unbind();
-    }
+    scene.draw();
 
  	  workshop.drawUI();
     textureViewer.draw();

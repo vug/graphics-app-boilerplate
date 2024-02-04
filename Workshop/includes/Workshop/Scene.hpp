@@ -137,6 +137,12 @@ class Scene {
   // not scene data
   UniformBuffer<SceneUniforms> ubo{1};
   void uploadUniforms();
+  // Draws only Renderable2s
+  void draw() const;
+  // Draws both Renderables and Renderable2s. Set shader params before calling draw. Only u_WorldFromObject is called per mesh by draw().
+  void draw(const Shader& overrideShader) const;
+  // Draws only Renderable2s
+  void draw(const Material& overrideMaterial) const;
 };
 
 using NodeProcessor = std::function<void(ws::VObjectPtr node, int depth)>;
