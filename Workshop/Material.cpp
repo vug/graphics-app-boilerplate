@@ -46,6 +46,7 @@ bool Material::doParametersAndUniformsMatch() const {
       [&]([[maybe_unused]] float _) { return ui.glType == GL_FLOAT; },
       [&]([[maybe_unused]] const glm::vec2& _) { return ui.glType == GL_FLOAT_VEC2; },
       [&]([[maybe_unused]] const glm::vec3& _) { return ui.glType == GL_FLOAT_VEC3; },
+      [&]([[maybe_unused]] const glm::vec4& _) { return ui.glType == GL_FLOAT_VEC4; },
       // TODO: make a bettery comparison. Texture can be 1D, 2D or 3D etc.
       [&]([[maybe_unused]] const Texture& _) { return ui.glType == GL_SAMPLER_2D; },
     }, param);
@@ -64,6 +65,7 @@ void Material::uploadUniform(const std::string& name, const ParamT& value) const
                  [&](float val) { shader.setFloat(name.c_str(), val); },
                  [&](const glm::vec2& val) { shader.setVector2(name.c_str(), val); },
                  [&](const glm::vec3& val) { shader.setVector3(name.c_str(), val); },
+                 [&](const glm::vec4& val) { shader.setVector4(name.c_str(), val); },
                  [&](const Texture& tex) { tex.bindToUnit(shader.getSamplerBindingUnit(name.c_str())); },
              },
              value);
@@ -82,6 +84,7 @@ std::string Material::parametersToString() const {
                    [&](float val) { ss << fmt::format("{} = {}\n", name, val); },
                    [&](const glm::vec2& val) { ss << fmt::format("{} = {}\n", name, glm::to_string(val)); },
                    [&](const glm::vec3& val) { ss << fmt::format("{} = {}\n", name, glm::to_string(val)); },
+                   [&](const glm::vec4& val) { ss << fmt::format("{} = {}\n", name, glm::to_string(val)); },
                    [&](const Texture& val) { ss << fmt::format("{} = {}\n", name, val.getName()); },
                },
                value);

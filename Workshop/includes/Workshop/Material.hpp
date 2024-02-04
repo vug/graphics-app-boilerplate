@@ -13,7 +13,7 @@
 
 namespace ws {
 
-using ParamT = std::variant<int, float, glm::vec2, glm::vec3, std::reference_wrapper<Texture>>;
+using ParamT = std::variant<int, float, glm::vec2, glm::vec3, glm::vec4, std::reference_wrapper<Texture>>;
 
 
 class Material {
