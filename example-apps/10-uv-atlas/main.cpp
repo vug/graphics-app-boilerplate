@@ -24,17 +24,11 @@
 
 const std::filesystem::path SRC{SOURCE_DIR};
 
-class AssetManager {
- public:
-  std::unordered_map<std::string, ws::Mesh> meshes;
-  std::unordered_map<std::string, ws::Texture> textures;
-};
-
 int main() {
   std::println("Hi!");
   ws::Workshop workshop{1920, 1080, "UV Atlas Generation - Lightmapping"};
 
-  AssetManager assetManager;
+  ws::AssetManager assetManager;
   assetManager.meshes.emplace("monkey1", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
   assetManager.meshes.emplace("monkey2", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
   assetManager.meshes.emplace("cube1", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
@@ -100,10 +94,17 @@ int main() {
       assetManager.textures["baked_lightmap"],
       whiteTex,
   };
-  ws::Camera cam;
   ws::Scene scene{
-    .renderables{monkey1, monkey2, box, torus, ground},
-    //.renderables{bakedScene},
+    //.renderables{monkey1, monkey2, box, torus, ground},
+    .renderables{bakedScene},
+    .directionalLights = std::vector<ws::DirectionalLight>{
+      ws::DirectionalLight{
+        .position = glm::vec3(1, 1, 1),
+        .intensity = 0.5f,
+        .direction = glm::vec3(-1, -1, -1),
+        .color = glm::vec3(1, 1, 1),
+      },
+    },
   };
   ws::setParent(&ground, &scene.root);
   ws::setParent(&monkey1, &scene.root);
@@ -114,8 +115,8 @@ int main() {
   LightMapper lightMapper; 
   lightMapper.generateUV2Atlas(scene);
 
-	cam.position = { 0, 5, -10 };
-	cam.target = { 0, 0, 0 };
+	scene.camera.position = { 0, 5, -10 };
+	scene.camera.target = { 0, 0, 0 };
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{atlasFbo.getFirstColorAttachment(), assetManager.textures.at("baked_lightmap")};
   ws::TextureViewer textureViewer{texRefs};
   ws::HierarchyWindow hierarchyWindow{scene};
@@ -124,6 +125,7 @@ int main() {
   workshop.shadersToReload = {mainShader, unlitShader, uvAtlasShader, lightmapShader};
   
   glEnable(GL_DEPTH_TEST);
+  scene.ubo.compareSizeWithUniformBlock(mainShader.getId(), "SceneUniforms");
   
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
@@ -140,7 +142,8 @@ int main() {
       atlasFbo.getFirstColorAttachment().saveToImageFile("uv_atlas_vug.png");
     ImGui::End();
 
-    cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
+    scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
+    scene.uploadUniforms();
 
     atlasFbo.bind();
     glViewport(0, 0, atlasSize.x, atlasSize.y);
@@ -150,8 +153,8 @@ int main() {
     glClear(GL_COLOR_BUFFER_BIT);
     uvAtlasShader.bind();
     uvAtlasShader.setMatrix4("u_WorldFromObject", glm::mat4(1));
-    uvAtlasShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-    uvAtlasShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+    uvAtlasShader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
+    uvAtlasShader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
     for (auto& renderable : scene.renderables) {
       glBindTextureUnit(0, renderable.get().texture.getId());
       const ws::Mesh& mesh = renderable.get().mesh;
@@ -171,9 +174,9 @@ int main() {
     for (auto& renderable : scene.renderables) {
       ws::Shader& shader = renderable.get().shader;
       shader.bind();
-      shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-      shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      shader.setVector3("u_CameraPosition", cam.position);
+      shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
+      shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
+      shader.setVector3("u_CameraPosition", scene.camera.position);
 	    renderable.get().texture.bindToUnit(0);
 	    renderable.get().texture2.bindToUnit(1);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
