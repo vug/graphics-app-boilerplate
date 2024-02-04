@@ -100,7 +100,7 @@ int main() {
   ws::InspectorWindow inspectorWindow{};
   workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("solid"), assetManager.shaders.at("lumi_tresh"), assetManager.shaders.at("blur")};
 
-  scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("phong").getId(), "SceneUniforms");  
+  scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("phong").getId(), "SceneUniforms"); 
    
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
@@ -144,8 +144,8 @@ int main() {
       shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
       shader.setVector3("u_CameraPosition", scene.camera.position);
-	    renderable.get().texture.bindToUnit(3);
-	    renderable.get().texture2.bindToUnit(7);
+	    renderable.get().texture.bindToUnit(0);
+	    renderable.get().texture2.bindToUnit(1);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       renderable.get().mesh.bind();
       renderable.get().mesh.draw();

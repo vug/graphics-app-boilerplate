@@ -7,8 +7,8 @@
 in VertexData vertexData;
 
 // Material uniforms
-layout(binding = 3) uniform sampler2D diffuseTexture;
-layout(binding = 7) uniform sampler2D specularTexture;
+layout(binding = 0) uniform sampler2D diffuseTexture;
+layout(binding = 1) uniform sampler2D specularTexture;
 
 out vec4 FragColor;
 
