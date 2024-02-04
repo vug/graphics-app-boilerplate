@@ -71,15 +71,22 @@ int main() {
       assetManager.textures.at("wood"),
       assetManager.textures.at("checkerboard"),
   };
-  ws::Camera cam;
   ws::Scene scene{
     .renderables{ground, monkey, sphere},
+    .directionalLights = std::vector<ws::DirectionalLight>{
+      ws::DirectionalLight{
+        .position = glm::vec3(1, 1, 1),
+        .intensity = 0.5f,
+        .direction = glm::vec3(-1, -1, -1),
+        .color = glm::vec3(1, 1, 1),
+      },
+    },
   };
   ws::setParent(&ground, &scene.root);
   ws::setParent(&monkey, &scene.root);
   ws::setParent(&sphere, &scene.root);
 
-  ws::AutoOrbitingCameraController orbitingCamController{cam};
+  ws::AutoOrbitingCameraController orbitingCamController{scene.camera};
   orbitingCamController.radius = 10.f;
   orbitingCamController.theta = 0.3f;
   std::vector<std::reference_wrapper<ws::Texture>> texRefs{sceneFbo.getFirstColorAttachment(), lumTreshFbo.getFirstColorAttachment()};
@@ -92,7 +99,8 @@ int main() {
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};
   workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("solid"), assetManager.shaders.at("lumi_tresh"), assetManager.shaders.at("blur")};
-  
+
+  scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("phong").getId(), "SceneUniforms");  
    
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
@@ -117,7 +125,8 @@ int main() {
     ImGui::End();
 
     orbitingCamController.update(workshop.getFrameDurationMs() * 0.001f);
-    cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
+    scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
+    scene.uploadUniforms();
 
     glDisable(GL_BLEND);
 
@@ -132,17 +141,15 @@ int main() {
     for (auto& renderable : scene.renderables) {
       ws::Shader& shader = renderable.get().shader;
       shader.bind();
-      shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-      shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      shader.setVector3("u_CameraPosition", cam.position);
-	    renderable.get().texture.bindToUnit(0);
-	    renderable.get().texture2.bindToUnit(1);
+      shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
+      shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
+      shader.setVector3("u_CameraPosition", scene.camera.position);
+	    renderable.get().texture.bindToUnit(3);
+	    renderable.get().texture2.bindToUnit(7);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       renderable.get().mesh.bind();
       renderable.get().mesh.draw();
       renderable.get().mesh.unbind();
-	    renderable.get().texture.unbindFromUnit(0);
-	    renderable.get().texture2.unbindFromUnit(1);
       shader.unbind();
     }
     sceneFbo.unbind();
