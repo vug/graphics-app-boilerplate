@@ -41,37 +41,31 @@ int main() {
   assetManager.shaders.emplace("phong", ws::Shader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("checkered", ws::Shader{SRC / "boilerplate.vert", SRC / "boilerplate.frag"});
-  assetManager.materials.emplace("phong1", 
-    ws::Material{
-      .shader = assetManager.shaders.at("phong"),
-      .parameters = {
-          {"diffuseTexture", assetManager.textures.at("uv_grid")},
-          {"specularTexture", assetManager.white,
-      }
+  assetManager.materials.emplace("phong1", ws::Material{
+    .shader = assetManager.shaders.at("phong"),
+    .parameters = {
+      {"diffuseTexture", assetManager.textures.at("uv_grid")},
+      {"specularTexture", assetManager.white},
     }
   });
-  assetManager.materials.emplace("checkered1", 
-    ws::Material{
-      .shader = assetManager.shaders.at("checkered"),
-      .parameters = {
-          {"color1", glm::vec3(1, 0, 0)},
-          {"color2", glm::vec3(0, 0, 1)},
-          {"numCells", 2},
-          {"mainTex", assetManager.textures.at("uv_grid")},
-      }
+  assetManager.materials.emplace("checkered1", ws::Material{
+    .shader = assetManager.shaders.at("checkered"),
+    .parameters = {
+      {"color1", glm::vec3(1, 0, 0)},
+      {"color2", glm::vec3(0, 0, 1)},
+      {"numCells", 2},
+      {"mainTex", assetManager.textures.at("uv_grid")},
     }
-  );
-  assetManager.materials.emplace("checkered2",
-    ws::Material{
-      .shader = assetManager.shaders.at("checkered"),
-      .parameters = {
-          {"color1", glm::vec3(1, 1, 0)},
-          {"color2", glm::vec3(0, 1, 1)},
-          {"numCells", 3},
-          {"mainTex", assetManager.textures.at("wood")},
-      }
+  });
+  assetManager.materials.emplace("checkered2", ws::Material{
+    .shader = assetManager.shaders.at("checkered"),
+    .parameters = {
+        {"color1", glm::vec3(1, 1, 0)},
+        {"color2", glm::vec3(0, 1, 1)},
+        {"numCells", 3},
+        {"mainTex", assetManager.textures.at("wood")},
     }
-  );
+  });
   assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
 
   ws::RenderableObject ground = {
