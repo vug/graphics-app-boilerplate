@@ -38,17 +38,27 @@ int main() {
   assetManager.shaders.emplace("copy", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"});
   assetManager.shaders.emplace("lumi_tresh", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", SRC / "lumi_tresh.frag"});
   assetManager.shaders.emplace("blur", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", SRC / "blur.frag"});
-  assetManager.materials.emplace("phongGround", ws::Material{assetManager.shaders.at("phong"), std::unordered_map<std::string, ws::ParamT>{
+  assetManager.materials.emplace("phongGround", ws::Material{
+    .shader = assetManager.shaders.at("phong"),
+    .parameters = {
       {"diffuseTexture", assetManager.textures.at("uv_grid")},
       {"specularTexture", assetManager.white}
     }
   });
-  assetManager.materials.emplace("phongMonkey", ws::Material{assetManager.shaders.at("phong"), std::unordered_map<std::string, ws::ParamT>{
+  assetManager.materials.emplace("phongMonkey", ws::Material{
+    .shader = assetManager.shaders.at("phong"), 
+    .parameters = {
       {"diffuseTexture", assetManager.textures.at("checkerboard")},
       {"specularTexture", assetManager.white}
     }
   });
-  assetManager.materials.emplace("solidSphere", ws::Material{assetManager.shaders.at("solid"), std::unordered_map<std::string, ws::ParamT>{}, false});
+  assetManager.materials.emplace("solidSphere", ws::Material{
+    .shader = assetManager.shaders.at("solid"), 
+    .parameters = {
+      {"u_Color", glm::vec4(1, 1, 0, 1)},
+    }
+  });
+  assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
   ws::Framebuffer sceneFbo{1, 1};
   ws::Framebuffer lumTreshFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
   const int numMaxBlooms = 8;
@@ -78,8 +88,8 @@ int main() {
       {"Sphere", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(0.f), glm::vec3{1.f, 1.f, 1.f}}},
       assetManager.meshes.at("sphere"),
       assetManager.materials.at("solidSphere"),
-      assetManager.textures.at("wood"),
-      assetManager.textures.at("checkerboard"),
+      assetManager.white,
+      assetManager.white,
   };
   ws::Scene scene{
     .renderables{ground, monkey, sphere},
@@ -148,21 +158,7 @@ int main() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for (auto& renderable : scene.renderables) {
-      ws::Shader& shader = renderable.get().material.shader;
-      shader.bind();
-      renderable.get().material.uploadParameters();
-      if (!renderable.get().material.shouldMatchUniforms) {
-        shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
-        shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
-        shader.setVector3("u_CameraPosition", scene.camera.position);
-	      renderable.get().texture.bindToUnit(0);
-	      renderable.get().texture2.bindToUnit(1);
-      }
-      shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-      renderable.get().mesh.draw();
-      shader.unbind();
-    }
+    scene.draw();
     sceneFbo.unbind();
 
     lumTreshFbo.bind();
