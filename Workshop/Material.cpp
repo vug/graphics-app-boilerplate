@@ -39,7 +39,7 @@ bool Material::doParametersAndUniformsMatch() const {
   auto uniformsWithParameters = uniformInfos | vws::filter([&](auto& ui) { return parameterNames.contains(ui.name); });
   bool typesMatch = true;
   for (const UniformInfo& ui : uniformsWithParameters) {
-    assert(ui.glType == GL_INT || ui.glType == GL_FLOAT || ui.glType == GL_FLOAT_VEC2 || ui.glType == GL_FLOAT_VEC3 || ui.glType == GL_SAMPLER_2D);
+    assert(ui.glType == GL_INT || ui.glType == GL_FLOAT || ui.glType == GL_FLOAT_VEC2 || ui.glType == GL_FLOAT_VEC3 || ui.glType == GL_FLOAT_VEC4 || ui.glType == GL_SAMPLER_2D);
     const ParamT& param = parameters.at(ui.name);
     const bool match = std::visit(Overloaded{
       [&]([[maybe_unused]] int _) { return ui.glType == GL_INT; },
