@@ -21,18 +21,11 @@
 
 const std::filesystem::path SRC{SOURCE_DIR};
 
-class AssetManager {
- public:
-  std::unordered_map<std::string, ws::Mesh> meshes;
-  std::unordered_map<std::string, ws::Texture> textures;
-  std::unordered_map<std::string, ws::Shader> shaders;
-};
-
 int main() {
   std::println("Hi!");
   ws::Workshop workshop{1920, 1080, "Normal Mapping"};
 
-  AssetManager assetManager;
+  ws::AssetManager assetManager;
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
   assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
   // https://cgaxis.com/product/old-brick-wall-pbr-texture-31/
@@ -50,31 +43,37 @@ int main() {
   assetManager.shaders.emplace("phong", ws::Shader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("normal_mapped", ws::Shader{SRC / "normal_mapped.vert", SRC / "normal_mapped.frag"});
+  // Note: this example only uses "old style" materials where uniforms are uploaded manually.
+  assetManager.materials.emplace("normal_mapped-generic", ws::Material{
+    .shader = assetManager.shaders.at("normal_mapped"),
+    .parameters = {},
+    .shouldMatchUniforms = false,
+  });
 
   ws::RenderableObject ground = {
-      {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
-      assetManager.meshes.at("cube"),
-      assetManager.shaders.at("normal_mapped"),
-      assetManager.textures.at("wood_floor"),
-      assetManager.textures.at("wood_floor_normal"),
+    {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
+    assetManager.meshes.at("cube"),
+    assetManager.materials.at("normal_mapped-generic"),
+    assetManager.textures.at("wood_floor"),
+    assetManager.textures.at("wood_floor_normal"),
   };
   ws::RenderableObject monkey = {
-      {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
-      assetManager.meshes.at("monkey"),
-      assetManager.shaders.at("normal_mapped"),
-      assetManager.textures.at("hedgehog"),
-      assetManager.textures.at("hedgehog_normal"),
+    {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
+    assetManager.meshes.at("monkey"),
+    assetManager.materials.at("normal_mapped-generic"),
+    assetManager.textures.at("hedgehog"),
+    assetManager.textures.at("hedgehog_normal"),
   };
   ws::RenderableObject box = {
-      {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
-      assetManager.meshes.at("cube"),
-      assetManager.shaders.at("normal_mapped"),
-      assetManager.textures.at("brickwall"),
-      assetManager.textures.at("brickwall_normal"),
+    {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
+    assetManager.meshes.at("cube"),
+    assetManager.materials.at("normal_mapped-generic"),
+    assetManager.textures.at("brickwall"),
+    assetManager.textures.at("brickwall_normal"),
   };
   ws::Camera cam;
   ws::Scene scene{
-      .renderables{ground, monkey, box},
+    .renderables{ground, monkey, box},
   };
   ws::setParent(&ground, &scene.root);
   ws::setParent(&monkey, &scene.root);
@@ -125,7 +124,7 @@ int main() {
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (auto& renderable : scene.renderables) {
-      ws::Shader& shader = renderable.get().shader;
+      ws::Shader& shader = renderable.get().material.shader;
       shader.bind();
       shader.setFloat("u_AmountOfMapNormal", normalMapAmount);
       shader.setInteger("u_ShadingMode", shadingMode);
@@ -139,14 +138,12 @@ int main() {
 	    renderable.get().texture2.bindToUnit(1);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       renderable.get().mesh.draw();
-	    renderable.get().texture.unbindFromUnit(0);
-	    renderable.get().texture2.unbindFromUnit(1);
       shader.unbind();
     }
 
  	  workshop.drawUI();
     static ws::VObjectPtr selectedObject;
-          ws::VObjectPtr clickedObject = editorWindow.draw(selectedObject, workshop.getFrameDurationSec());
+    ws::VObjectPtr clickedObject = editorWindow.draw(selectedObject, workshop.getFrameDurationSec());
     selectedObject = hierarchyWindow.draw(clickedObject);
     inspectorWindow.inspectObject(selectedObject);
 
