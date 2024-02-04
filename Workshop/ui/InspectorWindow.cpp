@@ -100,14 +100,6 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
                    ImGui::Text("Renderable");
                    ImGui::Text("Mesh. VOA: %d, VBO: %d, IBO: %d", static_cast<uint32_t>(renderable->mesh.vertexArray), static_cast<uint32_t>(renderable->mesh.vertexBuffer), static_cast<uint32_t>(renderable->mesh.indexBuffer));
                    namespace views = std::ranges::views;
-                   const auto shaderIds = std::ranges::to<std::string>(renderable->shader.getShaderIds() | views::transform([](int n) { return std::to_string(n) + " "; }) | views::join);
-                   ImGui::Text("Shader. Program: %d, Shaders: %s", renderable->shader.getId(), shaderIds.c_str());
-                   ImGui::Text("Texture. name: %s, id: %d", renderable->texture.getName().c_str(), renderable->texture.getId());
-                 },
-                 [&](ws::RenderableObject2* renderable) {
-                   ImGui::Text("Renderable2");
-                   ImGui::Text("Mesh. VOA: %d, VBO: %d, IBO: %d", static_cast<uint32_t>(renderable->mesh.vertexArray), static_cast<uint32_t>(renderable->mesh.vertexBuffer), static_cast<uint32_t>(renderable->mesh.indexBuffer));
-                   namespace views = std::ranges::views;
                    const auto shaderIds = std::ranges::to<std::string>(renderable->material.shader.getShaderIds() | views::transform([](int n) { return std::to_string(n) + " "; }) | views::join);
                    ImGui::Text("Shader. Program: %d, Shaders: %s", renderable->material.shader.getId(), shaderIds.c_str());
                    const auto& textures = renderable->material.parameters
@@ -116,6 +108,8 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
                      | std::views::transform([](auto& var) { return std::get<std::reference_wrapper<ws::Texture>>(var); }) | std::ranges::to<std::vector>();
                    for (const auto& texRef : textures)
                      ImGui::Text("Texture. name: %s, id: %d", texRef.get().getName().c_str(), texRef.get().getId());
+                   ImGui::Text("tex1 %s", renderable->texture.getName().c_str());
+                   ImGui::Text("tex2 %s", renderable->texture2.getName().c_str());
                  },
                  [&](ws::CameraObject* cam) {
                    ImGui::Text("Camera");

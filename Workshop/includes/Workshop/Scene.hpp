@@ -17,13 +17,12 @@
 
 namespace ws {
 struct RenderableObject;
-struct RenderableObject2;
 struct CameraObject;
 struct DummyObject;
 // using RenderableObjectRef = std::reference_wrapper<RenderableObject>;
 // using CameraObjectRef = std::reference_wrapper<CameraObject>;
 // using VObject = std::variant<RenderableObjectRef, CameraObjectRef>;
-using VObjectPtr = std::variant<DummyObject*, RenderableObject*, RenderableObject2*, CameraObject*>;
+using VObjectPtr = std::variant<DummyObject*, RenderableObject*, CameraObject*>;
 
 
 struct Object {
@@ -41,14 +40,9 @@ struct DummyObject : public Object {};
 
 struct RenderableObject : public Object {
   ws::Mesh& mesh;
-  ws::Shader& shader;
+  ws::Material& material;
   ws::Texture& texture;
   ws::Texture& texture2;
-};
-
-struct RenderableObject2 : public Object {
-  ws::Mesh& mesh;
-  ws::Material& material;
 };
 
 struct CameraObject : public Object {
@@ -126,7 +120,6 @@ class Scene {
  public:
   DummyObject root{"SceneRoot", {glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{1, 1, 1}}};
   std::vector<std::reference_wrapper<RenderableObject>> renderables;
-  std::vector<std::reference_wrapper<RenderableObject2>> renderables2;
   // Cameras
   Camera camera;
   // Lights

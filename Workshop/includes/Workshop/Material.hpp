@@ -28,6 +28,7 @@ class Material {
  public:
   Shader& shader;
   std::unordered_map<std::string, ParamT> parameters;
+  bool shouldMatchUniforms = true;
 
   static std::unordered_set<std::string> perMeshUniforms;
 };
