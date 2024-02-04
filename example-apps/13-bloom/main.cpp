@@ -147,9 +147,7 @@ int main() {
 	    renderable.get().texture.bindToUnit(0);
 	    renderable.get().texture2.bindToUnit(1);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-      renderable.get().mesh.bind();
       renderable.get().mesh.draw();
-      renderable.get().mesh.unbind();
       shader.unbind();
     }
     sceneFbo.unbind();

@@ -171,9 +171,7 @@ int main() {
       shader.bind();
       renderable.get().material.uploadParameters();
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-      renderable.get().mesh.bind();
       renderable.get().mesh.draw();
-      renderable.get().mesh.unbind();
       shader.unbind();
     }
 

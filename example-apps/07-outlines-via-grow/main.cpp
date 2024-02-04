@@ -106,7 +106,6 @@ int main()
       const auto& obj = objRef.get();
 
       obj.shader.bind();
-      obj.mesh.bind();
       obj.texture.bind();
 
       obj.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
@@ -117,7 +116,6 @@ int main()
       obj.mesh.draw();
 
       ws::Texture::unbind();
-      obj.mesh.unbind();
       obj.shader.unbind();
     }
 
@@ -130,7 +128,6 @@ int main()
     for (auto& objRef : renderables | std::views::filter(&Renderable::shouldHighlight)) {
       const auto& obj = objRef.get();
       solidColorShader.bind();
-      obj.mesh.bind();
 
       solidColorShader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
       solidColorShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
@@ -139,7 +136,6 @@ int main()
 
       obj.mesh.draw();
 
-      obj.mesh.unbind();
       solidColorShader.unbind();
     }
     glEnable(GL_DEPTH_TEST);

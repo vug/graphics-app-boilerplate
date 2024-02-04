@@ -193,7 +193,6 @@ int main() {
       for (auto& renderable : scene.renderables) {
         ws::Shader& shader = renderable.get().shader;
         shader.bind();
-        renderable.get().mesh.bind();
         glBindTextureUnit(0, renderable.get().texture.getId());
         glBindTextureUnit(1, assetManager.framebuffers.at("shadowFBO").getDepthAttachment().getId());
         shader.setVector3("u_CameraPos", cam.position);
@@ -210,7 +209,6 @@ int main() {
         renderable.get().mesh.draw();
         glBindTextureUnit(0, 0);
         glBindTextureUnit(1, 0);
-        renderable.get().mesh.unbind();
         shader.unbind();
       }
     };
@@ -225,10 +223,8 @@ int main() {
       assetManager.shaders.at("simpleDepth").setMatrix4("u_LightSpaceMatrix", light.getLightSpaceMatrix());
 
       for (auto& renderable : scene.renderables) {
-        renderable.get().mesh.bind();
         assetManager.shaders.at("simpleDepth").setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
         renderable.get().mesh.draw();
-        renderable.get().mesh.unbind();
       }
 
       assetManager.shaders.at("simpleDepth").unbind();

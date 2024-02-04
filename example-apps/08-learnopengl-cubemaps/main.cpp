@@ -147,7 +147,6 @@ void drawSceneWithCamera(const Scene& scene, const ws::Camera& cam, const Skybox
     auto& obj = objRef.get();
 
     obj.shader.bind();
-    obj.mesh.bind();
 
     glBindTextureUnit(0, obj.texture.getId());
     glBindTextureUnit(1, skybox.cubemap.getId());
@@ -167,7 +166,6 @@ void drawSceneWithCamera(const Scene& scene, const ws::Camera& cam, const Skybox
 
     glBindTextureUnit(0, 0);
     glBindTextureUnit(1, 0);
-    obj.mesh.unbind();
     obj.shader.unbind();
   }
 }
@@ -180,9 +178,7 @@ void drawSkybox(const Skybox& skybox, const ws::Camera& cam) {
   skybox.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.cubemap.getId());
-  skybox.mesh.bind();
   skybox.mesh.draw();
-  skybox.mesh.unbind();
   glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
   skybox.shader.unbind();
 }

@@ -158,9 +158,7 @@ int main() {
     for (auto& renderable : scene.renderables) {
       glBindTextureUnit(0, renderable.get().texture.getId());
       const ws::Mesh& mesh = renderable.get().mesh;
-      mesh.bind();
       mesh.draw();
-      mesh.unbind();
     }
     uvAtlasShader.unbind();
     atlasFbo.unbind();
@@ -180,9 +178,7 @@ int main() {
 	    renderable.get().texture.bindToUnit(0);
 	    renderable.get().texture2.bindToUnit(1);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-      renderable.get().mesh.bind();
       renderable.get().mesh.draw();
-      renderable.get().mesh.unbind();
 	    renderable.get().texture.unbindFromUnit(0);
 	    renderable.get().texture2.unbindFromUnit(1);
       shader.unbind();

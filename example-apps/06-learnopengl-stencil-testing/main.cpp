@@ -91,7 +91,6 @@ int main()
       glStencilMask(obj.shouldHighlight ? 0xFF : 0x00); // write into stencil buffer only for highlighted objects
 
       obj.shader.bind();
-      obj.mesh.bind();
       obj.texture.bind();
 
       obj.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
@@ -102,7 +101,6 @@ int main()
       obj.mesh.draw();
 
       ws::Texture::unbind();
-      obj.mesh.unbind();
       obj.shader.unbind();
     }
 
@@ -112,7 +110,6 @@ int main()
     for (auto& objRef : renderables | std::views::filter(&Renderable::shouldHighlight)) {
       const auto& obj = objRef.get();
       outlineShader.bind();
-      obj.mesh.bind();
 
       glm::mat4 scaledUp = glm::scale(obj.transform.getWorldFromObjectMatrix(), glm::vec3{1.1, 1.1, 1.1});
       outlineShader.setMatrix4("u_WorldFromObject", scaledUp);
@@ -122,7 +119,6 @@ int main()
 
       obj.mesh.draw();
 
-      obj.mesh.unbind();
       outlineShader.unbind();
     }
     glStencilMask(0xFF);

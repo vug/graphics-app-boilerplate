@@ -189,9 +189,7 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject, float deltaTimeSec) {
     editorShader.setInteger("u_ShouldOutline", static_cast<int>(isSelected));
     renderable.get().texture.bindToUnit(0);
     renderable.get().texture2.bindToUnit(1);
-    renderable.get().mesh.bind();
     renderable.get().mesh.draw();
-    renderable.get().mesh.unbind();
     renderable.get().texture.unbindFromUnit(0);
     renderable.get().texture2.unbindFromUnit(1);
     editorShader.unbind();
@@ -207,9 +205,7 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject, float deltaTimeSec) {
       normalVizShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
       normalVizShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
       normalVizShader.setFloat("u_NormalVizLength", normalVizLength);
-      renderable.get().mesh.bind();
       renderable.get().mesh.drawPoints();
-      renderable.get().mesh.unbind();
     }
     normalVizShader.unbind();  
   }
@@ -247,9 +243,7 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject, float deltaTimeSec) {
     solidColorShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
     const glm::vec4 outlineColor{1, 1, 0, 1};
     solidColorShader.setVector4("u_Color", outlineColor);
-    ptr->mesh.bind();
     ptr->mesh.draw();
-    ptr->mesh.unbind();
     solidColorShader.unbind();
   }
   outlineSolidFbo.unbind();
