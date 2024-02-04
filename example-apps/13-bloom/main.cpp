@@ -38,6 +38,17 @@ int main() {
   assetManager.shaders.emplace("copy", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"});
   assetManager.shaders.emplace("lumi_tresh", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", SRC / "lumi_tresh.frag"});
   assetManager.shaders.emplace("blur", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", SRC / "blur.frag"});
+  assetManager.materials.emplace("phongGround", ws::Material{assetManager.shaders.at("phong"), std::unordered_map<std::string, ws::ParamT>{
+      {"diffuseTexture", assetManager.textures.at("uv_grid")},
+      {"specularTexture", assetManager.white}
+    }
+  });
+  assetManager.materials.emplace("phongMonkey", ws::Material{assetManager.shaders.at("phong"), std::unordered_map<std::string, ws::ParamT>{
+      {"diffuseTexture", assetManager.textures.at("checkerboard")},
+      {"specularTexture", assetManager.white}
+    }
+  });
+  assetManager.materials.emplace("solidSphere", ws::Material{assetManager.shaders.at("solid"), std::unordered_map<std::string, ws::ParamT>{}, false});
   ws::Framebuffer sceneFbo{1, 1};
   ws::Framebuffer lumTreshFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
   const int numMaxBlooms = 8;
@@ -49,25 +60,24 @@ int main() {
     bloomHorFbos.emplace_back(colorSpecs, depthSpec);
     bloomVerFbos.emplace_back(colorSpecs, depthSpec);
   }
-
   ws::RenderableObject ground = {
-      {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
-      assetManager.meshes.at("cube"),
-      assetManager.shaders.at("phong"),
-      assetManager.textures.at("uv_grid"),
-      assetManager.white,
+    {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
+    assetManager.meshes.at("cube"),
+    assetManager.materials.at("phongGround"),
+    assetManager.white,
+    assetManager.white,
   };
   ws::RenderableObject monkey = {
       {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey"),
-      assetManager.shaders.at("phong"),
-      assetManager.textures.at("checkerboard"),
+      assetManager.materials.at("phongMonkey"),
+      assetManager.white,
       assetManager.white,
   };
   ws::RenderableObject sphere = {
       {"Sphere", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(0.f), glm::vec3{1.f, 1.f, 1.f}}},
       assetManager.meshes.at("sphere"),
-      assetManager.shaders.at("solid"),
+      assetManager.materials.at("solidSphere"),
       assetManager.textures.at("wood"),
       assetManager.textures.at("checkerboard"),
   };
@@ -139,13 +149,16 @@ int main() {
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (auto& renderable : scene.renderables) {
-      ws::Shader& shader = renderable.get().shader;
+      ws::Shader& shader = renderable.get().material.shader;
       shader.bind();
-      shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
-      shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
-      shader.setVector3("u_CameraPosition", scene.camera.position);
-	    renderable.get().texture.bindToUnit(0);
-	    renderable.get().texture2.bindToUnit(1);
+      renderable.get().material.uploadParameters();
+      if (!renderable.get().material.shouldMatchUniforms) {
+        shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
+        shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
+        shader.setVector3("u_CameraPosition", scene.camera.position);
+	      renderable.get().texture.bindToUnit(0);
+	      renderable.get().texture2.bindToUnit(1);
+      }
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       renderable.get().mesh.draw();
       shader.unbind();
