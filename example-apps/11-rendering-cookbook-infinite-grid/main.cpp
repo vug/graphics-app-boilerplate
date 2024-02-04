@@ -61,9 +61,16 @@ int main() {
       assetManager.textures.at("wood"),
       whiteTex,
   };
-  ws::Camera cam;
   ws::Scene scene{
     .renderables{monkey, box},
+    .directionalLights = std::vector<ws::DirectionalLight>{
+      ws::DirectionalLight{
+        .position = glm::vec3(1, 1, 1),
+        .intensity = 0.5f,
+        .direction = glm::vec3(-1, -1, -1),
+        .color = glm::vec3(1, 1, 1),
+      },
+    },
   };
   ws::setParent(&monkey, &scene.root);
   ws::setParent(&box, &scene.root);
@@ -71,8 +78,8 @@ int main() {
   uint32_t gridVao;
   glGenVertexArrays(1, &gridVao);
 
-  cam.position = {0, 3, -5};
-  ws::ManualCameraController manualCamController{cam};
+  scene.camera.position = {0, 3, -5};
+  ws::ManualCameraController manualCamController{scene.camera};
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{offscreenFbo.getFirstColorAttachment()};
   ws::TextureViewer textureViewer{texRefs};
   ws::HierarchyWindow hierarchyWindow{scene};
@@ -80,6 +87,7 @@ int main() {
   workshop.shadersToReload = {assetManager.shaders.at("phong"), assetManager.shaders.at("unlit"), assetManager.shaders.at("grid")};
   
   glEnable(GL_DEPTH_TEST);
+  scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("phong").getId(), "SceneUniforms");
   
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
@@ -93,7 +101,8 @@ int main() {
     ImGui::End();
 
     manualCamController.update(ws::getMouseCursorPosition(), workshop.mouseState, workshop.getFrameDurationMs() * 0.001f);
-    cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
+    scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
+    scene.uploadUniforms();
 
     glViewport(0, 0, winSize.x, winSize.y);
     //glEnable(GL_CULL_FACE);
@@ -106,9 +115,9 @@ int main() {
     for (auto& renderable : scene.renderables) {
       ws::Shader& shader = renderable.get().shader;
       shader.bind();
-      shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-      shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      shader.setVector3("u_CameraPosition", cam.position);
+      shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
+      shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
+      shader.setVector3("u_CameraPosition", scene.camera.position);
 	    renderable.get().texture.bindToUnit(0);
 	    renderable.get().texture2.bindToUnit(1);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
@@ -124,9 +133,9 @@ int main() {
     {
       ws::Shader& shader = assetManager.shaders.at("grid");
       shader.bind();
-      shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-      shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      shader.setVector3("u_CameraPosition", cam.position);
+      shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
+      shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
+      shader.setVector3("u_CameraPosition", scene.camera.position);
       glBindVertexArray(gridVao);
       glDrawArrays(GL_TRIANGLES, 0, 6);
       glBindVertexArray(0);
