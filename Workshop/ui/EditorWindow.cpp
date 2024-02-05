@@ -187,8 +187,9 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject, float deltaTimeSec) {
     editorShader.setInteger("u_MeshId", static_cast<int>(ix));
     const bool isSelected = std::visit([&renderable](auto&& ptr) { if (ptr == nullptr) return false; return ptr->name == renderable.get().name; }, selectedObject);
     editorShader.setInteger("u_ShouldOutline", static_cast<int>(isSelected));
-    renderable.get().texture.bindToUnit(0);
-    renderable.get().texture2.bindToUnit(1);
+    // TODO: make bound texture choosable via UI
+    //renderable.get().texture.bindToUnit(0);
+    //renderable.get().texture2.bindToUnit(1);
     renderable.get().mesh.draw();
     editorShader.unbind();
   }

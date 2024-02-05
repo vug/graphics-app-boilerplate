@@ -59,15 +59,11 @@ int main() {
       {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey"),
       assetManager.materials.at("phong-monkey"),
-      whiteTex,
-      whiteTex,
   };
   ws::RenderableObject box = {
       {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
       assetManager.meshes.at("cube"),
       assetManager.materials.at("unlit-box"),
-      whiteTex,
-      whiteTex,
   };
   ws::Scene scene{
     .renderables{monkey, box},

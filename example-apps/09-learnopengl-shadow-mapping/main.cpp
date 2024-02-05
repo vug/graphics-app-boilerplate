@@ -83,37 +83,27 @@ int main() {
     ws::Object{std::string{"Axes"}, ws::Transform{glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{1, 1, 1}}},
     assetManager.meshes.at("axes"),
     assetManager.materials.at("phongShadowed-generic"),
-    assetManager.white,
-    assetManager.white,
   };
   ws::RenderableObject ground = {
     //ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{1, 0, 0}, glm::radians(-90.f), glm::vec3{25.f, 25.f, 1.f}}},
     ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{25.f, 1, 25.f}}},
     assetManager.meshes.at("quad"),
     assetManager.materials.at("phongShadowed-generic"),
-    assetManager.white,
-    assetManager.white,
   };
   ws::RenderableObject cube1 = {
     {"Cube1", {glm::vec3{0, 1.5f, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
     assetManager.meshes.at("cube"),
     assetManager.materials.at("phongShadowed-generic"),
-    assetManager.white,
-    assetManager.white,
   };
   ws::RenderableObject cube2 = {
     ws::Object{std::string{"Cube2"}, ws::Transform{glm::vec3{2.0f, 0.0f, 1.0f}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
     assetManager.meshes.at("cube"),
     assetManager.materials.at("phongShadowed-generic"),
-    assetManager.white,
-    assetManager.white,
   };
   ws::RenderableObject cube3 = {
     ws::Object{std::string{"Cube3"}, ws::Transform{glm::vec3{-1.f, 0, 2.f}, glm::normalize(glm::vec3{1.f, 0, 1.f}), glm::radians(60.f), glm::vec3{.5f, .5f, .5f}}},
     assetManager.meshes.at("cube"),
     assetManager.materials.at("phongShadowed-generic"),
-    assetManager.white,
-    assetManager.white,
   };
   ws::Scene scene{
     .renderables{ground, cube1, cube2, cube3, axes},

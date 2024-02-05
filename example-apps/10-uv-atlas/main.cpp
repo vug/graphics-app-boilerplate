@@ -108,43 +108,31 @@ int main() {
       {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
       assetManager.meshes.at("cube1"),
       assetManager.materials.at(shouldUseLightmap ? "lightmap-wood" : "phong-wood"),
-      assetManager.white,
-      assetManager.white,
   };
   ws::RenderableObject monkey1 = {
       {"Monkey1", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey1"),
       assetManager.materials.at(shouldUseLightmap ? "lightmap-uv_grid" : "phong-uv_grid"),
-      assetManager.white,
-      assetManager.white,
   };
   ws::RenderableObject monkey2 = {
       {"Monkey2", {glm::vec3{4, 0, 1}, glm::vec3{0, 1, 0}, glm::radians(55.f), glm::vec3{1.f, 1.f, 1.f}}},
       assetManager.meshes.at("monkey2"),
       assetManager.materials.at(shouldUseLightmap ? "lightmap-wood" : "phong-wood"),
-      assetManager.white,
-      assetManager.white,
   };
   ws::RenderableObject box = {
       {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
       assetManager.meshes.at("cube2"),
       assetManager.materials.at(shouldUseLightmap ? "lightmap-wood" : "phong-wood"),
-      assetManager.white,
-      assetManager.white,
   };
   ws::RenderableObject torus = {
       {"Torus", {glm::vec3{1.5, 2, 3}, glm::vec3{0, 1, 1}, glm::radians(30.f), glm::vec3{1.f, 1.f, 1.f}}},
       assetManager.meshes.at("torus"),
       assetManager.materials.at(shouldUseLightmap ? "lightmap-metal" : "phong-metal"),
-      assetManager.white,
-      assetManager.white,
   };
   ws::RenderableObject bakedScene = {
       {"BakedScene", {glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{1.f, 1.f, 1.f}}},
       assetManager.meshes.at("baked_scene"),
       assetManager.materials.at("unlit-baked_scene"),
-      assetManager.white,
-      assetManager.white,
   };
   ws::Scene scene{
     .directionalLights = std::vector<ws::DirectionalLight>{
@@ -212,7 +200,7 @@ int main() {
     uvAtlasShader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
     uvAtlasShader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
     for (auto& renderable : scene.renderables) {
-      glBindTextureUnit(0, renderable.get().texture.getId());
+      //glBindTextureUnit(0, renderable.get().texture.getId());
       const ws::Mesh& mesh = renderable.get().mesh;
       mesh.draw();
     }

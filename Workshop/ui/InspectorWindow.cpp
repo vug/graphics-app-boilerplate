@@ -108,8 +108,6 @@ void InspectorWindow::inspectObject(VObjectPtr objPtr) {
                      | std::views::transform([](auto& var) { return std::get<std::reference_wrapper<ws::Texture>>(var); }) | std::ranges::to<std::vector>();
                    for (const auto& texRef : textures)
                      ImGui::Text("Texture. name: %s, id: %d", texRef.get().getName().c_str(), texRef.get().getId());
-                   ImGui::Text("tex1 %s", renderable->texture.getName().c_str());
-                   ImGui::Text("tex2 %s", renderable->texture2.getName().c_str());
                  },
                  [&](ws::CameraObject* cam) {
                    ImGui::Text("Camera");

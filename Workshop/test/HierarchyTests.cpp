@@ -49,22 +49,18 @@ TEST_F(WorkshopTest, HierarchyConstruction) {
       ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{25.f, 1, 25.f}}},
       quad,
       unlitMat,
-      metal,
-      metal,
   };
   ws::RenderableObject cube1 = {
       {"Cube1", {glm::vec3{0, 1.5f, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
       cube,
       unlitMat,
-      metal,
-      metal,
   };
   ws::RenderableObject cube2 = {
       ws::Object{std::string{"Cube2"}, ws::Transform{glm::vec3{2.0f, 0.0f, 1.0f}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
-      cube, unlitMat, metal, metal};
+      cube, unlitMat};
   ws::RenderableObject cube3 = {
       ws::Object{std::string{"Cube3"}, ws::Transform{glm::vec3{-1.f, 0, 2.f}, glm::normalize(glm::vec3{1.f, 0, 1.f}), glm::radians(60.f), glm::vec3{.5f, .5f, .5f}}},
-      cube, unlitMat, metal, metal};
+      cube, unlitMat};
   ws::CameraObject camera{
       ws::Object{std::string{"MainCamera"}, ws::Transform{glm::vec3{0, 0, -5}, glm::normalize(glm::vec3{0, 1, 0}), 0, glm::vec3{1, 1, 1}}},
   };

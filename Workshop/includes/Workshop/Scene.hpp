@@ -41,8 +41,6 @@ struct DummyObject : public Object {};
 struct RenderableObject : public Object {
   ws::Mesh& mesh;
   ws::Material& material;
-  ws::Texture& texture;
-  ws::Texture& texture2;
 };
 
 struct CameraObject : public Object {

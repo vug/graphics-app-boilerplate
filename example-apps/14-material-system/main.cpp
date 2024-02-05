@@ -72,22 +72,16 @@ int main() {
       {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
       assetManager.meshes.at("cube"),
       assetManager.materials.at("phong1"),
-      assetManager.white,
-      assetManager.white,
   };
   ws::RenderableObject monkey = {
       {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey"),
       assetManager.materials.at("checkered1"),
-      assetManager.white,
-      assetManager.white,
   };
   ws::RenderableObject box = {
       {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
       assetManager.meshes.at("cube"),
       assetManager.materials.at("checkered2"),
-      assetManager.white,
-      assetManager.white,
   };
 
   ws::Scene scene{
