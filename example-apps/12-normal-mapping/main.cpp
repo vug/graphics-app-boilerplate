@@ -44,9 +44,28 @@ int main() {
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("normal_mapped", ws::Shader{SRC / "normal_mapped.vert", SRC / "normal_mapped.frag"});
   // Note: this example only uses "old style" materials where uniforms are uploaded manually.
-  assetManager.materials.emplace("normal_mapped-generic", ws::Material{
+  assetManager.materials.emplace("normal_mapped-ground", ws::Material{
     .shader = assetManager.shaders.at("normal_mapped"),
-    .parameters = {},
+    .parameters = {
+      {"mainTex", assetManager.textures.at("wood_floor")},
+      {"secondTex", assetManager.textures.at("wood_floor_normal")},
+    },
+    .shouldMatchUniforms = false,
+  });
+  assetManager.materials.emplace("normal_mapped-monkey", ws::Material{
+    .shader = assetManager.shaders.at("normal_mapped"),
+    .parameters = {
+      {"mainTex", assetManager.textures.at("hedgehog")},
+      {"secondTex", assetManager.textures.at("hedgehog_normal")},
+    },
+    .shouldMatchUniforms = false,
+  });
+  assetManager.materials.emplace("normal_mapped-box", ws::Material{
+    .shader = assetManager.shaders.at("normal_mapped"),
+    .parameters = {
+      {"mainTex", assetManager.textures.at("brickwall")},
+      {"secondTex", assetManager.textures.at("brickwall_normal")},
+    },
     .shouldMatchUniforms = false,
   });
   //assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
@@ -54,23 +73,23 @@ int main() {
   ws::RenderableObject ground = {
     {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
     assetManager.meshes.at("cube"),
-    assetManager.materials.at("normal_mapped-generic"),
-    assetManager.textures.at("wood_floor"),
-    assetManager.textures.at("wood_floor_normal"),
+    assetManager.materials.at("normal_mapped-ground"),
+    assetManager.white,
+    assetManager.white,
   };
   ws::RenderableObject monkey = {
     {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
     assetManager.meshes.at("monkey"),
-    assetManager.materials.at("normal_mapped-generic"),
-    assetManager.textures.at("hedgehog"),
-    assetManager.textures.at("hedgehog_normal"),
+    assetManager.materials.at("normal_mapped-monkey"),
+    assetManager.white,
+    assetManager.white,
   };
   ws::RenderableObject box = {
     {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
     assetManager.meshes.at("cube"),
-    assetManager.materials.at("normal_mapped-generic"),
-    assetManager.textures.at("brickwall"),
-    assetManager.textures.at("brickwall_normal"),
+    assetManager.materials.at("normal_mapped-box"),
+    assetManager.white,
+    assetManager.white,
   };
   ws::Camera cam;
   ws::Scene scene{
@@ -127,6 +146,7 @@ int main() {
     for (auto& renderable : scene.renderables) {
       ws::Shader& shader = renderable.get().material.shader;
       shader.bind();
+      renderable.get().material.uploadParameters();
       shader.setFloat("u_AmountOfMapNormal", normalMapAmount);
       shader.setInteger("u_ShadingMode", shadingMode);
       shader.setInteger("u_HasSpecular", hasSpecular);
@@ -135,8 +155,6 @@ int main() {
       shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
       shader.setVector3("u_CameraPosition", cam.position);
-	    renderable.get().texture.bindToUnit(0);
-	    renderable.get().texture2.bindToUnit(1);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       renderable.get().mesh.draw();
       shader.unbind();
