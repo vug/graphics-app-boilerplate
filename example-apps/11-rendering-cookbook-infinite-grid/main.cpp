@@ -49,8 +49,10 @@ int main() {
     .shader = assetManager.shaders.at("unlit"),
     .parameters = {
       {"mainTex", assetManager.textures.at("wood")},
+      {"u_Color", glm::vec4{1, 1, 1, 1}},
     }
   });
+  assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
   ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   ws::RenderableObject monkey = {

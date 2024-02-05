@@ -93,8 +93,10 @@ int main() {
     .shader = unlitShader,
     .parameters = {
       {"mainTex", assetManager.textures.at("baked_lightmap")},
+      {"u_Color", glm::vec4(1, 1, 1, 1)},
     }
   });
+  assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
   ws::Framebuffer atlasFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   // true: adds light from the lightmap to unlit. don't forget to load UV2's from Lightmapper Window
