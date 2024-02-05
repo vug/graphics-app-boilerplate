@@ -190,8 +190,6 @@ VObjectPtr EditorWindow::draw(VObjectPtr selectedObject, float deltaTimeSec) {
     renderable.get().texture.bindToUnit(0);
     renderable.get().texture2.bindToUnit(1);
     renderable.get().mesh.draw();
-    renderable.get().texture.unbindFromUnit(0);
-    renderable.get().texture2.unbindFromUnit(1);
     editorShader.unbind();
   }
 
