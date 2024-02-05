@@ -1,3 +1,4 @@
+#include <Workshop/AssetManager.hpp>
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
 #include <Workshop/Framebuffer.hpp>
@@ -21,14 +22,6 @@ import std.core;
 import std.filesystem;
 
 const std::filesystem::path SRC{SOURCE_DIR};
-
-class AssetManager {
- public:
-  std::unordered_map<std::string, ws::Mesh> meshes;
-  std::unordered_map<std::string, ws::Texture> textures;
-  std::unordered_map<std::string, ws::Framebuffer> framebuffers;
-  std::unordered_map<std::string, ws::Shader> shaders;
-};
 
 struct DirectionalLight {
   glm::vec3 position{};
@@ -60,7 +53,7 @@ int main() {
   std::println("Hi!");
   ws::Workshop workshop{2048, 1536, "Shadow Maps"};
 
-  AssetManager assetManager;
+  ws::AssetManager assetManager;
   assetManager.meshes.emplace("cube", ws::Mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")});
   assetManager.meshes.emplace("quad", ws::Mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/quad.obj")});
   assetManager.meshes.emplace("axes", ws::Mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/coordinate_axes.obj")});
@@ -70,53 +63,57 @@ int main() {
   assetManager.shaders.emplace("simpleDepth", ws::Shader{SRC / "shadow_mapping_depth.vert", SRC / "shadow_mapping_depth.frag"});
   assetManager.shaders.emplace("phongShadowed", ws::Shader{SRC / "phong_shadowed.vert", SRC / "phong_shadowed.frag"});
   assetManager.shaders.emplace("depthViz", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", SRC / "depth_viz.frag"});
+  assetManager.materials.emplace("phongShadowed-generic", ws::Material{
+    .shader = assetManager.shaders.at("phongShadowed"),
+    .parameters = {
+      {"diffuseTexture", assetManager.textures.at("wood")},
+    },
+    .shouldMatchUniforms = false,
+  });
+  //assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
   float shadowBorderColor[] = {1.f, 0.f, 0.f, 0.f};
-  {
-  // TODO: weirdly I need a move, can't emplace an FB directly
-  ws::Framebuffer fbo{1, 1, false};
-    glTextureParameteri(fbo.getDepthAttachment().getId(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTextureParameteri(fbo.getDepthAttachment().getId(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTextureParameterfv(fbo.getDepthAttachment().getId(), GL_TEXTURE_BORDER_COLOR, shadowBorderColor);
-  assetManager.framebuffers.emplace("shadowFBO", std::move(fbo));
-  }
+  ws::Framebuffer shadowFbo{1, 1, false};
+  glTextureParameteri(shadowFbo.getDepthAttachment().getId(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+  glTextureParameteri(shadowFbo.getDepthAttachment().getId(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+  glTextureParameterfv(shadowFbo.getDepthAttachment().getId(), GL_TEXTURE_BORDER_COLOR, shadowBorderColor);
   uint32_t dummyVao;
   glGenVertexArrays(1, &dummyVao);
 
   ws::RenderableObject axes = {
     ws::Object{std::string{"Axes"}, ws::Transform{glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{1, 1, 1}}},
     assetManager.meshes.at("axes"),
-    assetManager.shaders["phongShadowed"],
-    assetManager.textures["wood"],
-    assetManager.textures["checkerboard"],
+    assetManager.materials.at("phongShadowed-generic"),
+    assetManager.white,
+    assetManager.white,
   };
   ws::RenderableObject ground = {
     //ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{1, 0, 0}, glm::radians(-90.f), glm::vec3{25.f, 25.f, 1.f}}},
     ws::Object{std::string{"Ground"}, ws::Transform{glm::vec3{0, -0.5, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{25.f, 1, 25.f}}},
     assetManager.meshes.at("quad"),
-    assetManager.shaders["phongShadowed"],
-    assetManager.textures["wood"],
-    assetManager.textures["checkerboard"],
+    assetManager.materials.at("phongShadowed-generic"),
+    assetManager.white,
+    assetManager.white,
   };
   ws::RenderableObject cube1 = {
     {"Cube1", {glm::vec3{0, 1.5f, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
     assetManager.meshes.at("cube"),
-    assetManager.shaders["phongShadowed"],
-    assetManager.textures["wood"],
-    assetManager.textures["checkerboard"],
+    assetManager.materials.at("phongShadowed-generic"),
+    assetManager.white,
+    assetManager.white,
   };
   ws::RenderableObject cube2 = {
     ws::Object{std::string{"Cube2"}, ws::Transform{glm::vec3{2.0f, 0.0f, 1.0f}, glm::vec3{0, 0, 1}, 0, glm::vec3{1.f, 1.f, 1.f}}},
     assetManager.meshes.at("cube"),
-    assetManager.shaders["phongShadowed"],
-    assetManager.textures["wood"],
-    assetManager.textures["checkerboard"],
+    assetManager.materials.at("phongShadowed-generic"),
+    assetManager.white,
+    assetManager.white,
   };
   ws::RenderableObject cube3 = {
     ws::Object{std::string{"Cube3"}, ws::Transform{glm::vec3{-1.f, 0, 2.f}, glm::normalize(glm::vec3{1.f, 0, 1.f}), glm::radians(60.f), glm::vec3{.5f, .5f, .5f}}},
     assetManager.meshes.at("cube"),
-    assetManager.shaders["phongShadowed"],
-    assetManager.textures["wood"],
-    assetManager.textures["checkerboard"],
+    assetManager.materials.at("phongShadowed-generic"),
+    assetManager.white,
+    assetManager.white,
   };
   ws::Scene scene{
     .renderables{ground, cube1, cube2, cube3, axes},
@@ -137,9 +134,9 @@ int main() {
   DirectionalLight light;
   light.position = {-2.f, 4.f, -1.f};
   light.intensity = 3;
-  assetManager.framebuffers.at("shadowFBO").resizeIfNeeded(light.shadowWidth, light.shadowHeight);
+  shadowFbo.resizeIfNeeded(light.shadowWidth, light.shadowHeight);
 
-  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{assetManager.framebuffers.at("shadowFBO").getDepthAttachment()};
+  const std::vector<std::reference_wrapper<ws::Texture>> texRefs{shadowFbo.getDepthAttachment()};
   ws::TextureViewer textureViewer{texRefs};
   ws::HierarchyWindow hierarchyWindow{scene};
   ws::InspectorWindow inspectorWindow{};
@@ -147,7 +144,8 @@ int main() {
   glEnable(GL_DEPTH_TEST);
   //glEnable(GL_CULL_FACE);
   //glCullFace(GL_BACK);
-  //glFrontFace(GL_CCW);  
+  //glFrontFace(GL_CCW);
+  scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("phongShadowed").getId(), "SceneUniforms");   
 
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
@@ -170,7 +168,7 @@ int main() {
     ImGui::DragScalar("Shadow Map Height", ImGuiDataType_U32, &light.shadowHeight, 1.0f, &minDim, &maxDim);
     ImGui::DragFloat2("Shadow Bias", glm::value_ptr(light.shadowBias));
     if (ImGui::ColorEdit4("Shadow Border Color", shadowBorderColor))
-      glTextureParameterfv(assetManager.framebuffers.at("shadowFBO").getDepthAttachment().getId(), GL_TEXTURE_BORDER_COLOR, shadowBorderColor);
+      glTextureParameterfv(shadowFbo.getDepthAttachment().getId(), GL_TEXTURE_BORDER_COLOR, shadowBorderColor);
     static bool shouldShadowZeroOutsideFarPlane = true;
     ImGui::Checkbox("Shadow=0 outside far-plane", &shouldShadowZeroOutsideFarPlane);
     static bool shouldDoPcf = true;
@@ -181,9 +179,10 @@ int main() {
     ImGui::Separator();
     ImGui::End();
 
-    assetManager.framebuffers.at("shadowFBO").resizeIfNeeded(light.shadowWidth, light.shadowHeight);
+    shadowFbo.resizeIfNeeded(light.shadowWidth, light.shadowHeight);
     orbitingCamController.update(workshop.getFrameDurationSec());
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
+    scene.uploadUniforms();
 
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -191,13 +190,10 @@ int main() {
     auto drawScene = [&]() {
       glViewport(0, 0, winSize.x, winSize.y);
       for (auto& renderable : scene.renderables) {
-        ws::Shader& shader = renderable.get().shader;
+        ws::Shader& shader = renderable.get().material.shader;
         shader.bind();
-        glBindTextureUnit(0, renderable.get().texture.getId());
-        glBindTextureUnit(1, assetManager.framebuffers.at("shadowFBO").getDepthAttachment().getId());
-        shader.setVector3("u_CameraPos", cam.position);
-        shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-        shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+        renderable.get().material.uploadParameters();
+        shadowFbo.getDepthAttachment().bindToUnit(1);
         shader.setMatrix4("u_LightSpaceMatrix", light.getLightSpaceMatrix());
         shader.setVector3("u_LightPos", light.position);
         shader.setFloat("u_LightIntensity", light.intensity);
@@ -207,15 +203,13 @@ int main() {
         // TODO: not there yet. Positions and scale inheritence looks fine, but rotation is broken. Parent's rotation should rotate child's coordinate system.
         //shader.setMatrix4("u_WorldFromObject", renderable.get().getGlobalTransformMatrix());
         renderable.get().mesh.draw();
-        glBindTextureUnit(0, 0);
-        glBindTextureUnit(1, 0);
         shader.unbind();
       }
     };
 
     auto drawShadowMap = [&]() {
       glViewport(0, 0, light.shadowWidth, light.shadowHeight);
-      assetManager.framebuffers.at("shadowFBO").bind();
+      shadowFbo.bind();
       //if (cullFrontFaces) glCullFace(GL_FRONT);
       glClear(GL_DEPTH_BUFFER_BIT);
       assetManager.shaders.at("simpleDepth").bind();
@@ -229,7 +223,7 @@ int main() {
 
       assetManager.shaders.at("simpleDepth").unbind();
       //if (cullFrontFaces) glCullFace(GL_BACK);
-      assetManager.framebuffers.at("shadowFBO").unbind();
+      shadowFbo.unbind();
     };
 
     auto visualizeDepth = [&]() {
@@ -239,7 +233,7 @@ int main() {
 
       shader.setFloat("near_plane", light.near);
       shader.setFloat("far_plane", light.far);
-      glBindTextureUnit(0, assetManager.framebuffers.at("shadowFBO").getDepthAttachment().getId());
+      glBindTextureUnit(0, shadowFbo.getDepthAttachment().getId());
       glBindVertexArray(dummyVao);
       glDrawArrays(GL_TRIANGLES, 0, 6);
       glBindVertexArray(0);

@@ -49,6 +49,7 @@ int main() {
     .parameters = {},
     .shouldMatchUniforms = false,
   });
+  //assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
 
   ws::RenderableObject ground = {
     {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
