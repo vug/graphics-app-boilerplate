@@ -47,56 +47,104 @@ int main() {
   ws::Shader unlitShader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"};
   ws::Shader uvAtlasShader{SRC / "uv_atlas.vert", SRC / "uv_atlas.frag"};
   ws::Shader lightmapShader{SRC / "lightmap.vert", SRC / "lightmap.frag"};
+  assetManager.materials.emplace("phong-wood", ws::Material{
+    .shader = mainShader, //assetManager.shaders.at("phong"),
+    .parameters = {
+      {"diffuseTexture", assetManager.textures.at("wood")},
+      {"specularTexture", assetManager.white}
+    }
+  });
+  assetManager.materials.emplace("lightmap-wood", ws::Material{
+    .shader = lightmapShader,
+    .parameters = {
+      {"diffuseTex", assetManager.textures.at("wood")},
+      {"lightmapTex", assetManager.textures.at("baked_lightmap")}
+    }
+  });
+  assetManager.materials.emplace("phong-uv_grid", ws::Material{
+    .shader = mainShader, //assetManager.shaders.at("phong"),
+    .parameters = {
+      {"diffuseTexture", assetManager.textures.at("uv_grid")},
+      {"specularTexture", assetManager.white}
+    }
+  });
+  assetManager.materials.emplace("lightmap-uv_grid", ws::Material{
+    .shader = lightmapShader,
+    .parameters = {
+      {"diffuseTex", assetManager.textures.at("uv_grid")},
+      {"lightmapTex", assetManager.textures.at("baked_lightmap")}
+    }
+  });
+  assetManager.materials.emplace("phong-metal", ws::Material{
+    .shader = mainShader, //assetManager.shaders.at("phong"),
+    .parameters = {
+      {"diffuseTexture", assetManager.textures.at("metal")},
+      {"specularTexture", assetManager.white}
+    }
+  });
+  assetManager.materials.emplace("lightmap-metal", ws::Material{
+    .shader = lightmapShader,
+    .parameters = {
+      {"diffuseTex", assetManager.textures.at("metal")},
+      {"lightmapTex", assetManager.textures.at("baked_lightmap")}
+    }
+  });
+  assetManager.materials.emplace("unlit-baked_scene", ws::Material{
+    .shader = unlitShader,
+    .parameters = {
+      {"mainTex", assetManager.textures.at("baked_lightmap")},
+    }
+  });
   ws::Framebuffer atlasFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
+  // true: adds light from the lightmap to unlit. don't forget to load UV2's from Lightmapper Window
+  // false: uses real-time lights
   const bool shouldUseLightmap = true;
-  ws::Shader& objShader = shouldUseLightmap ? lightmapShader : mainShader;
-  ws::Texture& obj2ndTex = shouldUseLightmap ? assetManager.textures.at("baked_lightmap") : whiteTex;
+  // To debug the generated lightmap. Uses single mesh scene and single lightmap texture.
+  const bool shouldJustShowBakedLight = false;
   ws::RenderableObject ground = {
       {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
       assetManager.meshes.at("cube1"),
-      objShader,
-      assetManager.textures["wood"],
-      obj2ndTex,
+      assetManager.materials.at(shouldUseLightmap ? "lightmap-wood" : "phong-wood"),
+      assetManager.white,
+      assetManager.white,
   };
   ws::RenderableObject monkey1 = {
       {"Monkey1", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey1"),
-      objShader,
-      assetManager.textures["uv_grid"],
-      obj2ndTex,
+      assetManager.materials.at(shouldUseLightmap ? "lightmap-uv_grid" : "phong-uv_grid"),
+      assetManager.white,
+      assetManager.white,
   };
   ws::RenderableObject monkey2 = {
       {"Monkey2", {glm::vec3{4, 0, 1}, glm::vec3{0, 1, 0}, glm::radians(55.f), glm::vec3{1.f, 1.f, 1.f}}},
       assetManager.meshes.at("monkey2"),
-      objShader,
-      assetManager.textures["wood"],
-      obj2ndTex,
+      assetManager.materials.at(shouldUseLightmap ? "lightmap-wood" : "phong-wood"),
+      assetManager.white,
+      assetManager.white,
   };
   ws::RenderableObject box = {
       {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
       assetManager.meshes.at("cube2"),
-      objShader,
-      assetManager.textures["wood"],
-      obj2ndTex,
+      assetManager.materials.at(shouldUseLightmap ? "lightmap-wood" : "phong-wood"),
+      assetManager.white,
+      assetManager.white,
   };
   ws::RenderableObject torus = {
       {"Torus", {glm::vec3{1.5, 2, 3}, glm::vec3{0, 1, 1}, glm::radians(30.f), glm::vec3{1.f, 1.f, 1.f}}},
       assetManager.meshes.at("torus"),
-      objShader,
-      assetManager.textures["metal"],
-      obj2ndTex,
+      assetManager.materials.at(shouldUseLightmap ? "lightmap-metal" : "phong-metal"),
+      assetManager.white,
+      assetManager.white,
   };
   ws::RenderableObject bakedScene = {
       {"BakedScene", {glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{1.f, 1.f, 1.f}}},
       assetManager.meshes.at("baked_scene"),
-      unlitShader,
-      assetManager.textures["baked_lightmap"],
-      whiteTex,
+      assetManager.materials.at("unlit-baked_scene"),
+      assetManager.white,
+      assetManager.white,
   };
   ws::Scene scene{
-    //.renderables{monkey1, monkey2, box, torus, ground},
-    .renderables{bakedScene},
     .directionalLights = std::vector<ws::DirectionalLight>{
       ws::DirectionalLight{
         .position = glm::vec3(1, 1, 1),
@@ -106,6 +154,10 @@ int main() {
       },
     },
   };
+  if (shouldJustShowBakedLight)
+    scene.renderables = {bakedScene};
+  else
+    scene.renderables = {monkey1, monkey2, box, torus, ground};
   ws::setParent(&ground, &scene.root);
   ws::setParent(&monkey1, &scene.root);
   ws::setParent(&monkey2, &scene.root);
@@ -117,6 +169,7 @@ int main() {
 
 	scene.camera.position = { 0, 5, -10 };
 	scene.camera.target = { 0, 0, 0 };
+  ws::ManualCameraController manualCamController{scene.camera};
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{atlasFbo.getFirstColorAttachment(), assetManager.textures.at("baked_lightmap")};
   ws::TextureViewer textureViewer{texRefs};
   ws::HierarchyWindow hierarchyWindow{scene};
@@ -142,6 +195,7 @@ int main() {
       atlasFbo.getFirstColorAttachment().saveToImageFile("uv_atlas_vug.png");
     ImGui::End();
 
+    manualCamController.update(ws::getMouseCursorPosition(), workshop.mouseState, workshop.getFrameDurationMs() * 0.001f);
     scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
     scene.uploadUniforms();
 
@@ -169,20 +223,7 @@ int main() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for (auto& renderable : scene.renderables) {
-      ws::Shader& shader = renderable.get().shader;
-      shader.bind();
-      shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
-      shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
-      shader.setVector3("u_CameraPosition", scene.camera.position);
-	    renderable.get().texture.bindToUnit(0);
-	    renderable.get().texture2.bindToUnit(1);
-      shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-      renderable.get().mesh.draw();
-	    renderable.get().texture.unbindFromUnit(0);
-	    renderable.get().texture2.unbindFromUnit(1);
-      shader.unbind();
-    }
+    scene.draw();
 
 	  workshop.drawUI();
 	  lightMapper.drawUI(scene);

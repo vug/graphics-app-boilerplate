@@ -1,18 +1,15 @@
-#version 430
+#version 460
+#extension GL_ARB_shading_language_include : require
+
+#include "/lib/DefaultVertexAttributes.glsl"
+#include "/lib/VertexData.glsl"
+#include "/lib/SceneUniforms.glsl"
 
 uniform mat4 u_WorldFromObject;
-uniform mat4 u_ViewFromWorld;
-uniform mat4 u_ProjectionFromView;
 
-layout(location = 0) in vec3 a_Position;
-layout(location = 1) in vec2 a_TexCoords;
-layout(location = 2) in vec2 a_TexCoords2;
-
-out vec2 v_TexCoords;
-out vec2 v_TexCoords2;
+out VertexData vertexData;
 
 void main() {
-    gl_Position = u_ProjectionFromView * u_ViewFromWorld * u_WorldFromObject * vec4(a_Position, 1.0);
-    v_TexCoords = a_TexCoords;
-    v_TexCoords2 = a_TexCoords2;
+  vertexData = fillVertexData(u_WorldFromObject, a_Position, a_Normal, a_TexCoord, a_TexCoord2, a_Color, a_Custom);
+  gl_Position = su.u_ProjectionFromView * su.u_ViewFromWorld * vec4(vertexData.worldPosition, 1);
 }
