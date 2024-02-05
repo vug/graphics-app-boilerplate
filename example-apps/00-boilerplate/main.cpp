@@ -32,34 +32,53 @@ int main() {
   assetManager.textures.emplace("uv_grid", ws::ASSETS_FOLDER / "images/Wikipedia/UV_checker_Map_byValle.jpg");
   assetManager.textures.emplace("checkerboard", ws::ASSETS_FOLDER / "images/Wikipedia/checkerboard_pattern.png");
   assetManager.textures.emplace("wood", ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg");
-  ws::Texture whiteTex{ws::Texture::Specs{1, 1, ws::Texture::Format::RGB8, ws::Texture::Filter::Linear}};
-  std::vector<uint32_t> whiteTexPixels = {0xFFFFFF};
-  whiteTex.uploadPixels(whiteTexPixels.data());
   assetManager.shaders.emplace("phong", ws::Shader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("boilerplate", ws::Shader{SRC / "boilerplate.vert", SRC / "boilerplate.frag"});
+  assetManager.materials.emplace("phongGround", ws::Material{
+    .shader = assetManager.shaders.at("phong"),
+    .parameters = {
+      {"diffuseTexture", assetManager.textures.at("uv_grid")},
+      {"specularTexture", assetManager.white}
+    }
+  });
+  assetManager.materials.emplace("unlit-monkey", ws::Material{
+    .shader = assetManager.shaders.at("unlit"),
+    .parameters = {
+      {"mainTex", assetManager.textures.at("checkerboard")},
+      {"u_Color", glm::vec4(1, 1, 1, 1)},
+    }
+  });
+  assetManager.materials.emplace("boilerplate-box", ws::Material{
+    .shader = assetManager.shaders.at("boilerplate"),
+    .parameters = {
+      {"mainTex", assetManager.textures.at("wood")},
+      {"secondTex", assetManager.textures.at("checkerboard")},
+    }
+  });
+  assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
   ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   ws::RenderableObject ground = {
       {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
       assetManager.meshes.at("cube"),
-      assetManager.shaders.at("phong"),
-      assetManager.textures.at("uv_grid"),
-      whiteTex,
+      assetManager.materials.at("phongGround"),
+      assetManager.white,
+      assetManager.white,
   };
   ws::RenderableObject monkey = {
       {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey"),
-      assetManager.shaders.at("unlit"),
-      assetManager.textures.at("checkerboard"),
-      whiteTex,
+      assetManager.materials.at("unlit-monkey"),
+      assetManager.white,
+      assetManager.white,
   };
   ws::RenderableObject box = {
       {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
       assetManager.meshes.at("cube"),
-      assetManager.shaders.at("boilerplate"),
-      assetManager.textures.at("wood"),
-      assetManager.textures.at("checkerboard"),
+      assetManager.materials.at("boilerplate-box"),
+      assetManager.white,
+      assetManager.white,
   };
   ws::Scene scene{
     .renderables{ground, monkey, box},
@@ -110,17 +129,7 @@ int main() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
-    assetManager.shaders.at("boilerplate").bind();
-    assetManager.shaders.at("boilerplate").setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
-    assetManager.shaders.at("boilerplate").setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
-    for (auto& renderable : scene.renderables) {
-      renderable.get().texture.bindToUnit(0);
-      assetManager.shaders.at("boilerplate").setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-      const ws::Mesh& mesh = renderable.get().mesh;
-      mesh.draw();
-      renderable.get().texture.unbindFromUnit(0);
-    }
-    assetManager.shaders.at("boilerplate").unbind();
+    scene.draw(assetManager.materials.at("boilerplate-box"));
     offscreenFbo.unbind();
 
     glViewport(0, 0, winSize.x, winSize.y);
@@ -129,20 +138,7 @@ int main() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for (auto& renderable : scene.renderables) {
-      ws::Shader& shader = renderable.get().shader;
-      shader.bind();
-      shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
-      shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
-      shader.setVector3("u_CameraPosition", scene.camera.position);
-	    renderable.get().texture.bindToUnit(0);
-	    renderable.get().texture2.bindToUnit(1);
-      shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-      renderable.get().mesh.draw();
-	    renderable.get().texture.unbindFromUnit(0);
-	    renderable.get().texture2.unbindFromUnit(1);
-      shader.unbind();
-    }
+    scene.draw();
 
  	  workshop.drawUI();
     textureViewer.draw();

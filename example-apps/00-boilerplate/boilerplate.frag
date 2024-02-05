@@ -1,26 +1,18 @@
 #version 460
+#extension GL_ARB_shading_language_include : require
 
-struct VertexData {
-  vec3 objectPosition;
-  vec3 worldPosition;
-  vec3 objectNormal;
-  vec3 worldNormal;
-  vec2 texCoord;
-  vec2 texCoord2;
-  vec4 color;
-  vec4 custom;
-};
+#include "/lib/VertexData.glsl"
+#include "/lib/SceneUniforms.glsl"
+
 in VertexData vertexData;
 
+// Material uniforms
 layout(binding = 0) uniform sampler2D mainTex;
 layout(binding = 1) uniform sampler2D secondTex;
-uniform vec3 u_CameraPosition = vec3(0, 0, -5);
 
 out vec4 FragColor;
 
 void main() {
-  const vec3 objectNormal = normalize(vertexData.objectNormal);
-  const vec3 worldNormal = normalize(vertexData.worldNormal);
   const vec3 mainTexColor = texture(mainTex, vertexData.texCoord).rgb;
   const vec3 secondTexColor = texture(secondTex, vertexData.texCoord).rgb;
 
