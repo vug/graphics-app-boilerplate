@@ -22,18 +22,11 @@
 
 const std::filesystem::path SRC{SOURCE_DIR};
 
-class AssetManager {
- public:
-  std::unordered_map<std::string, ws::Mesh> meshes;
-  std::unordered_map<std::string, ws::Texture> textures;
-  std::unordered_map<std::string, ws::Shader> shaders;
-};
-
 int main() {
   std::println("Hi!");
   ws::Workshop workshop{1920, 1080, "Infinite Grid"};
 
-  AssetManager assetManager;
+  ws::AssetManager assetManager;
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
   assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
   assetManager.textures.emplace("uv_grid", ws::ASSETS_FOLDER / "images/Wikipedia/UV_checker_Map_byValle.jpg");
@@ -45,20 +38,33 @@ int main() {
   assetManager.shaders.emplace("phong", ws::Shader{ws::ASSETS_FOLDER / "shaders/phong.vert", ws::ASSETS_FOLDER / "shaders/phong.frag"});
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("grid", ws::Shader{SRC / "grid.vert", SRC / "grid.frag"});
+  assetManager.materials.emplace("phong-monkey", ws::Material{
+    .shader = assetManager.shaders.at("phong"),
+    .parameters = {
+      {"diffuseTexture", assetManager.textures.at("uv_grid")},
+      {"specularTexture", assetManager.white}
+    }
+  });
+  assetManager.materials.emplace("unlit-box", ws::Material{
+    .shader = assetManager.shaders.at("unlit"),
+    .parameters = {
+      {"mainTex", assetManager.textures.at("wood")},
+    }
+  });
   ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   ws::RenderableObject monkey = {
       {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey"),
-      assetManager.shaders.at("phong"),
-      assetManager.textures.at("uv_grid"),
+      assetManager.materials.at("phong-monkey"),
+      whiteTex,
       whiteTex,
   };
   ws::RenderableObject box = {
       {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
       assetManager.meshes.at("cube"),
-      assetManager.shaders.at("unlit"),
-      assetManager.textures.at("wood"),
+      assetManager.materials.at("unlit-box"),
+      whiteTex,
       whiteTex,
   };
   ws::Scene scene{
@@ -105,27 +111,11 @@ int main() {
     scene.uploadUniforms();
 
     glViewport(0, 0, winSize.x, winSize.y);
-    //glEnable(GL_CULL_FACE);
-    //glCullFace(GL_BACK);
-    glDisable(GL_CULL_FACE);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_BLEND);
-    for (auto& renderable : scene.renderables) {
-      ws::Shader& shader = renderable.get().shader;
-      shader.bind();
-      shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
-      shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
-      shader.setVector3("u_CameraPosition", scene.camera.position);
-	    renderable.get().texture.bindToUnit(0);
-	    renderable.get().texture2.bindToUnit(1);
-      shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-      renderable.get().mesh.draw();
-	    renderable.get().texture.unbindFromUnit(0);
-	    renderable.get().texture2.unbindFromUnit(1);
-      shader.unbind();
-    }
+    scene.draw();
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     {
