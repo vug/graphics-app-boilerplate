@@ -51,7 +51,7 @@ EditorWindow::EditorWindow(Scene& scene)
       outlineGrowthFbo(Framebuffer::makeDefaultColorOnly(1, 1)),
       scene(scene),
       editorShader(ws::ASSETS_FOLDER / "shaders/editor/editor.vert", ws::ASSETS_FOLDER / "shaders/editor/editor.frag"),
-      solidColorShader(ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"),
+      solidColorShader(ws::ASSETS_FOLDER / "shaders/editor/solid_color.vert", ws::ASSETS_FOLDER / "shaders/editor/solid_color.frag"),
       outlineShader(ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_outline.frag"),
       copyShader(ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"),
       gridShader(ws::ASSETS_FOLDER / "shaders/editor/infinite_grid.vert", ws::ASSETS_FOLDER / "shaders/editor/infinite_grid.frag"),
