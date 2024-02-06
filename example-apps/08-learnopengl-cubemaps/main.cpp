@@ -1,7 +1,9 @@
+#include <Workshop/AssetManager.hpp>
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
 #include <Workshop/Cubemap.hpp>
 #include <Workshop/Model.hpp>
+#include <Workshop/Scene.hpp>
 #include <Workshop/Shader.hpp>
 #include <Workshop/Texture.hpp>
 #include <Workshop/Transform.hpp>
@@ -34,59 +36,76 @@ class Skybox {
 };
 
 
-struct Renderable {
-  std::string name;
-  ws::Mesh mesh;
-  ws::Shader shader;
-  ws::Transform transform;
-  ws::Texture texture;
-  glm::vec4 color{1, 1, 1, 1};
-  float refRefMix = 0.25f;
-};
-using Scene = std::vector<std::reference_wrapper<Renderable>>;
-
 void drawSkybox(const Skybox& skybox, const ws::Camera& cam);
-void drawSceneWithCamera(const Scene& scene, const ws::Camera& cam, const Skybox& skybox);
+void drawSceneWithCamera(const ws::Scene& scene, const ws::Camera& cam, const Skybox& skybox);
 
 int main() {
   std::println("Hi!");
   ws::Workshop workshop{2048, 1536, "Workshop App"};
 
+  ws::AssetManager assetManager;
+  assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
+  assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne_smooth.obj"));
+  assetManager.meshes.emplace("teapot", ws::loadOBJ(ws::ASSETS_FOLDER / "models/teapot-4k.obj"));
+  assetManager.textures.emplace("container", ws::Texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg"});
+  assetManager.textures.emplace("marble", ws::Texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/marble.jpg"});
+  assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
+  assetManager.shaders.emplace("reflective", ws::Shader{SRC / "reflective.vert", SRC / "reflective.frag"});
+  assetManager.materials.emplace("unlit-box", ws::Material{
+    .shader = assetManager.shaders.at("unlit"),
+    .parameters = {
+      {"mainTex", assetManager.textures.at("marble")},
+      {"u_Color", glm::vec4(1, 1, 1, 1)},
+    },
+  });
+  assetManager.materials.emplace("reflective-monkey", ws::Material{
+    .shader = assetManager.shaders.at("reflective"),
+    .parameters = {
+      {"u_Color", glm::vec4(1, 1, 0, 1)},
+      {"u_RefRefMix", 0.25f},
+    },
+    .shouldMatchUniforms = false,
+  });
+  assetManager.materials.emplace("reflective-teapot", ws::Material{
+    .shader = assetManager.shaders.at("reflective"),
+    .parameters = {
+      {"u_Color", glm::vec4(0, 1, 1, 1)},
+      {"u_RefRefMix", 0.75f},
+    },
+    .shouldMatchUniforms = false,
+  });
+  //assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
   const std::filesystem::path base = ws::ASSETS_FOLDER / "images/LearnOpenGL/skybox";
   Skybox skybox{base / "right.jpg", base / "left.jpg", base / "top.jpg", base / "bottom.jpg", base / "front.jpg", base / "back.jpg"};
   Skybox skyboxNotOptimized{base / "right.jpg", base / "left.jpg", base / "top.jpg", base / "bottom.jpg", base / "front.jpg", base / "back.jpg", false};
 
-  Renderable box {
-    .name = "Box",
-    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")},
-    .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
-    .transform{glm::vec3{0, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{2, 2, 2}},
-    .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg"},
+  ws::RenderableObject box = {
+    {"Box", {glm::vec3{0, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{2, 2, 2}}},
+    assetManager.meshes.at("cube"),
+    assetManager.materials.at("unlit-box"),
   };
-  Renderable glassyMonkey {
-    .name = "Monkey",
-    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne_smooth.obj")},
-    .shader{SRC / "reflective.vert", SRC / "reflective.frag"},
-    .transform{glm::vec3{3, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
-    .color{1, 1, 0, 1},
-    .refRefMix{0.25},
+  ws::RenderableObject glassyMonkey = {
+    {"Monkey", {glm::vec3{3, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}}},
+    assetManager.meshes.at("monkey"),
+    assetManager.materials.at("reflective-monkey"),
   };
-  Renderable glassyTeapot {
-    .name = "Teapot",
-    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/teapot-4k.obj")},
-    .shader{SRC / "reflective.vert", SRC / "reflective.frag"},
-    .transform{glm::vec3{0, 1.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
-    .color{0, 1, 1, 1},
-    .refRefMix{0.75},
+  ws::RenderableObject glassyTeapot = {
+    {"Teapot", {glm::vec3{0, 1.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}}},
+    assetManager.meshes.at("teapot"),
+    assetManager.materials.at("reflective-teapot"),
   };
-  Scene renderables = {box, glassyMonkey, glassyTeapot};
 
-  ws::Camera cam;
-  ws::AutoOrbitingCameraController orbitingCamController{cam};
+  ws::Scene scene {
+    .renderables = {box, glassyMonkey, glassyTeapot},
+  };
+
+  ws::AutoOrbitingCameraController orbitingCamController{scene.camera};
   orbitingCamController.radius = 13.8f;
   orbitingCamController.theta = 0.355f;
+  orbitingCamController.speed = 0.5;
 
   glEnable(GL_DEPTH_TEST);
+  scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("unlit").getId(), "SceneUniforms");
 
   while (!workshop.shouldStop())
   {
@@ -101,7 +120,8 @@ int main() {
     ImGui::End();
 
     orbitingCamController.update(0.01f);
-    cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
+    scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
+    scene.uploadUniforms();
 
     glClearColor(1, 0, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -111,20 +131,20 @@ int main() {
     // Any pixel where a scene object appears will be overdrawn
     auto drawAllUnoptimized = [&]() {
       glDepthMask(GL_FALSE);
-      drawSkybox(skyboxNotOptimized, cam);
+      drawSkybox(skyboxNotOptimized, scene.camera);
       glDepthMask(GL_TRUE);
 
-      drawSceneWithCamera(renderables, cam, skyboxNotOptimized);
+      drawSceneWithCamera(scene, scene.camera, skyboxNotOptimized);
     };
 
     // First draw the scene, store depth
     // Then draw skybox only to pixels where no scene object has been drawn
     auto drawAll = [&]() {
-      drawSceneWithCamera(renderables, cam, skybox);
+      drawSceneWithCamera(scene, scene.camera, skybox);
 
       // At a pixel, when no scene object is drawn the cleared depth value is 1
       glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content, i.e. when 1, i.e. when no object drawn
-      drawSkybox(skybox, cam);
+      drawSkybox(skybox, scene.camera);
       glDepthFunc(GL_LESS); // back to default
     };
 
@@ -142,31 +162,25 @@ int main() {
   return 0;
 }
 
-void drawSceneWithCamera(const Scene& scene, const ws::Camera& cam, const Skybox& skybox) {
-  for (auto& objRef : scene) {
+void drawSceneWithCamera(const ws::Scene& scene, const ws::Camera& cam, const Skybox& skybox) {
+  for (auto& objRef : scene.renderables) {
     auto& obj = objRef.get();
 
-    obj.shader.bind();
-
-    glBindTextureUnit(0, obj.texture.getId());
+    obj.material.shader.bind();
+    obj.material.uploadParameters();
     glBindTextureUnit(1, skybox.cubemap.getId());
     // Camera uniforms
-    obj.shader.setVector3("u_CameraPos", cam.position);
-    obj.shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-    obj.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-    // Scene uniforms
+    obj.material.shader.setVector3("u_CameraPos", cam.position);
+    obj.material.shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+    obj.material.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
     // Object uniforms
-    obj.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
-    // Material uniforms
-    ImGui::SliderFloat(std::format("{} Mix", obj.name).c_str(), &obj.refRefMix, 0, 1);
-    obj.shader.setFloat("u_RefRefMix", obj.refRefMix);
-    obj.shader.setVector4("u_Color", obj.color);
+    obj.material.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
 
     obj.mesh.draw();
 
     glBindTextureUnit(0, 0);
     glBindTextureUnit(1, 0);
-    obj.shader.unbind();
+    obj.material.shader.unbind();
   }
 }
 

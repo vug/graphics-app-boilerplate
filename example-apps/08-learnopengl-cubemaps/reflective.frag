@@ -4,7 +4,7 @@ in vec3 v_WorldPosition;
 in vec2 v_TexCoord;
 in vec3 v_Normal;
 
-layout(binding = 0) uniform sampler2D mainTex;
+//layout(binding = 0) uniform sampler2D mainTex;
 layout(binding = 1) uniform samplerCube skybox;
 uniform vec3 u_CameraPos;
 uniform float u_RefRefMix = 0.25;
