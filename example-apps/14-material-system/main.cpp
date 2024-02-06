@@ -165,7 +165,7 @@ int main() {
  	  workshop.drawUI();
     textureViewer.draw();
     static ws::VObjectPtr selectedObject;
-    ws::VObjectPtr clickedObject = editorWindow.draw({}, selectedObject, workshop.getFrameDurationSec());
+    ws::VObjectPtr clickedObject = editorWindow.draw(assetManager.textures, selectedObject, workshop.getFrameDurationSec());
     selectedObject = hierarchyWindow.draw(clickedObject);
     inspectorWindow.inspectObject(selectedObject);
 
