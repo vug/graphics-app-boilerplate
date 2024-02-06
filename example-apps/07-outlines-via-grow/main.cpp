@@ -1,3 +1,4 @@
+#include <Workshop/AssetManager.hpp>
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
 #include <Workshop/Framebuffer.hpp>
@@ -18,59 +19,71 @@
 #include <print>
 #include <ranges>
 
-struct Renderable {
-  ws::Mesh mesh;
-  ws::Shader shader;
-  ws::Transform transform;
-  glm::vec4 color{1, 1, 1, 1};
-  ws::Texture texture;
-  bool shouldHighlight{false};
-};
-
-int main()
-{
+int main() {
   std::println("Hi!");
-  ws::Workshop workshop{2048, 1536, "Workshop App"};
+  ws::Workshop workshop{2048, 1536, "Outlines via Growth"};
 
+  ws::AssetManager assetManager;
+  assetManager.meshes.emplace("suzanne", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
+  assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
+  assetManager.meshes.emplace("quad", ws::loadOBJ(ws::ASSETS_FOLDER / "models/quad.obj"));
+  assetManager.textures.emplace("marble", ws::Texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/marble.jpg"});
+  assetManager.textures.emplace("container", ws::Texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg"});
+  assetManager.textures.emplace("metal", ws::Texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/metal.png"});
+  assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
+  assetManager.shaders.emplace("solid_color", ws::Shader{ws::ASSETS_FOLDER / "shaders/editor/solid_color.vert", ws::ASSETS_FOLDER / "shaders/editor/solid_color.frag"});
+  assetManager.shaders.emplace("fullscreen", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"});
+  assetManager.materials.emplace("unlit-monkey", ws::Material{
+    .shader = assetManager.shaders.at("unlit"),
+    .parameters = {
+      {"mainTex", assetManager.textures.at("marble")},
+      {"u_Color", glm::vec4(1, 1, 1, 1)},
+    },
+  });
+  assetManager.materials.emplace("unlit-cube", ws::Material{
+    .shader = assetManager.shaders.at("unlit"),
+    .parameters = {
+      {"mainTex", assetManager.textures.at("container")},
+      {"u_Color", glm::vec4(1, 1, 1, 1)},
+    },
+  });
+  assetManager.materials.emplace("unlit-quad", ws::Material{
+    .shader = assetManager.shaders.at("unlit"),
+    .parameters = {
+      {"mainTex", assetManager.textures.at("metal")},
+      {"u_Color", glm::vec4(1, 1, 1, 1)},
+    },
+  });
+  assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
 
-  ws::Shader solidColorShader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"};
   glm::vec4 outlineColor{0.85, 0.65, 0.15, 1};
-
-  ws::Shader fullscreenShader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"};
-  uint32_t fullscreenVao;
-  glGenVertexArrays(1, &fullscreenVao);
   ws::Shader outlineShader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_outline.frag"};
 
-  Renderable cube1{
-    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj")},
-    .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
-    .transform{glm::vec3{-1, 0.5, -1}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
-    //.color{0.9, 0.8, 0.1, 1.0},
-    .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/marble.jpg"},
-    .shouldHighlight{true},
+  ws::RenderableObject monkey = {
+    {"Monkey", {glm::vec3{-1, 0.5, -1}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}}},
+    assetManager.meshes.at("suzanne"),
+    assetManager.materials.at("unlit-monkey"),
   };
-  Renderable cube2{
-    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")},
-    .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
-    .transform{glm::vec3{2, 0.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
-    //.color{0.9, 0.1, 0.8, 1.0},
-    .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/marble.jpg"},
-    .shouldHighlight{true},
+  ws::RenderableObject cube = {
+    {"Cube", {glm::vec3{2, 0.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}}},
+    assetManager.meshes.at("cube"),
+    assetManager.materials.at("unlit-cube"),
   };
-  Renderable quad{
-    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/quad.obj")},
-    .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
-    .transform{glm::vec3{0, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{10, 0, 10}},
-    //.color{0.1, 0.9, 0.8, 1.0},
-    .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/metal.png"},
+  ws::RenderableObject quad = {
+    {"Quad", {glm::vec3{0, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{10, 0, 10}}},
+    assetManager.meshes.at("cube"),
+    assetManager.materials.at("unlit-quad"),
   };
-  std::vector<std::reference_wrapper<Renderable>> renderables = {cube1, quad, cube2};
 
+  ws::Scene scene{
+    .renderables = {monkey, cube, quad},
+  };
+  std::vector<bool> shouldHighlights = {true, true, false};
 
-  ws::Camera cam;
-  ws::AutoOrbitingCameraController orbitingCamController{cam};
+  ws::AutoOrbitingCameraController orbitingCamController{scene.camera};
   orbitingCamController.radius = 13.8f;
   orbitingCamController.theta = 0.355f;
+  orbitingCamController.speed = 0.5f;
 
   ws::Framebuffer outlineA{};
   ws::Framebuffer outlineB{};
@@ -81,6 +94,7 @@ int main()
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // Needed for displaying textures with alpha < 1
+  scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("unlit").getId(), "SceneUniforms");
   
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
@@ -91,52 +105,38 @@ int main()
 
     workshop.drawUI();
 
-    ImGui::Begin("Main");
+    ImGui::Begin("Outlines via Growth");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
     ImGui::End();
 
     orbitingCamController.update(0.01f);
-    cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
+    scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
+    scene.uploadUniforms();
 
     // Pass 1: Draw scene to screen
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for (auto& objRef : renderables) {
-      const auto& obj = objRef.get();
-
-      obj.shader.bind();
-      obj.texture.bind();
-
-      obj.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
-      obj.shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-      obj.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      obj.shader.setVector4("u_Color", obj.color);
-
-      obj.mesh.draw();
-
-      ws::Texture::unbind();
-      obj.shader.unbind();
-    }
-
+    scene.draw();
 
     // Pass 2: Draw highlighted objects with solid color offscreen
     outlineA.bind();
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
-    for (auto& objRef : renderables | std::views::filter(&Renderable::shouldHighlight)) {
+    for (const auto& [shouldHighlight, objRef] : std::views::zip(shouldHighlights, scene.renderables)) {
+      if (!shouldHighlight)
+        continue;
+
       const auto& obj = objRef.get();
-      solidColorShader.bind();
-
-      solidColorShader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
-      solidColorShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-      solidColorShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      solidColorShader.setVector4("u_Color", outlineColor);
-
+      const auto& shader = assetManager.shaders.at("solid_color");
+      shader.bind();
+      shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
+      shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
+      shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
+      shader.setVector4("u_Color", outlineColor);
       obj.mesh.draw();
-
-      solidColorShader.unbind();
+      shader.unbind();
     }
     glEnable(GL_DEPTH_TEST);
     outlineA.unbind();
@@ -148,13 +148,9 @@ int main()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
     outlineShader.bind();
-    glBindVertexArray(fullscreenVao);
-
     outlineA.getFirstColorAttachment().bind();
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    assetManager.drawWithEmptyVao(6);
     ws::Texture::unbind();
-
-    glBindVertexArray(0);
     outlineShader.unbind();
     glEnable(GL_DEPTH_TEST);
     outlineB.unbind();
@@ -162,15 +158,11 @@ int main()
 
     // Pass 4: Draw highlights as overlay to screen
     glDisable(GL_DEPTH_TEST);
-    fullscreenShader.bind();
+    assetManager.shaders.at("fullscreen").bind();
     outlineB.getFirstColorAttachment().bind();
-
-    glBindVertexArray(fullscreenVao);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
-
+    assetManager.drawWithEmptyVao(6);
     ws::Texture::unbind();
-    fullscreenShader.unbind();
+    assetManager.shaders.at("fullscreen").unbind();
     glEnable(GL_DEPTH_TEST);
 
     textureViewer.draw();
