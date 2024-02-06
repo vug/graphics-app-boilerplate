@@ -60,7 +60,7 @@ EditorWindow::EditorWindow(Scene& scene)
       emptyVao([]() { uint32_t id;glGenVertexArrays(1, &id); return id; }()) 
   {}
 
-VObjectPtr EditorWindow::draw(VObjectPtr selectedObject, float deltaTimeSec) {
+VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>& textures, VObjectPtr selectedObject, float deltaTimeSec) {
   ImGui::Begin("Editor");
 
   static bool shouldBeWireframe = false;

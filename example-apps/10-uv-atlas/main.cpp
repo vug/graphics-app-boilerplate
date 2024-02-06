@@ -219,7 +219,7 @@ int main() {
 	  lightMapper.drawUI(scene);
     textureViewer.draw();
     static ws::VObjectPtr selectedObject;
-    ws::VObjectPtr clickedObject = editorWindow.draw(selectedObject, workshop.getFrameDurationSec());
+    ws::VObjectPtr clickedObject = editorWindow.draw({}, selectedObject, workshop.getFrameDurationSec());
     selectedObject = hierarchyWindow.draw(clickedObject);
     inspectorWindow.inspectObject(selectedObject);
 

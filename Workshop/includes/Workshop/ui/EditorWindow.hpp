@@ -21,7 +21,7 @@ void ImGuiEndMouseDragHelper();
 class EditorWindow {
  public:
   EditorWindow(Scene& scene);
-  VObjectPtr draw(VObjectPtr selectedObject, float deltaTimeSec);
+  VObjectPtr draw(const std::unordered_map<std::string, ws::Texture>& textures, VObjectPtr selectedObject, float deltaTimeSec);
 
  private:
   Camera cam;
