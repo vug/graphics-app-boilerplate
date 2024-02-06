@@ -1,6 +1,8 @@
+#include <Workshop/AssetManager.hpp>
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
 #include <Workshop/Model.hpp>
+#include <Workshop/Scene.hpp>
 #include <Workshop/Shader.hpp>
 #include <Workshop/Texture.hpp>
 #include <Workshop/Transform.hpp>
@@ -16,56 +18,76 @@
 #include <print>
 #include <ranges>
 
-struct Renderable {
-  ws::Mesh mesh;
-  ws::Shader shader;
-  ws::Transform transform;
-  glm::vec4 color{1, 1, 1, 1};
-  ws::Texture texture;
-  bool shouldHighlight{false};
-};
-
-int main()
-{
+int main() {
   std::println("Hi!");
   ws::Workshop workshop{2048, 1536, "Workshop App"};
 
+  ws::AssetManager assetManager;
+  assetManager.meshes.emplace("suzanne", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
+  assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
+  assetManager.meshes.emplace("quad", ws::loadOBJ(ws::ASSETS_FOLDER / "models/quad.obj"));
+  assetManager.textures.emplace("marble", ws::Texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/marble.jpg"});
+  assetManager.textures.emplace("container", ws::Texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg"});
+  assetManager.textures.emplace("metal", ws::Texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/metal.png"});
+  assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
+  assetManager.shaders.emplace("solid_color", ws::Shader{ws::ASSETS_FOLDER / "shaders/editor/solid_color.vert", ws::ASSETS_FOLDER / "shaders/editor/solid_color.frag"});
+  assetManager.shaders.emplace("fullscreen", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"});
+  const ws::Shader outlineShader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"};
+  assetManager.materials.emplace("unlit-monkey", ws::Material{
+    .shader = assetManager.shaders.at("unlit"),
+    .parameters = {
+      {"mainTex", assetManager.textures.at("marble")},
+      {"u_Color", glm::vec4(1, 1, 1, 1)},
+    },
+  });
+  assetManager.materials.emplace("unlit-cube", ws::Material{
+    .shader = assetManager.shaders.at("unlit"),
+    .parameters = {
+      {"mainTex", assetManager.textures.at("container")},
+      {"u_Color", glm::vec4(1, 1, 1, 1)},
+    },
+  });
+  assetManager.materials.emplace("unlit-quad", ws::Material{
+    .shader = assetManager.shaders.at("unlit"),
+    .parameters = {
+      {"mainTex", assetManager.textures.at("metal")},
+      {"u_Color", glm::vec4(1, 1, 1, 1)},
+    },
+  });
+  assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
 
-  ws::Shader outlineShader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"};
+  ws::RenderableObject monkey = {
+    {"Monkey", {glm::vec3{-1, 0.5, -1}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}}},
+    assetManager.meshes.at("suzanne"),
+    assetManager.materials.at("unlit-monkey"),
+  };
+  ws::RenderableObject cube = {
+    {"Cube", {glm::vec3{2, 0.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}}},
+    assetManager.meshes.at("cube"),
+    assetManager.materials.at("unlit-cube"),
+  };
+  ws::RenderableObject quad = {
+    {"Quad", {glm::vec3{0, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{10, 0, 10}}},
+    assetManager.meshes.at("cube"),
+    assetManager.materials.at("unlit-quad"),
+  };
+
+  ws::Scene scene{
+    .renderables = {monkey, cube, quad},
+  };
+  std::vector<bool> shouldHighlights = {true, true, false};
+
   glm::vec4 outlineColor{0.85, 0.65, 0.15, 1};
-  Renderable cube1{
-    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj")},
-    .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
-    .transform{glm::vec3{-1, 0.5, -1}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
-    //.color{0.9, 0.8, 0.1, 1.0},
-    .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/marble.jpg"},
-    .shouldHighlight{true},
-  };
-  Renderable cube2{
-    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj")},
-    .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
-    .transform{glm::vec3{2, 0.5, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}},
-    //.color{0.9, 0.1, 0.8, 1.0},
-    .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/marble.jpg"},
-    .shouldHighlight{true},
-  };
-  Renderable quad{
-    .mesh{ws::loadOBJ(ws::ASSETS_FOLDER / "models/quad.obj")},
-    .shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"},
-    .transform{glm::vec3{0, 0, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{10, 0, 10}},
-    //.color{0.1, 0.9, 0.8, 1.0},
-    .texture{ws::ASSETS_FOLDER / "images/LearnOpenGL/metal.png"},
-  };
-  std::vector<std::reference_wrapper<Renderable>> renderables = {cube1, quad, cube2};
 
-  ws::Camera cam;
-  ws::AutoOrbitingCameraController orbitingCamController{cam};
+  ws::AutoOrbitingCameraController orbitingCamController{scene.camera};
   orbitingCamController.radius = 13.8f;
   orbitingCamController.theta = 0.355f;
+  orbitingCamController.speed = 0.5f;
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_STENCIL_TEST);
   glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+  scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("unlit").getId(), "SceneUniforms");
   
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
@@ -79,46 +101,38 @@ int main()
     ImGui::End();
 
     orbitingCamController.update(0.01f);
-    cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
+    scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
+    scene.uploadUniforms();
 
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
-
     glStencilFunc(GL_ALWAYS, 1, 0xFF);
-    for (auto& objRef : renderables) {
+    for (const auto& [shouldHighlight, objRef] : std::views::zip(shouldHighlights, scene.renderables)) {
       const auto& obj = objRef.get();
-      glStencilMask(obj.shouldHighlight ? 0xFF : 0x00); // write into stencil buffer only for highlighted objects
+      glStencilMask(shouldHighlight ? 0xFF : 0x00); // write into stencil buffer only for highlighted objects
 
-      obj.shader.bind();
-      obj.texture.bind();
-
-      obj.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
-      obj.shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-      obj.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      obj.shader.setVector4("u_Color", obj.color);
-
+      obj.material.shader.bind();
+      obj.material.uploadParameters();
+      obj.material.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
       obj.mesh.draw();
-
-      ws::Texture::unbind();
-      obj.shader.unbind();
+      obj.material.shader.unbind();
     }
 
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     glStencilMask(0x00);
     glDisable(GL_DEPTH_TEST);
-    for (auto& objRef : renderables | std::views::filter(&Renderable::shouldHighlight)) {
+    for (const auto& [shouldHighlight, objRef] : std::views::zip(shouldHighlights, scene.renderables)) {
+      if (!shouldHighlight)
+        continue;
       const auto& obj = objRef.get();
       outlineShader.bind();
-
-      glm::mat4 scaledUp = glm::scale(obj.transform.getWorldFromObjectMatrix(), glm::vec3{1.1, 1.1, 1.1});
+      const glm::mat4 scaledUp = glm::scale(obj.transform.getWorldFromObjectMatrix(), glm::vec3{1.1, 1.1, 1.1});
       outlineShader.setMatrix4("u_WorldFromObject", scaledUp);
-      outlineShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-      outlineShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+      outlineShader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
+      outlineShader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
       outlineShader.setVector4("u_Color", outlineColor);
-
       obj.mesh.draw();
-
       outlineShader.unbind();
     }
     glStencilMask(0xFF);
