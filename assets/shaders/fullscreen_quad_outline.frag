@@ -5,6 +5,7 @@ in VertexData {
 } v;
 
 uniform sampler2D screenTexture;
+uniform vec4 u_OutlineColor = vec4(1, 1, 0, 1);
 
 layout (location = 0) out vec4 outColor;
 
@@ -23,7 +24,7 @@ void main () {
   }
   // if (cnt > 0) // just grow
   if (cnt > 0 && cnt < 8) // outline
-    outColor = vec4(1, 1, 0, 1);
+    outColor = u_OutlineColor;
   else
     outColor = vec4(1, 1, 1, 0);
 }

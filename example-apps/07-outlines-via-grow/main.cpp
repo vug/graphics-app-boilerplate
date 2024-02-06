@@ -33,6 +33,7 @@ int main() {
   assetManager.shaders.emplace("unlit", ws::Shader{ws::ASSETS_FOLDER / "shaders/unlit.vert", ws::ASSETS_FOLDER / "shaders/unlit.frag"});
   assetManager.shaders.emplace("solid_color", ws::Shader{ws::ASSETS_FOLDER / "shaders/editor/solid_color.vert", ws::ASSETS_FOLDER / "shaders/editor/solid_color.frag"});
   assetManager.shaders.emplace("fullscreen", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"});
+  const ws::Shader outlineShader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_outline.frag"};
   assetManager.materials.emplace("unlit-monkey", ws::Material{
     .shader = assetManager.shaders.at("unlit"),
     .parameters = {
@@ -55,9 +56,6 @@ int main() {
     },
   });
   assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
-
-  glm::vec4 outlineColor{0.85, 0.65, 0.15, 1};
-  ws::Shader outlineShader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_outline.frag"};
 
   ws::RenderableObject monkey = {
     {"Monkey", {glm::vec3{-1, 0.5, -1}, glm::vec3{0, 0, 1}, 0, glm::vec3{1, 1, 1}}},
@@ -108,6 +106,8 @@ int main() {
     ImGui::Begin("Outlines via Growth");
     static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
     ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
+    static glm::vec4 outlineColor{0.85, 0.65, 0.15, 1};
+    ImGui::ColorEdit4("Outline Color", glm::value_ptr(outlineColor));
     ImGui::End();
 
     orbitingCamController.update(0.01f);
@@ -148,6 +148,7 @@ int main() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
     outlineShader.bind();
+    outlineShader.setVector4("u_OutlineColor", outlineColor);
     outlineA.getFirstColorAttachment().bind();
     assetManager.drawWithEmptyVao(6);
     ws::Texture::unbind();
