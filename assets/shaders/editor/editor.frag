@@ -11,7 +11,6 @@ struct VertexData {
 in VertexData v;
 
 layout(binding = 0) uniform sampler2D mainTex;
-layout(binding = 1) uniform sampler2D secondTex;
 uniform vec2 u_CameraNearFar; // .x: near, .y: far
 uniform int u_ShadingModel = 2;
 uniform int u_MeshId = -1;
@@ -33,8 +32,6 @@ float hash(int n, int seed) {
 void main() {
   const vec3 objectNormal = normalize(v.objectNormal);
   const vec3 worldNormal = normalize(v.worldNormal);
-  const vec3 mainTexColor = texture(mainTex, v.texCoord).rgb;
-  const vec3 secondTexColor = texture(secondTex, v.texCoord).rgb;
   const float near = u_CameraNearFar.x;
   const float far = u_CameraNearFar.y;
 
@@ -85,13 +82,15 @@ void main() {
 
     // First texture
     case 7: {
+      const vec3 mainTexColor = texture(mainTex, v.texCoord).rgb;
       FragColor = vec4(mainTexColor, 1);
       return;
     }
 
     // Second texture
     case 8: {
-      FragColor = vec4(secondTexColor, 1);
+      const vec3 mainTexColor = texture(mainTex, v.texCoord2).rgb;
+      FragColor = vec4(mainTexColor, 1);
       return;
     }
 

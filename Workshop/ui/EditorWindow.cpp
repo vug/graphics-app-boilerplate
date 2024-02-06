@@ -84,6 +84,14 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
   static float normalVizLength = 0.2f;
   ImGui::SliderFloat("Normal Length", &normalVizLength, 0.f, 1.f);
 
+  std::string textureToBind{};
+  if (!textures.empty() && (shadingModel == 7 || shadingModel == 8)) {
+    static int texIx = 0;
+    auto textureNames = textures | std::views::keys | std::views::transform([](const auto& str) { return str.c_str(); }) | std::ranges::to<std::vector>();
+    ImGui::Combo("Texture", &texIx, textureNames.data(), static_cast<uint32_t>(textureNames.size()));
+    textureToBind = textureNames[texIx];
+  }
+
   ImVec2 size = ImGui::GetContentRegionAvail();
   if (size.y < 0) {  // happens when minimized
     ImGui::End();
@@ -187,9 +195,8 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
     editorShader.setInteger("u_MeshId", static_cast<int>(ix));
     const bool isSelected = std::visit([&renderable](auto&& ptr) { if (ptr == nullptr) return false; return ptr->name == renderable.get().name; }, selectedObject);
     editorShader.setInteger("u_ShouldOutline", static_cast<int>(isSelected));
-    // TODO: make bound texture choosable via UI
-    //renderable.get().texture.bindToUnit(0);
-    //renderable.get().texture2.bindToUnit(1);
+    if (!textureToBind.empty())
+      textures.at(textureToBind).bindToUnit(0);
     renderable.get().mesh.draw();
     editorShader.unbind();
   }
