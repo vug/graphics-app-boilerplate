@@ -498,12 +498,11 @@ const std::vector<UniformBlockInfo>& Shader::getUniformBlockInfos() const {
 }
 
 void Shader::printUniformBlocks() const {
-  const std::vector<UniformBlockInfo>& uniformBlockInfos = getUniformBlockInfos();
   const std::vector<UniformInfo>& allUniformInfos = getUniformInfos();
 
-  for (const auto& [ix, ubi] : uniformBlockInfos | vws::enumerate) {
+  for (const auto& [ix, ubi] : getUniformBlockInfos() | vws::enumerate) {
     std::vector<int32_t> uniformIndices(ubi.numUniforms);
-    glGetActiveUniformBlockiv(id, ix, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, uniformIndices.data());
+    glGetActiveUniformBlockiv(id, static_cast<uint32_t>(ix), GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, uniformIndices.data());
     auto blockUniformInfos = uniformIndices | vws::transform([&](int32_t ix) { return allUniformInfos[ix]; }) | rng::to<std::vector>();
     rng::sort(blockUniformInfos, {}, &UniformInfo::offset);
 
