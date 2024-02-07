@@ -81,6 +81,7 @@ add_subdirectory(tinyobjloader)
 # Vivid's cmake is not properly setup wrt its dependency on GLM. We are forcing it to use the GLM from our dependency folder
 set(FETCHCONTENT_SOURCE_DIR_GLM "dependencies/glm" CACHE STRING "" FORCE) # Throws a warning about relative directory unsafe. Ignore.
 add_subdirectory(vivid)
+target_compile_definitions(vivid PUBLIC GLM_ENABLE_EXPERIMENTAL)
 
 
 # https://github.com/Lawrencemm/openmesh
