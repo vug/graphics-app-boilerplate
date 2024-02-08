@@ -14,6 +14,7 @@ add_subdirectory(glfw)
 
 # git submodule add https://github.com/g-truc/glm
 add_subdirectory(glm)
+target_compile_definitions(glm PUBLIC GLM_ENABLE_EXPERIMENTAL)
 
 
 # git submodule add --branch docking https://github.com/ocornut/imgui.git
@@ -78,10 +79,38 @@ add_subdirectory(tinyobjloader)
 
 
 # git submodule add https://github.com/gurki/vivid.git
-# Vivid's cmake is not properly setup wrt its dependency on GLM. We are forcing it to use the GLM from our dependency folder
-set(FETCHCONTENT_SOURCE_DIR_GLM "dependencies/glm" CACHE STRING "" FORCE) # Throws a warning about relative directory unsafe. Ignore.
-add_subdirectory(vivid)
-target_compile_definitions(vivid PUBLIC GLM_ENABLE_EXPERIMENTAL)
+# vivid is an old project, and it's subdepedencies were triggering CMake warnings about old versions etc.
+# Instead of relying on the CMakeLists.txt that comes with the repo, I explicitly turn that into a static library here myself.
+#add_subdirectory(vivid)
+include(FetchContent)
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_MakeAvailable(json)
+add_library(
+  vivid STATIC
+  vivid/src/adobe.cpp
+  vivid/src/color.cpp
+  vivid/src/colormap.cpp
+  vivid/src/hex.cpp
+  vivid/src/hsl.cpp
+  vivid/src/hsv.cpp
+  vivid/src/index.cpp
+  vivid/src/interpolation.cpp
+  vivid/src/lab.cpp
+  vivid/src/lch.cpp
+  vivid/src/lrgb.cpp
+  vivid/src/name.cpp
+  vivid/src/oklab.cpp
+  vivid/src/rgb.cpp
+  vivid/src/rgb32.cpp
+  vivid/src/rgb8.cpp
+  vivid/src/srgb.cpp
+  vivid/src/types.cpp
+  vivid/src/utility.cpp
+  vivid/src/xyz.cpp
+)
+target_include_directories(vivid PUBLIC vivid/include/)
+target_link_libraries(vivid PUBLIC glm PRIVATE nlohmann_json) # don't know why glm needs to be public here
+target_compile_features(vivid PRIVATE cxx_std_17)
 
 
 # https://github.com/Lawrencemm/openmesh
