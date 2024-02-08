@@ -1,4 +1,5 @@
 # TODO: Use v3.28 when VS upgrades to it to use modules without experimental key
+message("[VUGDEBUG] CMake version ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}")
 cmake_minimum_required(VERSION 3.27)
 
 include(CheckLanguage)
@@ -32,5 +33,5 @@ add_subdirectory(example-apps/13-bloom)
 add_subdirectory(example-apps/14-material-system)
 
 file(GLOB_RECURSE ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/assets/*)
-set(WORKSHOP_ASSETS ${ASSETS} PARENT_SCOPE)
-set(WORKSHOP_ASSETS_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/assets/ PARENT_SCOPE)
+set(WORKSHOP_ASSETS ${ASSETS})
+set(WORKSHOP_ASSETS_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/assets/)
