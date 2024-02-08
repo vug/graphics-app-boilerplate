@@ -1,5 +1,52 @@
 # Example Projects
 
+# 14 - Material System
+
+Before this example, a `Renderable` object had one shader, and two textures. 
+Shader uniforms were uploaded manually by using the `Shader.setVector3()` etc API.
+It was very limited and manual.
+
+![image](screenshots/14-material-system.png)
+
+With Material system, a Material class is introduced.
+It refers to a Shader, and owns a map, named `parameters`, from uniform names to a variant of types such as int, float, glm::vec2 etc.
+Material provides a auto-generated UI to set parameter values. It only uses ImGui's Drag widgets for numeric parameters, and a ComboBox to select textures for Texture parameters.
+Material::uploadParameters uses Shader::setX to upload uniform values, and uses Texture::bindToUnit API.
+
+Another novelty that was introduced is the `SceneUniforms`, thanks to the new `UniformBuffer` abstraction.
+Scene uniforms are the uniforms that don't change per frame, they hold camera matrices, camera positon, light parameters etc.
+A /lib/shader/SceneUniforms.glsl has the struct in glsl, which is in std140 layout.
+There is a corresponding C++ struct with padding introduced manually.
+There are lots of helper functions to study the layout of uniform interface blocks (aka UBO structs) that prints the uniforms and their offsets etc.
+Other helper functions check whether the parameters in the Material match with the non-scene uniforms in the shader.
+Assertions can be added for these checks.
+
+This introduces further code-reuse to shaders, and app logic, where we don't need to explicitly upload scene uniforms (light info or camera info) for every shader that is used, manually.
+
+`UniformBuffer` is a templated class, it owns a struct that'll hold whole UBO data as type parameter.
+UBO user edits UBOs uniforms struct and calls `upload()`, or can use `map()` method that'll return a reference to uniform struct.
+
+Now, a Renderable is just a reference to a Mesh and a reference to a Material.
+Different objects can use the same shader with different parameters, and tweak the parameters in real-time using auto-generated widgets.
+Scene Uniforms are uploaded automatically.
+
+# 13 - Bloom
+
+Standard bloom effect. I wanted to test post processing abilities of this project.
+
+![image](screenshots/13-bloom.png)
+
+* It renders the scene as it is.
+* Then, in a framebuffer, calculates brightness for each pixel, and discards the pixel if it is lower than a threshold
+* The goes into a loop until framebuffer size becomes very small
+  * In a framebuffer, applies gaussian blur. (one pass horizontal, one pass vertical trick)
+  * Resizes framebuffer to half
+* Once we have all these framebuffers with successively smaller and more blurred versions of original thresholded image, it justs adds up all of them
+* Then blends the resulting sum back to the original scene drawing
+
+It would have been better if this effect was implemented in HDR format, with some tone-mapping, because we are adding up samples so many textures per pixel.
+
+
 # 12 - Normal Mapping
 
 I was first going to follow the normal mapping tutorial on [LearnOpenGL.com](https://learnopengl.com/Advanced-Lighting/Normal-Mapping).
