@@ -55,13 +55,13 @@ void main () { outColor = vec4 (fragColor, 1.0); }
     ImGui::ColorEdit3("BG Color", bgColor);
     ImGui::End();
 
-    glBindVertexArray(vao);
-
     glClearColor(bgColor[0], bgColor[1], bgColor[2], 1);
     glClear(GL_COLOR_BUFFER_BIT);
-
     shader.bind();
+    glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
+    glBindVertexArray(0);
+    shader.unbind();
 
     workshop.endFrame();
   }
