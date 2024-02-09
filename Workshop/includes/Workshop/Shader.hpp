@@ -87,10 +87,10 @@ class Shader {
   // Whether a functioning shader program was created or not
   // i.e. shaders compiled and linked successfully, not "id != -1"
   bool isValid() const;
-  // Asserts validity, then binds the shader.
+  // Asserts validity, then installs the Shader Program.
   void bind() const;
-  // UnBind the shader, usually not necessary.
-  void unbind() const;
+  // Uninstalls currently bound shader, "current rendering state refers to an invalid program object"
+  static void unbind();
   // getter for ids of attached shaders to the program
   std::vector<uint32_t> getShaderIds() const;
 

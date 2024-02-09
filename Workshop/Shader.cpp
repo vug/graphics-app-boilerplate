@@ -305,7 +305,7 @@ void Shader::bind() const {
   glUseProgram(id);
 }
 
-void Shader::unbind() const {
+void Shader::unbind() {
   glUseProgram(0);
 }
 
