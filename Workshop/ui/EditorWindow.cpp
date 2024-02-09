@@ -185,7 +185,6 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
   glClear(GL_DEPTH_BUFFER_BIT);
   glPolygonMode(GL_FRONT_AND_BACK, shouldBeWireframe ? GL_LINE : GL_FILL);
   for (auto [ix, renderable] : scene.renderables | std::ranges::views::enumerate) {
-    editorShader.bind();
     editorShader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
     editorShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
     editorShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
@@ -197,6 +196,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
     editorShader.setInteger("u_ShouldOutline", static_cast<int>(isSelected));
     if (!textureToBind.empty())
       textures.at(textureToBind).bindToUnit(0);
+    editorShader.bind();
     renderable.get().mesh.draw();
     editorShader.unbind();
   }
@@ -205,12 +205,12 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
     glDisable(GL_BLEND);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     glEnable(GL_DEPTH_TEST);
+    normalVizShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
+    normalVizShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
+    normalVizShader.setFloat("u_NormalVizLength", normalVizLength);
     normalVizShader.bind();
     for (auto [ix, renderable] : scene.renderables | std::ranges::views::enumerate) {
       normalVizShader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
-      normalVizShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
-      normalVizShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-      normalVizShader.setFloat("u_NormalVizLength", normalVizLength);
       renderable.get().mesh.drawPoints();
     }
     normalVizShader.unbind();  
@@ -223,10 +223,10 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_CULL_FACE);
     {
-      gridShader.bind();
       gridShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
       gridShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
       gridShader.setVector3("u_CameraPosition", cam.position);
+      gridShader.bind();
       glBindVertexArray(gridVao);
       glDrawArrays(GL_TRIANGLES, 0, 6);
       glBindVertexArray(0);
@@ -243,47 +243,45 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
   const bool hasSelectedObject = std::visit([](auto&& ptr) { return ptr != nullptr; }, selectedObject) && std::holds_alternative<RenderableObject*>(selectedObject);
   if (hasSelectedObject) {
     RenderableObject* ptr = std::get<RenderableObject*>(selectedObject);
-    solidColorShader.bind();
     solidColorShader.setMatrix4("u_WorldFromObject", ptr->transform.getWorldFromObjectMatrix());
     solidColorShader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
     solidColorShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
     const glm::vec4 outlineColor{1, 1, 0, 1};
     solidColorShader.setVector4("u_Color", outlineColor);
+    solidColorShader.bind();
     ptr->mesh.draw();
     solidColorShader.unbind();
   }
   outlineSolidFbo.unbind();
 
   // Pass 3: Out-grow highlight solid color area
+  glDisable(GL_DEPTH_TEST);
   outlineGrowthFbo.bind();
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glDisable(GL_DEPTH_TEST);
+  outlineSolidFbo.getFirstColorAttachment().bind();
   outlineShader.bind();
   glBindVertexArray(emptyVao);
-  outlineSolidFbo.getFirstColorAttachment().bind();
   glDrawArrays(GL_TRIANGLES, 0, 6);
-  Texture::unbind();
   glBindVertexArray(0);
   outlineShader.unbind();
-  glEnable(GL_DEPTH_TEST);
   outlineGrowthFbo.unbind();
+  glEnable(GL_DEPTH_TEST);
 
   // Pass 4: Draw highlights as overlay to screen
-  fbo.bind();
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  fbo.bind();
   glDrawBuffer(GL_COLOR_ATTACHMENT0);
   glDisable(GL_DEPTH_TEST);
+  outlineGrowthFbo.getFirstColorAttachment().bindToUnit(0);
   copyShader.bind();
-  outlineGrowthFbo.getFirstColorAttachment().bind();
   glBindVertexArray(emptyVao);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
-  Texture::unbind();
   copyShader.unbind();
-  glEnable(GL_DEPTH_TEST);
   fbo.unbind();
+  glEnable(GL_DEPTH_TEST);
 
   // IsItemActivated checks whether InvisibleButton was clicked. IsItemClicked on the Image below didn't work for some reason. Probably because it's overlapping with the button.
   bool wasViewportClicked = ImGui::IsItemActivated() && ImGui::IsMouseDown(ImGuiMouseButton_Left);
