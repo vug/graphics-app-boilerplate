@@ -163,36 +163,31 @@ int main() {
 }
 
 void drawSceneWithCamera(const ws::Scene& scene, const ws::Camera& cam, const Skybox& skybox) {
+
+  skybox.cubemap.bindToUnit(1);
   for (auto& objRef : scene.renderables) {
     auto& obj = objRef.get();
 
-    obj.material.shader.bind();
     obj.material.uploadParameters();
-    glBindTextureUnit(1, skybox.cubemap.getId());
     // Camera uniforms
     obj.material.shader.setVector3("u_CameraPos", cam.position);
     obj.material.shader.setMatrix4("u_ViewFromWorld", cam.getViewFromWorld());
     obj.material.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
     // Object uniforms
     obj.material.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
-
+    obj.material.shader.bind();
     obj.mesh.draw();
-
-    glBindTextureUnit(0, 0);
-    glBindTextureUnit(1, 0);
     obj.material.shader.unbind();
   }
 }
 
 void drawSkybox(const Skybox& skybox, const ws::Camera& cam) {
-  skybox.shader.bind();
   // skyboxShader.setMatrix4("u_WorldFromObject", cube.transform.getWorldFromObjectMatrix());
   const glm::mat4 viewWithoutTranslation = ws::removeTranslation(cam.getViewFromWorld());
   skybox.shader.setMatrix4("u_ViewFromWorld", viewWithoutTranslation);
   skybox.shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.cubemap.getId());
+  skybox.cubemap.bindToUnit(1);
+  skybox.shader.bind();
   skybox.mesh.draw();
-  glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
   skybox.shader.unbind();
 }
