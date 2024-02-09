@@ -22,7 +22,8 @@ void main() {
 
   vec3 ambientColor = illuminate(su.ambientLight);
 
-  vec3 hemisphericalDiffuse = illuminate(su.hemisphericalLight, normal);
+  vec3 hemisphericalDiffuse = illuminateDiffuse(su.hemisphericalLight, normal);
+  vec3 hemisphericalSpecular = illuminateSpecular(su.hemisphericalLight, surfPos, normal, su.u_CameraPosition, specCoeff);
 
   vec3 directionalDiffuse = vec3(0);
   vec3 directionalSpecular = vec3(0);
@@ -39,7 +40,7 @@ void main() {
   }
 
   vec3 diffuseLight = hemisphericalDiffuse + directionalDiffuse + pointDiffuse;
-  vec3 specularLight = directionalSpecular + pointSpecular;
+  vec3 specularLight = hemisphericalSpecular + directionalSpecular + pointSpecular;
   vec3 color = ambientColor + diffuseColor * diffuseLight + specularColor * specularLight;
   FragColor = vec4(color, 1);
 }

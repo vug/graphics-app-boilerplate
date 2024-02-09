@@ -71,12 +71,12 @@ int main() {
   ws::RenderableObject ground = {
       {"Ground", {glm::vec3{0, -1, 0}, glm::vec3{0, 0, 1}, 0, glm::vec3{20.f, .1f, 20.f}}},
       assetManager.meshes.at("cube"),
-      assetManager.materials.at("phong1"),
+      assetManager.materials.at("checkered1"),
   };
   ws::RenderableObject monkey = {
       {"Monkey", {glm::vec3{0, -.15f, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       assetManager.meshes.at("monkey"),
-      assetManager.materials.at("checkered1"),
+      assetManager.materials.at("phong1"),      
   };
   ws::RenderableObject box = {
       {"Box", {glm::vec3{1.6f, 0, 2.2f}, glm::vec3{0, 1, 0}, glm::radians(-22.f), glm::vec3{1.f, 2.f, 2.f}}},
@@ -95,14 +95,14 @@ int main() {
     .pointLights = std::vector<ws::PointLight>{
       ws::PointLight{
         .position = glm::vec3(0, 0, 3),
-        .intensity = 1.f,
+        .intensity = 0.75f,
         .color = glm::vec3(1, 1, 1),
       },
     },
     .directionalLights = std::vector<ws::DirectionalLight>{
       ws::DirectionalLight{
         .position = glm::vec3(1, 1, 1),
-        .intensity = 0.5f,
+        .intensity = 0.25f,
         .direction = glm::vec3(-1, -1, -1),
         .color = glm::vec3(1, 1, 1),
       },
