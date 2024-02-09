@@ -136,8 +136,8 @@ int main() {
       shader.setVector4("u_Color", outlineColor);
       shader.bind();
       obj.mesh.draw();
-      shader.unbind();
     }
+    ws::Shader::unbind();
     glEnable(GL_DEPTH_TEST);
     outlineA.unbind();
 
@@ -151,7 +151,7 @@ int main() {
     outlineA.getFirstColorAttachment().bindToUnit(0);
     outlineShader.bind();
     assetManager.drawWithEmptyVao(6);
-    outlineShader.unbind();
+    ws::Shader::unbind();
     outlineB.unbind();
     glEnable(GL_DEPTH_TEST);
 
@@ -161,7 +161,7 @@ int main() {
     outlineB.getFirstColorAttachment().bindToUnit(0);
     assetManager.shaders.at("fullscreen").bind();
     assetManager.drawWithEmptyVao(6);
-    assetManager.shaders.at("fullscreen").unbind();
+    ws::Shader::unbind();
     glEnable(GL_DEPTH_TEST);
 
     textureViewer.draw();

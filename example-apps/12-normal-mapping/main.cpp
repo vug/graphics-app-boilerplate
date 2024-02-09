@@ -151,8 +151,8 @@ int main() {
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       shader.bind();
       renderable.get().mesh.draw();
-      shader.unbind();
     }
+    ws::Shader::unbind();
 
  	  workshop.drawUI();
     static ws::VObjectPtr selectedObject;

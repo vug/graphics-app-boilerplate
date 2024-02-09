@@ -177,8 +177,8 @@ void drawSceneWithCamera(const ws::Scene& scene, const ws::Camera& cam, const Sk
     obj.material.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
     obj.material.shader.bind();
     obj.mesh.draw();
-    obj.material.shader.unbind();
   }
+  ws::Shader::unbind();
 }
 
 void drawSkybox(const Skybox& skybox, const ws::Camera& cam) {
@@ -189,5 +189,5 @@ void drawSkybox(const Skybox& skybox, const ws::Camera& cam) {
   skybox.cubemap.bindToUnit(1);
   skybox.shader.bind();
   skybox.mesh.draw();
-  skybox.shader.unbind();
+  ws::Shader::unbind();
 }

@@ -163,7 +163,7 @@ int main() {
     assetManager.shaders.at("lumi_tresh").setFloat("u_LuminanceThreshold", luminanceThreshold);
     assetManager.shaders.at("lumi_tresh").bind();
     assetManager.drawWithEmptyVao(6);
-    assetManager.shaders.at("lumi_tresh").unbind();
+    ws::Shader::unbind();
     lumTreshFbo.unbind();
 
     for (int ix = 0; ix < numBlooms; ++ix) {
@@ -176,7 +176,7 @@ int main() {
       (ix == 0 ? lumTreshFbo : bloomVerFbos[ix - 1]).getFirstColorAttachment().bindToUnit(0);
       assetManager.shaders.at("blur").bind();
       assetManager.drawWithEmptyVao(6);
-      assetManager.shaders.at("blur").unbind();
+      ws::Shader::unbind();
       bloomHorFbos[ix].unbind();
 
       bloomVerFbos[ix].bind();
@@ -188,7 +188,7 @@ int main() {
       bloomHorFbos[ix].getFirstColorAttachment().bindToUnit(0);
       assetManager.shaders.at("blur").bind();
       assetManager.drawWithEmptyVao(6);
-      assetManager.shaders.at("blur").unbind();
+      ws::Shader::unbind();
       bloomVerFbos[ix].unbind();
     }
 
@@ -199,7 +199,7 @@ int main() {
     sceneFbo.getFirstColorAttachment().bindToUnit(0);
     assetManager.shaders.at("copy").bind();
     assetManager.drawWithEmptyVao(6);
-    assetManager.shaders.at("copy").unbind();
+    ws::Shader::unbind();
 
 
     glEnable(GL_BLEND);
@@ -209,7 +209,7 @@ int main() {
       bloomVerFbos[ix].getFirstColorAttachment().bindToUnit(0);
       assetManager.shaders.at("copy").bind();
       assetManager.drawWithEmptyVao(6);
-      assetManager.shaders.at("copy").unbind();
+      ws::Shader::unbind();
     }
 
  	  workshop.drawUI();

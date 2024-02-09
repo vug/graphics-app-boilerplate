@@ -202,7 +202,7 @@ int main() {
       uvAtlasShader.setMatrix4("u_WorldFromObject", glm::mat4(1));
       renderable.get().mesh.draw();
     }
-    uvAtlasShader.unbind();
+    ws::Shader::unbind();
     atlasFbo.unbind();
 
     glViewport(0, 0, winSize.x, winSize.y);

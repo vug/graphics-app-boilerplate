@@ -193,8 +193,8 @@ int main() {
         //shader.setMatrix4("u_WorldFromObject", renderable.get().getGlobalTransformMatrix());
         shader.bind();
         renderable.get().mesh.draw();
-        shader.unbind();
       }
+      ws::Shader::unbind();
     };
 
     auto drawShadowMap = [&]() {
@@ -210,7 +210,7 @@ int main() {
         assetManager.shaders.at("simpleDepth").setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
         renderable.get().mesh.draw();
       }
-      assetManager.shaders.at("simpleDepth").unbind();
+      ws::Shader::unbind();
 
       //if (cullFrontFaces) glCullFace(GL_BACK);
       shadowFbo.unbind();
@@ -219,16 +219,16 @@ int main() {
     auto visualizeDepth = [&]() {
       glViewport(0, 0, winSize.x, winSize.y);
       const ws::Shader& shader = assetManager.shaders.at("depthViz");
-      shader.bind();
 
       shader.setFloat("near_plane", light.near);
       shader.setFloat("far_plane", light.far);
-      glBindTextureUnit(0, shadowFbo.getDepthAttachment().getId());
+      shadowFbo.getDepthAttachment().bindToUnit(0);
+      shader.bind();
       glBindVertexArray(dummyVao);
       glDrawArrays(GL_TRIANGLES, 0, 6);
       glBindVertexArray(0);
-      shader.unbind();
     };
+    ws::Shader::unbind();
 
     drawShadowMap();
     drawScene();

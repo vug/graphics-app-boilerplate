@@ -116,8 +116,8 @@ int main() {
       obj.material.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
       obj.material.shader.bind();
       obj.mesh.draw();
-      obj.material.shader.unbind();
     }
+    ws::Shader::unbind();
 
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     glStencilMask(0x00);
@@ -133,8 +133,8 @@ int main() {
       outlineShader.setVector4("u_Color", outlineColor);
       outlineShader.bind();
       obj.mesh.draw();
-      outlineShader.unbind();
     }
+    ws::Shader::unbind();
     glStencilMask(0xFF);
     glEnable(GL_DEPTH_TEST);
 

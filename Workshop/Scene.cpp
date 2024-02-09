@@ -85,8 +85,8 @@ void Scene::draw() const {
     renderable.material.shader.setMatrix4("u_WorldFromObject", renderable.transform.getWorldFromObjectMatrix());
     renderable.material.shader.bind();
     renderable.mesh.draw();
-    renderable.material.shader.unbind();
   }
+  ws::Shader::unbind();
 }
 
 void Scene::draw(const Shader& overrideShader) const {
@@ -94,8 +94,8 @@ void Scene::draw(const Shader& overrideShader) const {
     overrideShader.setMatrix4("u_WorldFromObject", renderable.transform.getWorldFromObjectMatrix());
     overrideShader.bind();
     renderable.mesh.draw();
-    overrideShader.unbind();
   }
+  ws::Shader::unbind();
 }
 
 void Scene::draw(const Material& overrideMaterial) const {
@@ -104,7 +104,7 @@ void Scene::draw(const Material& overrideMaterial) const {
     overrideMaterial.shader.setMatrix4("u_WorldFromObject", renderable.transform.getWorldFromObjectMatrix());
     overrideMaterial.shader.bind();
     renderable.mesh.draw();
-    overrideMaterial.shader.unbind();
   }
+  ws::Shader::unbind();
 }
 }

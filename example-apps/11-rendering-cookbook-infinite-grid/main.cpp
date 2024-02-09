@@ -125,8 +125,8 @@ int main() {
       glBindVertexArray(gridVao);
       glDrawArrays(GL_TRIANGLES, 0, 6);
       glBindVertexArray(0);
-      shader.unbind();
     }
+    ws::Shader::unbind();
 
  	  workshop.drawUI();
     textureViewer.draw();
