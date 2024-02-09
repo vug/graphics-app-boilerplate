@@ -189,20 +189,18 @@ int main() {
     scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
     scene.uploadUniforms();
 
+    glDisable(GL_CULL_FACE);
     atlasFbo.bind();
     glViewport(0, 0, atlasSize.x, atlasSize.y);
-    glDisable(GL_CULL_FACE);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
-    uvAtlasShader.bind();
-    uvAtlasShader.setMatrix4("u_WorldFromObject", glm::mat4(1));
     uvAtlasShader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
     uvAtlasShader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
+    uvAtlasShader.bind();
     for (auto& renderable : scene.renderables) {
-      //glBindTextureUnit(0, renderable.get().texture.getId());
-      const ws::Mesh& mesh = renderable.get().mesh;
-      mesh.draw();
+      uvAtlasShader.setMatrix4("u_WorldFromObject", glm::mat4(1));
+      renderable.get().mesh.draw();
     }
     uvAtlasShader.unbind();
     atlasFbo.unbind();

@@ -181,7 +181,6 @@ int main() {
       glViewport(0, 0, winSize.x, winSize.y);
       for (auto& renderable : scene.renderables) {
         ws::Shader& shader = renderable.get().material.shader;
-        shader.bind();
         renderable.get().material.uploadParameters();
         shadowFbo.getDepthAttachment().bindToUnit(1);
         shader.setMatrix4("u_LightSpaceMatrix", light.getLightSpaceMatrix());
@@ -192,6 +191,7 @@ int main() {
         shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
         // TODO: not there yet. Positions and scale inheritence looks fine, but rotation is broken. Parent's rotation should rotate child's coordinate system.
         //shader.setMatrix4("u_WorldFromObject", renderable.get().getGlobalTransformMatrix());
+        shader.bind();
         renderable.get().mesh.draw();
         shader.unbind();
       }
@@ -202,16 +202,16 @@ int main() {
       shadowFbo.bind();
       //if (cullFrontFaces) glCullFace(GL_FRONT);
       glClear(GL_DEPTH_BUFFER_BIT);
-      assetManager.shaders.at("simpleDepth").bind();
       // cam.getProjectionFromView() * cam.getViewFromWorld() to see from camera's perspective
       assetManager.shaders.at("simpleDepth").setMatrix4("u_LightSpaceMatrix", light.getLightSpaceMatrix());
 
+      assetManager.shaders.at("simpleDepth").bind();
       for (auto& renderable : scene.renderables) {
         assetManager.shaders.at("simpleDepth").setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
         renderable.get().mesh.draw();
       }
-
       assetManager.shaders.at("simpleDepth").unbind();
+
       //if (cullFrontFaces) glCullFace(GL_BACK);
       shadowFbo.unbind();
     };
