@@ -121,7 +121,7 @@ in VertexData {
   vec2 uv;
 } v;
 
-uniform sampler2D screenTexture;
+layout(binding = 0) uniform sampler2D screenTexture;
 
 layout (location = 0) out vec4 outColor;
 
@@ -136,20 +136,17 @@ void main () {
 }
   )";
   ws::Shader shader{vertexShader, fragmentShader};
-  glm::uvec2 winSize = workshop.getWindowSize();
-  auto desc = ws::Texture::Specs{winSize.x, winSize.y, ws::Texture::Format::RGBA8};
+  auto desc = ws::Texture::Specs{1, 1, ws::Texture::Format::RGBA8};
   ws::Texture tex{desc};
 
   uint32_t vao;
   glGenVertexArrays(1, &vao);
 
   while (!workshop.shouldStop()) {
-    workshop.beginFrame();
-    
-    winSize = workshop.getWindowSize();
-    if (tex.specs.width != winSize.x || tex.specs.height != winSize.y) {
-      tex.resize(winSize.x, winSize.y);
-    }
+    workshop.beginFrame();    
+    const glm::uvec2 winSize = workshop.getWindowSize();
+    if(tex.resizeIfNeeded(winSize.x, winSize.y))
+      tex.bindToUnit(0);
     //calcPixelsCpuToTex(tex, winSize);
     //calcPixelsGpuToCpuToTex(tex, winSize);
     calcPixelsGlInterop(tex, winSize, workshop.getFrameNo());
@@ -158,16 +155,12 @@ void main () {
 
     glClearColor(1, 0, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT);
-
-    const auto winSize = workshop.getWindowSize();
     glViewport(0, 0, winSize.x, winSize.y);
 
     shader.bind();
-    tex.bind();
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
-    ws::Texture::unbind();
     shader.unbind();
 
     workshop.endFrame();
