@@ -118,10 +118,10 @@ int main() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     {
       ws::Shader& shader = assetManager.shaders.at("grid");
-      shader.bind();
       shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
       shader.setVector3("u_CameraPosition", scene.camera.position);
+      shader.bind();
       glBindVertexArray(gridVao);
       glDrawArrays(GL_TRIANGLES, 0, 6);
       glBindVertexArray(0);

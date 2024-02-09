@@ -139,7 +139,6 @@ int main() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (auto& renderable : scene.renderables) {
       ws::Shader& shader = renderable.get().material.shader;
-      shader.bind();
       renderable.get().material.uploadParameters();
       shader.setFloat("u_AmountOfMapNormal", normalMapAmount);
       shader.setInteger("u_ShadingMode", shadingMode);
@@ -150,6 +149,7 @@ int main() {
       shader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
       shader.setVector3("u_CameraPosition", cam.position);
       shader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
+      shader.bind();
       renderable.get().mesh.draw();
       shader.unbind();
     }

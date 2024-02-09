@@ -144,10 +144,10 @@ int main() {
 
     glDisable(GL_BLEND);
 
-    sceneFbo.bind();
-    glViewport(0, 0, winSize.x, winSize.y);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+    sceneFbo.bind();
+    glViewport(0, 0, winSize.x, winSize.y);
     glCullFace(GL_BACK);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
@@ -159,10 +159,10 @@ int main() {
     glViewport(0, 0, winSize.x, winSize.y);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
-    assetManager.shaders.at("lumi_tresh").bind();
     sceneFbo.getFirstColorAttachment().bindToUnit(0);
-    assetManager.drawWithEmptyVao(6);
     assetManager.shaders.at("lumi_tresh").setFloat("u_LuminanceThreshold", luminanceThreshold);
+    assetManager.shaders.at("lumi_tresh").bind();
+    assetManager.drawWithEmptyVao(6);
     assetManager.shaders.at("lumi_tresh").unbind();
     lumTreshFbo.unbind();
 
@@ -172,9 +172,9 @@ int main() {
       glClearColor(0, 0, 0, 0);
       glClear(GL_COLOR_BUFFER_BIT);
 
-      assetManager.shaders.at("blur").bind();
       assetManager.shaders.at("blur").setInteger("u_IsHorizontal", 0);
       (ix == 0 ? lumTreshFbo : bloomVerFbos[ix - 1]).getFirstColorAttachment().bindToUnit(0);
+      assetManager.shaders.at("blur").bind();
       assetManager.drawWithEmptyVao(6);
       assetManager.shaders.at("blur").unbind();
       bloomHorFbos[ix].unbind();
@@ -184,9 +184,9 @@ int main() {
       glClearColor(0, 0, 0, 0);
       glClear(GL_COLOR_BUFFER_BIT);
 
-      assetManager.shaders.at("blur").bind();
       assetManager.shaders.at("blur").setInteger("u_IsHorizontal", 1);
       bloomHorFbos[ix].getFirstColorAttachment().bindToUnit(0);
+      assetManager.shaders.at("blur").bind();
       assetManager.drawWithEmptyVao(6);
       assetManager.shaders.at("blur").unbind();
       bloomVerFbos[ix].unbind();
@@ -196,8 +196,8 @@ int main() {
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
-    assetManager.shaders.at("copy").bind();
     sceneFbo.getFirstColorAttachment().bindToUnit(0);
+    assetManager.shaders.at("copy").bind();
     assetManager.drawWithEmptyVao(6);
     assetManager.shaders.at("copy").unbind();
 
@@ -206,8 +206,8 @@ int main() {
     glBlendFunc(GL_ONE, GL_ONE);
     glDisable(GL_DEPTH_TEST);
     for (int ix = 0; ix < numBlooms; ++ix) {
-      assetManager.shaders.at("copy").bind();
       bloomVerFbos[ix].getFirstColorAttachment().bindToUnit(0);
+      assetManager.shaders.at("copy").bind();
       assetManager.drawWithEmptyVao(6);
       assetManager.shaders.at("copy").unbind();
     }
