@@ -112,9 +112,9 @@ int main() {
       const auto& obj = objRef.get();
       glStencilMask(shouldHighlight ? 0xFF : 0x00); // write into stencil buffer only for highlighted objects
 
-      obj.material.shader.bind();
       obj.material.uploadParameters();
       obj.material.shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
+      obj.material.shader.bind();
       obj.mesh.draw();
       obj.material.shader.unbind();
     }
@@ -126,12 +126,12 @@ int main() {
       if (!shouldHighlight)
         continue;
       const auto& obj = objRef.get();
-      outlineShader.bind();
       const glm::mat4 scaledUp = glm::scale(obj.transform.getWorldFromObjectMatrix(), glm::vec3{1.1, 1.1, 1.1});
       outlineShader.setMatrix4("u_WorldFromObject", scaledUp);
       outlineShader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
       outlineShader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
       outlineShader.setVector4("u_Color", outlineColor);
+      outlineShader.bind();
       obj.mesh.draw();
       outlineShader.unbind();
     }

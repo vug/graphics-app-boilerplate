@@ -130,11 +130,11 @@ int main() {
 
       const auto& obj = objRef.get();
       const auto& shader = assetManager.shaders.at("solid_color");
-      shader.bind();
       shader.setMatrix4("u_WorldFromObject", obj.transform.getWorldFromObjectMatrix());
       shader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
       shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
       shader.setVector4("u_Color", outlineColor);
+      shader.bind();
       obj.mesh.draw();
       shader.unbind();
     }
@@ -143,26 +143,24 @@ int main() {
 
 
     // Pass 3: Out-grow highlight solid color area
+    glDisable(GL_DEPTH_TEST);
     outlineB.bind();
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_DEPTH_TEST);
-    outlineShader.bind();
     outlineShader.setVector4("u_OutlineColor", outlineColor);
-    outlineA.getFirstColorAttachment().bind();
+    outlineA.getFirstColorAttachment().bindToUnit(0);
+    outlineShader.bind();
     assetManager.drawWithEmptyVao(6);
-    ws::Texture::unbind();
     outlineShader.unbind();
-    glEnable(GL_DEPTH_TEST);
     outlineB.unbind();
+    glEnable(GL_DEPTH_TEST);
 
 
     // Pass 4: Draw highlights as overlay to screen
     glDisable(GL_DEPTH_TEST);
+    outlineB.getFirstColorAttachment().bindToUnit(0);
     assetManager.shaders.at("fullscreen").bind();
-    outlineB.getFirstColorAttachment().bind();
     assetManager.drawWithEmptyVao(6);
-    ws::Texture::unbind();
     assetManager.shaders.at("fullscreen").unbind();
     glEnable(GL_DEPTH_TEST);
 

@@ -4,7 +4,7 @@ in VertexData {
   vec2 uv;
 } v;
 
-uniform sampler2D screenTexture;
+layout(binding = 0) uniform sampler2D screenTexture;
 
 layout (location = 0) out vec4 outColor;
 
