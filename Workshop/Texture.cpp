@@ -192,6 +192,14 @@ void Texture::resize(uint32_t width, uint32_t height) {
   unbind();
 }
 
+bool Texture::resizeIfNeeded(uint32_t width, uint32_t height) {
+  if (specs.width != width || specs.height != height) {
+    resize(width, height);
+    return true;
+  }
+  return false;
+}
+
 int Texture::getNumComponents() const {
   GlSpecs gs = getGlSpecs();
   switch (gs.internalFormat) {

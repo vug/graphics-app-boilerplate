@@ -76,6 +76,7 @@ class Texture {
   const uint32_t* downloadPixels() const;
   void saveToImageFile(const std::filesystem::path& imgFile) const;
   void resize(uint32_t width, uint32_t height);
+  bool resizeIfNeeded(uint32_t width, uint32_t height);
   const std::string& getName() const { return name; }
   int getNumComponents() const;
   using ClearData = std::variant<int32_t, float, glm::vec3, glm::vec4, glm::ivec3>;//, glm::ivec3, , glm::ivec4>;
