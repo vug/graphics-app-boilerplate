@@ -332,42 +332,42 @@ void Shader::dispatchCompute(uint32_t x, uint32_t y, uint32_t z) {
 
 void Shader::setInteger(const char* name, const int value) const {
   const int location = glGetUniformLocation(id, name);
-  glUniform1i(location, value);
+  glProgramUniform1i(id, location, value);
 }
 
 void Shader::setIntVector2(const char* name, const glm::ivec2& value) const {
   const int location = glGetUniformLocation(id, name);
-  glUniform2iv(location, 1, glm::value_ptr(value));
+  glProgramUniform2iv(id, location, 1, glm::value_ptr(value));
 }
 
 void Shader::setFloat(const char* name, const float value) const {
   const int location = glGetUniformLocation(id, name);
-  glUniform1f(location, value);
+  glProgramUniform1f(id, location, value);
 }
 
 void Shader::setVector2(const char* name, const glm::vec2& value) const {
   const int location = glGetUniformLocation(id, name);
-  glUniform2fv(location, 1, glm::value_ptr(value));
+  glProgramUniform2fv(id, location, 1, glm::value_ptr(value));
 }
 
 void Shader::setVector3(const char* name, const glm::vec3& value) const {
   const int location = glGetUniformLocation(id, name);
-  glUniform3fv(location, 1, glm::value_ptr(value));
+  glProgramUniform3fv(id, location, 1, glm::value_ptr(value));
 }
 
 void Shader::setVector4(const char* name, const glm::vec4& value) const {
   const int location = glGetUniformLocation(id, name);
-  glUniform4fv(location, 1, glm::value_ptr(value));
+  glProgramUniform4fv(id, location, 1, glm::value_ptr(value));
 }
 
 void Shader::setMatrix3(const char* name, const glm::mat3& value) const {
   const int location = glGetUniformLocation(id, name);
-  glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(value));
+  glProgramUniformMatrix3fv(id, location, 1, GL_FALSE, glm::value_ptr(value));
 }
 
 void Shader::setMatrix4(const char* name, const glm::mat4& value) const {
   const int location = glGetUniformLocation(id, name);
-  glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
+  glProgramUniformMatrix4fv(id, location, 1, GL_FALSE, glm::value_ptr(value));
 }
 
 void Shader::blockBinding(const char* name, uint32_t binding) const {
