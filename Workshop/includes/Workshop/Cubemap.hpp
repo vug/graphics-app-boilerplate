@@ -22,6 +22,7 @@ class Cubemap {
   bool isValid() const { return id != INVALID; }
   void bind() const;
   void unbind() const;
+  void bindToUnit(uint32_t unit) const;
 
  private:
   GlHandle id;
