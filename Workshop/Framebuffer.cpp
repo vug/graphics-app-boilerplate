@@ -10,7 +10,7 @@ namespace ws {
 Framebuffer::Framebuffer(const std::vector<Texture::Specs>& colorSpecs, std::optional<Texture::Specs> depthStencilSpecs)
     : id([this, &colorSpecs, &depthStencilSpecs]() { 
         assert(!colorSpecs.empty() || depthStencilSpecs.has_value()); 
-        uint32_t id; glGenFramebuffers(1, &id); return id; }()),
+        uint32_t id; glCreateFramebuffers(1, &id); return id; }()),
       width([this, &colorSpecs, &depthStencilSpecs]() { return !colorSpecs.empty() ? colorSpecs[0].width : depthStencilSpecs.value().width; }()),
       height([this, &colorSpecs, &depthStencilSpecs]() { return !colorSpecs.empty() ? colorSpecs[0].height : depthStencilSpecs.value().height; }()) {
   for (const auto& [ix, spec] : colorSpecs | std::views::enumerate) {
@@ -28,32 +28,28 @@ Framebuffer::Framebuffer(const std::vector<Texture::Specs>& colorSpecs, std::opt
 }
 
 void Framebuffer::attachAttachments(int32_t level) const {
-  bind();
-
   std::vector<uint32_t> drawBuffers;
   for (const auto& [ix, spec] : colorAttachments | std::views::enumerate) {
     const uint32_t attachmentNo = GL_COLOR_ATTACHMENT0 + static_cast<uint32_t>(ix);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentNo, GL_TEXTURE_2D, colorAttachments[ix].getId(), level);
+    glNamedFramebufferTexture(id, attachmentNo, colorAttachments[ix].getId(), level);
     drawBuffers.push_back(attachmentNo);
   }
-  if (depthStencilAttachment.has_value()) {
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthStencilAttachment.value().getId(), 0);
-  }
+  if (depthStencilAttachment.has_value())
+    glNamedFramebufferTexture(id, GL_DEPTH_STENCIL_ATTACHMENT, depthStencilAttachment.value().getId(), 0);
+
+  assert(glCheckNamedFramebufferStatus(id, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
+  assert(glCheckNamedFramebufferStatus(id, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT);
+  assert(glCheckNamedFramebufferStatus(id, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT);
+  assert(glCheckNamedFramebufferStatus(id, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_UNSUPPORTED);
+  assert(glCheckNamedFramebufferStatus(id, GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+
   if (colorAttachments.empty()) {
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
+    glNamedFramebufferDrawBuffer(id, GL_NONE);
+    glNamedFramebufferReadBuffer(id, GL_NONE);
   } else {
     // by default we'll assume we'll write into all color attachments
-    glDrawBuffers(static_cast<int>(drawBuffers.size()), drawBuffers.data());
+    glNamedFramebufferDrawBuffers(id, static_cast<int>(drawBuffers.size()), drawBuffers.data());
   }
-
-  assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
-  assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT);
-  assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT);
-  assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_UNSUPPORTED);
-  assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
-
-  unbind();
 }
 
 Framebuffer::Framebuffer(uint32_t w, uint32_t h, bool hasColor)
@@ -100,7 +96,6 @@ Texture& Framebuffer::getFirstColorAttachment() {
 
 Texture& Framebuffer::getDepthAttachment() {
   assert(depthStencilAttachment.has_value());
-
   return depthStencilAttachment.value();
 }
 
