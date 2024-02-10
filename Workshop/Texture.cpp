@@ -273,6 +273,12 @@ void Texture::clear(ClearData data, int level) const {
   }, data);
 }
 
+int32_t Texture::getNumLevels(uint32_t width, uint32_t height) {
+  const float longerSide = static_cast<float>(std::max(width, height));
+  const int maxLevels = 10;
+  return std::min(static_cast<int32_t>(std::floor(std::log2f(longerSide))) + 1, maxLevels);
+}
+
 Texture::~Texture() {
   // glDeleteTextures silently ignores 0's and names that do not correspond to existing textures.
   glDeleteTextures(1, &id);

@@ -69,7 +69,6 @@ class Texture {
   void bindToUnit(uint32_t unit) const;
   // Not needed in DSA see https://stackoverflow.com/q/50113147/5394043
   void unbindFromUnit(uint32_t unit) const;
-  // should already be bound
   void bindImageTexture(uint32_t textureUnit, Access access) const;
   // not type-safe
   void uploadPixels(const void* pixels);
@@ -81,6 +80,8 @@ class Texture {
   int getNumComponents() const;
   using ClearData = std::variant<int32_t, float, glm::vec3, glm::vec4, glm::ivec3>;//, glm::ivec3, , glm::ivec4>;
   void clear(ClearData data, int level = 0) const;
+  // how many times we can halve the longer side, or maxLevels, whichever is smaller
+  static int32_t getNumLevels(uint32_t width, uint32_t height);
 
   Specs specs;
 
