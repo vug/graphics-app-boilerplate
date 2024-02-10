@@ -97,6 +97,7 @@ class Texture {
     GLint paramWrap = -1;
   };
 
+  void createImmutableTexture();
   GlSpecs getGlSpecs() const;
 };
 }  // namespace ws

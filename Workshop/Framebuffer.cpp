@@ -10,28 +10,40 @@ namespace ws {
 Framebuffer::Framebuffer(const std::vector<Texture::Specs>& colorSpecs, std::optional<Texture::Specs> depthStencilSpecs)
     : id([this, &colorSpecs, &depthStencilSpecs]() { 
         assert(!colorSpecs.empty() || depthStencilSpecs.has_value()); 
-        uint32_t id; glGenFramebuffers(1, &id); glBindFramebuffer(GL_FRAMEBUFFER, id); return id; }()),
+        uint32_t id; glGenFramebuffers(1, &id); return id; }()),
       width([this, &colorSpecs, &depthStencilSpecs]() { return !colorSpecs.empty() ? colorSpecs[0].width : depthStencilSpecs.value().width; }()),
       height([this, &colorSpecs, &depthStencilSpecs]() { return !colorSpecs.empty() ? colorSpecs[0].height : depthStencilSpecs.value().height; }()) {
-  std::vector<uint32_t> drawBuffers;
   for (const auto& [ix, spec] : colorSpecs | std::views::enumerate) {
     assert(spec.width == width);
     assert(spec.height == height);
     colorAttachments.emplace_back(spec);
-    const uint32_t attachmentNo = GL_COLOR_ATTACHMENT0 + static_cast<uint32_t>(ix);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentNo, GL_TEXTURE_2D, colorAttachments[ix].getId(), 0);
-    drawBuffers.push_back(attachmentNo);
   }
   if (depthStencilSpecs.has_value()) {
     assert(depthStencilSpecs.value().width == width);
     assert(depthStencilSpecs.value().height == height);
     depthStencilAttachment.emplace(depthStencilSpecs.value());
+  }
+
+  attachAttachments();
+}
+
+void Framebuffer::attachAttachments(int32_t level) const {
+  bind();
+
+  std::vector<uint32_t> drawBuffers;
+  for (const auto& [ix, spec] : colorAttachments | std::views::enumerate) {
+    const uint32_t attachmentNo = GL_COLOR_ATTACHMENT0 + static_cast<uint32_t>(ix);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentNo, GL_TEXTURE_2D, colorAttachments[ix].getId(), level);
+    drawBuffers.push_back(attachmentNo);
+  }
+  if (depthStencilAttachment.has_value()) {
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depthStencilAttachment.value().getId(), 0);
   }
   if (colorAttachments.empty()) {
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
   } else {
+    // by default we'll assume we'll write into all color attachments
     glDrawBuffers(static_cast<int>(drawBuffers.size()), drawBuffers.data());
   }
 
@@ -101,5 +113,7 @@ void Framebuffer::resizeIfNeeded(uint32_t w, uint32_t h) {
     colorAttachment.resize(width, height);
   if (depthStencilAttachment.has_value() and depthStencilAttachment.value().isValid())
     depthStencilAttachment.value().resize(width, height);
+
+  attachAttachments();
 }
 }  // namespace ws

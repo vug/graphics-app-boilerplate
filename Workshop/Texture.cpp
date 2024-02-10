@@ -87,22 +87,33 @@ Texture::GlSpecs Texture::getGlSpecs() const {
   return gs;
 }
 
+void Texture::createImmutableTexture() {
+  glCreateTextures(GL_TEXTURE_2D, 1, &id);
+  name = std::format("Texture[{}]", static_cast<uint32_t>(id));
+  GlSpecs gs = getGlSpecs();
+
+  const int maxLevels = 10;
+  const float longerSide = static_cast<float>(std::max(specs.width, specs.height));
+  const int32_t numLevels = std::min(static_cast<int32_t>(std::floor(std::log2f(longerSide))) + 1, maxLevels);
+
+  glTextureStorage2D(id, numLevels, gs.internalFormat, specs.width, specs.height);
+  if (specs.data)
+    glTextureSubImage2D(id, 0, 0, 0, specs.width, specs.height, gs.format, gs.type, specs.data);
+  glGenerateTextureMipmap(id);
+
+  glTextureParameteri(id, GL_TEXTURE_MIN_FILTER, gs.paramFilter);
+  glTextureParameteri(id, GL_TEXTURE_MAG_FILTER, gs.paramFilter);
+  glTextureParameteri(id, GL_TEXTURE_WRAP_S, gs.paramWrap);
+  glTextureParameteri(id, GL_TEXTURE_WRAP_T, gs.paramWrap);
+}
+
 Texture::Texture()
     : Texture{Specs{}} {}
 
 Texture::Texture(const Specs& specs)
-    : specs(specs),
-      id([]() { uint32_t texId; glGenTextures(1, &texId); return texId; }()),
-      name{std::format("Texture[{}]", static_cast<uint32_t>(id))} {
-  glBindTexture(GL_TEXTURE_2D, id);
-
-  GlSpecs gs = getGlSpecs();
-  glTexImage2D(GL_TEXTURE_2D, 0, gs.internalFormat, specs.width, specs.height, 0, gs.format, gs.type, specs.data);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gs.paramFilter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gs.paramFilter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gs.paramWrap);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gs.paramWrap);
-  glBindTexture(GL_TEXTURE_2D, 0);
+    : specs(specs) {
+  glCreateTextures(GL_TEXTURE_2D, 1, &id);
+  createImmutableTexture();
 }
 
 Texture::Texture(const std::filesystem::path& file)
@@ -162,10 +173,9 @@ void Texture::bindImageTexture(uint32_t textureUnit, Access access) const {
 }
 
 void Texture::uploadPixels(const void* data) {
-  bind();
+  assert(data);
   GlSpecs gs = getGlSpecs();
-  glTexImage2D(GL_TEXTURE_2D, 0, gs.internalFormat, specs.width, specs.height, 0, gs.format, gs.type, data);
-  unbind();
+  glTextureSubImage2D(id, 0, 0, 0, specs.width, specs.height, gs.format, gs.type, data);
 }
 
 const uint32_t* Texture::downloadPixels() const {
@@ -184,12 +194,10 @@ void Texture::saveToImageFile(const std::filesystem::path& imgFile) const {
 }
 
 void Texture::resize(uint32_t width, uint32_t height) {
+  glDeleteTextures(1, &id);
   specs.width = width;
   specs.height = height;
-  GlSpecs gs = getGlSpecs();
-  bind();
-  glTexImage2D(GL_TEXTURE_2D, 0, gs.internalFormat, specs.width, specs.height, 0, gs.format, gs.type, specs.data);
-  unbind();
+  createImmutableTexture();
 }
 
 bool Texture::resizeIfNeeded(uint32_t width, uint32_t height) {
@@ -271,12 +279,6 @@ void Texture::clear(ClearData data, int level) const {
     },
 
   }, data);
-}
-
-int32_t Texture::getNumLevels(uint32_t width, uint32_t height) {
-  const float longerSide = static_cast<float>(std::max(width, height));
-  const int maxLevels = 10;
-  return std::min(static_cast<int32_t>(std::floor(std::log2f(longerSide))) + 1, maxLevels);
 }
 
 Texture::~Texture() {

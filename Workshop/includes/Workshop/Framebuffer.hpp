@@ -40,5 +40,8 @@ class Framebuffer {
   uint32_t height = 0;
   std::vector<Texture> colorAttachments;
   std::optional<Texture> depthStencilAttachment;
+
+ private:
+  void attachAttachments(int32_t level = 0) const;
 };
 }  // namespace ws
