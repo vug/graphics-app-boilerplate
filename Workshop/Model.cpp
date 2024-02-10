@@ -261,6 +261,7 @@ Mesh::Mesh(const DefaultMeshData& meshData)
     : meshData(meshData) {
   // next power of two larger than size
   capacity = static_cast<size_t>(std::pow(2.0, std::ceil(std::log2(meshData.vertices.size()))));
+  glCreateVertexArrays(1, &vertexArray);
 
   createBuffers();
   uploadData();
@@ -275,37 +276,31 @@ Mesh::~Mesh() {
 }
 
 void Mesh::createBuffers() {
-  glGenVertexArrays(1, &vertexArray);
-  glGenBuffers(1, &vertexBuffer);
-  glGenBuffers(1, &indexBuffer);
+  glCreateBuffers(1, &vertexBuffer);
+  glCreateBuffers(1, &indexBuffer);
 
-  allocateBuffers();
+  glNamedBufferStorage(vertexBuffer, sizeof(DefaultVertex) * capacity, nullptr, GL_DYNAMIC_STORAGE_BIT);
+  glNamedBufferStorage(indexBuffer, sizeof(uint32_t) * capacity, nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+  glVertexArrayVertexBuffer(vertexArray, 0, vertexBuffer, 0, sizeof(DefaultVertex));
+  glVertexArrayElementBuffer(vertexArray, indexBuffer);
 
   // See DefaultVertex. {position, uv1, uv2, normal, color, custom}
   static const std::vector<int32_t> sizes = {3, 2, 2, 3, 4, 4};
-  size_t offset = 0;
+  uint32_t offset = 0;
   for (uint32_t ix = 0; ix < sizes.size(); ++ix) {
-    glVertexAttribPointer(ix, sizes[ix], GL_FLOAT, GL_FALSE, sizeof(DefaultVertex), (void*)offset);
-    glEnableVertexAttribArray(ix);
+    glEnableVertexArrayAttrib(vertexArray, ix);
+    glVertexArrayAttribFormat(vertexArray, ix, sizes[ix], GL_FLOAT, GL_FALSE, offset);
+    glVertexArrayAttribBinding(vertexArray, ix, 0);
     offset += sizes[ix] * sizeof(float);
   }
-
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
-}
-
-void Mesh::allocateBuffers() {
-  glBindVertexArray(vertexArray);
-  glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(DefaultVertex) * capacity, nullptr, GL_DYNAMIC_DRAW);
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * capacity, nullptr, GL_DYNAMIC_DRAW);
 }
 
 void Mesh::uploadData() {
-  glBindVertexArray(vertexArray);
   if (capacity < meshData.indices.size()) {
+    glDeleteBuffers(1, &vertexBuffer);
+    glDeleteBuffers(1, &indexBuffer);
+
     do {
       if (capacity == 0)
         capacity = 1;
@@ -313,14 +308,11 @@ void Mesh::uploadData() {
         capacity *= 2;
     } while (capacity <= meshData.indices.size());
 
-    allocateBuffers();
+    createBuffers();
   }
 
-  glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-  glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(DefaultVertex) * meshData.vertices.size(), meshData.vertices.data());
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-  glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(uint32_t) * meshData.indices.size(), meshData.indices.data());
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glNamedBufferSubData(vertexBuffer, 0, sizeof(DefaultVertex) * meshData.vertices.size(), meshData.vertices.data());
+  glNamedBufferSubData(indexBuffer, 0, sizeof(uint32_t) * meshData.indices.size(), meshData.indices.data());
 }
 
 void Mesh::bind() const {

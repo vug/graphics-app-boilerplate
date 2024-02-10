@@ -69,6 +69,5 @@ class Mesh {
 
  private:
   void createBuffers();
-  void allocateBuffers();
 };
 }  // namespace ws
