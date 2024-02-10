@@ -53,7 +53,8 @@ class Mesh {
   ~Mesh();
 
   DefaultMeshData meshData;
-  size_t capacity{};
+  size_t vertexCapacity{};
+  size_t indexCapacity{};
 
   GlHandle vertexArray;
   GlHandle vertexBuffer;
@@ -68,6 +69,7 @@ class Mesh {
   void drawPoints() const;
 
  private:
-  void createBuffers();
+  void createVertexBuffer();
+  void createIndexBuffer();
 };
 }  // namespace ws

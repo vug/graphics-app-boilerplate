@@ -259,11 +259,24 @@ DefaultMeshData loadOBJ(const std::filesystem::path& filepath) {  // taken from 
 
 Mesh::Mesh(const DefaultMeshData& meshData)
     : meshData(meshData) {
-  // next power of two larger than size
-  capacity = static_cast<size_t>(std::pow(2.0, std::ceil(std::log2(meshData.vertices.size()))));
   glCreateVertexArrays(1, &vertexArray);
 
-  createBuffers();
+  // See DefaultVertex. {position, uv1, uv2, normal, color, custom}
+  static const std::vector<int32_t> sizes = {3, 2, 2, 3, 4, 4};
+  uint32_t offset = 0;
+  for (uint32_t ix = 0; ix < sizes.size(); ++ix) {
+    glEnableVertexArrayAttrib(vertexArray, ix);
+    glVertexArrayAttribFormat(vertexArray, ix, sizes[ix], GL_FLOAT, GL_FALSE, offset);
+    glVertexArrayAttribBinding(vertexArray, ix, 0);
+    offset += sizes[ix] * sizeof(float);
+  }
+
+  // next power of two larger than size
+  vertexCapacity = static_cast<size_t>(std::pow(2.0, std::ceil(std::log2(meshData.vertices.size()))));
+  indexCapacity = static_cast<size_t>(std::pow(2.0, std::ceil(std::log2(meshData.indices.size()))));
+  createVertexBuffer();
+  createIndexBuffer();
+
   uploadData();
 }
 
@@ -275,40 +288,39 @@ Mesh::~Mesh() {
   glDeleteVertexArrays(1, &vertexArray);
 }
 
-void Mesh::createBuffers() {
+void Mesh::createVertexBuffer() {
   glCreateBuffers(1, &vertexBuffer);
-  glCreateBuffers(1, &indexBuffer);
-
-  glNamedBufferStorage(vertexBuffer, sizeof(DefaultVertex) * capacity, nullptr, GL_DYNAMIC_STORAGE_BIT);
-  glNamedBufferStorage(indexBuffer, sizeof(uint32_t) * capacity, nullptr, GL_DYNAMIC_STORAGE_BIT);
-
+  glNamedBufferStorage(vertexBuffer, sizeof(DefaultVertex) * vertexCapacity, nullptr, GL_DYNAMIC_STORAGE_BIT);
   glVertexArrayVertexBuffer(vertexArray, 0, vertexBuffer, 0, sizeof(DefaultVertex));
-  glVertexArrayElementBuffer(vertexArray, indexBuffer);
+}
 
-  // See DefaultVertex. {position, uv1, uv2, normal, color, custom}
-  static const std::vector<int32_t> sizes = {3, 2, 2, 3, 4, 4};
-  uint32_t offset = 0;
-  for (uint32_t ix = 0; ix < sizes.size(); ++ix) {
-    glEnableVertexArrayAttrib(vertexArray, ix);
-    glVertexArrayAttribFormat(vertexArray, ix, sizes[ix], GL_FLOAT, GL_FALSE, offset);
-    glVertexArrayAttribBinding(vertexArray, ix, 0);
-    offset += sizes[ix] * sizeof(float);
-  }
+void Mesh::createIndexBuffer() {
+  glCreateBuffers(1, &indexBuffer);
+  glNamedBufferStorage(indexBuffer, sizeof(uint32_t) * indexCapacity, nullptr, GL_DYNAMIC_STORAGE_BIT);
+  glVertexArrayElementBuffer(vertexArray, indexBuffer);
 }
 
 void Mesh::uploadData() {
-  if (capacity < meshData.indices.size()) {
-    glDeleteBuffers(1, &vertexBuffer);
+  if (indexCapacity < meshData.indices.size()) {
     glDeleteBuffers(1, &indexBuffer);
-
     do {
-      if (capacity == 0)
-        capacity = 1;
+      if (indexCapacity == 0)
+        indexCapacity = 1;
       else
-        capacity *= 2;
-    } while (capacity <= meshData.indices.size());
+        indexCapacity *= 2;
+    } while (indexCapacity <= meshData.indices.size());
+    createIndexBuffer();
+  }
 
-    createBuffers();
+  if (vertexCapacity < meshData.vertices.size()) {
+    glDeleteBuffers(1, &vertexBuffer);
+    do {
+      if (vertexCapacity == 0)
+        vertexCapacity = 1;
+      else
+        vertexCapacity *= 2;
+    } while (vertexCapacity <= meshData.vertices.size());
+    createVertexBuffer();
   }
 
   glNamedBufferSubData(vertexBuffer, 0, sizeof(DefaultVertex) * meshData.vertices.size(), meshData.vertices.data());
