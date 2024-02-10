@@ -18,7 +18,7 @@ void TextureViewer::draw() {
     return;
   }
   auto items = textures | std::views::transform([](const ws::Texture& tex) { return tex.getName().c_str(); }) | std::ranges::to<std::vector<const char*>>();
-  ImGui::Combo("Texture", &ix, items.data(), static_cast<uint32_t>(items.size()));
+  bool textureChanged = ImGui::Combo("Texture", &ix, items.data(), static_cast<uint32_t>(items.size()));
   const auto& tex = textures[ix].get();
   ImGui::Text("Name: %s, dim: (%d, %d)", tex.getName().c_str(), tex.specs.width, tex.specs.height);
   ImGui::Separator();
@@ -36,6 +36,27 @@ void TextureViewer::draw() {
 
   static float zoomScale = 0.80f;
   ImGui::SliderFloat("scale", &zoomScale, 0.01f, 1.0f);
+
+  // Mip-Level Viewer. Need to recreate glTextureView whenever we change the mip-level or texture
+  static uint32_t viewId = 0;
+  {
+    int numLevels{-1};
+    glGetTextureParameteriv(tex.getId(), GL_TEXTURE_IMMUTABLE_LEVELS, &numLevels);
+    GLint isImmutable{-1};
+    glGetTextureParameteriv(tex.getId(), GL_TEXTURE_IMMUTABLE_FORMAT, &isImmutable);
+    assert(isImmutable == 1);
+    static int mipLevel = 0;
+    if (viewId == 0 || textureChanged || ImGui ::SliderInt("Mip Level", &mipLevel, 0, numLevels - 1)) {
+      glDeleteTextures(1, &viewId);
+      glGenTextures(1, &viewId);
+      GLint internalFormat;
+      glGetTextureLevelParameteriv(tex.getId(), mipLevel, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
+      glTextureView(viewId, GL_TEXTURE_2D, tex.getId(), internalFormat, mipLevel, 1, 0, 1);
+      glTextureParameteri(viewId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTextureParameteri(viewId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    }
+    ImGui::SameLine();
+  }
 
   const auto availableSize = ImGui::GetContentRegionAvail();
   const float availableAspectRatio = availableSize.x / availableSize.y;
@@ -77,7 +98,7 @@ void TextureViewer::draw() {
   // flip the texture upside-down via following uv-coordinate transformation: (0, 0), (1, 1) -> (0, 1), (1, 0)
   std::swap(uv0.y, uv1.y);
 
-  ImGui::Image((void*)(intptr_t)tex.getId(), imgSize, uv0, uv1, tintColor, {0.5, 0.5, 0.5, 1.0});
+  ImGui::Image((void*)(intptr_t)viewId, imgSize, uv0, uv1, tintColor, {0.5, 0.5, 0.5, 1.0});
   ImGui::End();
 }
 }
