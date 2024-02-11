@@ -433,7 +433,7 @@ void main () {
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
-    shader.unbind();
+    ws::Shader::unbind();
     ws::Texture::unbindFromUnit(0);
 
     workshop.endFrame();

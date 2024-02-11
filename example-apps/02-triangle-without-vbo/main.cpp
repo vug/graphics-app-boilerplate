@@ -61,7 +61,7 @@ void main () { outColor = vec4 (fragColor, 1.0); }
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
-    shader.unbind();
+    ws::Shader::unbind();
 
     workshop.endFrame();
   }

@@ -197,7 +197,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
       textures.at(textureToBind).bindToUnit(0);
     editorShader.bind();
     renderable.get().mesh.draw();
-    editorShader.unbind();
+    ws::Shader::unbind();
     if (!textureToBind.empty())
       ws::Texture::unbindFromUnit(0);
   }
@@ -214,7 +214,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
       normalVizShader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
       renderable.get().mesh.drawPoints();
     }
-    normalVizShader.unbind();  
+    ws::Shader::unbind();
   }
 
   if (showGrid) {
@@ -231,7 +231,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
       glBindVertexArray(emptyVao);
       glDrawArrays(GL_TRIANGLES, 0, 6);
       glBindVertexArray(0);
-      gridShader.unbind();
+      ws::Shader::unbind();
     }
   }
   fbo.unbind();
@@ -251,7 +251,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
     solidColorShader.setVector4("u_Color", outlineColor);
     solidColorShader.bind();
     ptr->mesh.draw();
-    solidColorShader.unbind();
+    ws::Shader::unbind();
   }
   outlineSolidFbo.unbind();
 
@@ -265,7 +265,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
   glBindVertexArray(emptyVao);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
-  outlineShader.unbind();
+  ws::Shader::unbind();
   ws::Texture::unbindFromUnit(0);
   outlineGrowthFbo.unbind();
   glEnable(GL_DEPTH_TEST);
@@ -281,7 +281,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
   glBindVertexArray(emptyVao);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
-  copyShader.unbind();
+  ws::Shader::unbind();
   ws::Texture::unbindFromUnit(0);
   fbo.unbind();
   glEnable(GL_DEPTH_TEST);
