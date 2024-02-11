@@ -145,8 +145,7 @@ void main () {
   while (!workshop.shouldStop()) {
     workshop.beginFrame();    
     const glm::uvec2 winSize = workshop.getWindowSize();
-    if(tex.resizeIfNeeded(winSize.x, winSize.y))
-      tex.bindToUnit(0);
+    tex.resizeIfNeeded(winSize.x, winSize.y);
     //calcPixelsCpuToTex(tex, winSize);
     //calcPixelsGpuToCpuToTex(tex, winSize);
     calcPixelsGlInterop(tex, winSize, workshop.getFrameNo());
@@ -157,11 +156,13 @@ void main () {
     glClear(GL_COLOR_BUFFER_BIT);
     glViewport(0, 0, winSize.x, winSize.y);
 
+    tex.bindToUnit(0);
     shader.bind();
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
     shader.unbind();
+    ws::Texture::unbindFromUnit(0);
 
     workshop.endFrame();
   }

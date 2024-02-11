@@ -142,7 +142,6 @@ void main () {
     if (tex.specs.width != winSize.x || tex.specs.height != winSize.y) {
       if (texCuda) cudaGraphicsUnregisterResource(texCuda);
       tex.resize(winSize.x, winSize.y);
-      tex.bindToUnit(0);
       cudaGraphicsGLRegisterImage(&texCuda, tex.getId(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore);
     }
 
@@ -181,11 +180,13 @@ void main () {
     glClearColor(1, 0, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT);
     glViewport(0, 0, winSize.x, winSize.y);
+    tex.bindToUnit(0);
     shader.bind();
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
     shader.unbind();
+    ws::Texture::unbindFromUnit(0);
 
     workshop.endFrame();
   }
