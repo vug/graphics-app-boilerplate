@@ -195,17 +195,10 @@ int main() {
       ws::Framebuffer::unbind();
     }
 
+    //glNamedFramebufferReadBuffer(sceneFbo.getId(), GL_COLOR_ATTACHMENT0); // Not needed here, since it has only one color attachment
+    glBlitNamedFramebuffer(sceneFbo.getId(), 0, 0, 0, winSize.x, winSize.y, 0, 0, winSize.x, winSize.y, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
     glViewport(0, 0, winSize.x, winSize.y);
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-    sceneFbo.getFirstColorAttachment().bindToUnit(0);
-    assetManager.shaders.at("copy").bind();
-    assetManager.drawWithEmptyVao(6);
-    ws::Shader::unbind();
-    ws::Texture::unbindFromUnit(0);
-
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
     glDisable(GL_DEPTH_TEST);
