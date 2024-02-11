@@ -56,7 +56,6 @@ EditorWindow::EditorWindow(Scene& scene)
       copyShader(ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"),
       gridShader(ws::ASSETS_FOLDER / "shaders/editor/infinite_grid.vert", ws::ASSETS_FOLDER / "shaders/editor/infinite_grid.frag"),
       normalVizShader(ws::ASSETS_FOLDER / "shaders/editor/normal_viz.vert", ws::ASSETS_FOLDER / "shaders/editor/normal_viz.geom", ws::ASSETS_FOLDER / "shaders/editor/normal_viz.frag"),
-      gridVao([]() { uint32_t id;glGenVertexArrays(1, &id); return id; }()), 
       emptyVao([]() { uint32_t id;glGenVertexArrays(1, &id); return id; }()) 
   {}
 
@@ -229,7 +228,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
       gridShader.setMatrix4("u_ProjectionFromView", cam.getProjectionFromView());
       gridShader.setVector3("u_CameraPosition", cam.position);
       gridShader.bind();
-      glBindVertexArray(gridVao);
+      glBindVertexArray(emptyVao);
       glDrawArrays(GL_TRIANGLES, 0, 6);
       glBindVertexArray(0);
       gridShader.unbind();

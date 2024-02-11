@@ -76,8 +76,6 @@ int main() {
   glTextureParameteri(shadowFbo.getDepthAttachment().getId(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
   glTextureParameteri(shadowFbo.getDepthAttachment().getId(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
   glTextureParameterfv(shadowFbo.getDepthAttachment().getId(), GL_TEXTURE_BORDER_COLOR, shadowBorderColor);
-  uint32_t dummyVao;
-  glGenVertexArrays(1, &dummyVao);
 
   ws::RenderableObject axes = {
     ws::Object{std::string{"Axes"}, ws::Transform{glm::vec3{0, 0, 0}, glm::vec3{0, 1, 0}, 0, glm::vec3{1, 1, 1}}},
@@ -225,9 +223,7 @@ int main() {
       shader.setFloat("far_plane", light.far);
       shadowFbo.getDepthAttachment().bindToUnit(0);
       shader.bind();
-      glBindVertexArray(dummyVao);
-      glDrawArrays(GL_TRIANGLES, 0, 6);
-      glBindVertexArray(0);
+      assetManager.drawWithEmptyVao(6);
     };
     ws::Shader::unbind();
     ws::Texture::unbindFromUnit(0);

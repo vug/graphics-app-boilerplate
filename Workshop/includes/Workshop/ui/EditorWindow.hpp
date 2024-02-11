@@ -35,7 +35,6 @@ class EditorWindow {
   Shader copyShader;
   Shader gridShader;
   Shader normalVizShader;
-  uint32_t gridVao;
   uint32_t emptyVao;
 };
 }

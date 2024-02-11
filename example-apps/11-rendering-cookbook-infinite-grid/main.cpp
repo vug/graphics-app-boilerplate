@@ -79,9 +79,6 @@ int main() {
   ws::setParent(&monkey, &scene.root);
   ws::setParent(&box, &scene.root);
 
-  uint32_t gridVao;
-  glGenVertexArrays(1, &gridVao);
-
   scene.camera.position = {0, 3, -5};
   ws::ManualCameraController manualCamController{scene.camera};
   const std::vector<std::reference_wrapper<ws::Texture>> texRefs{offscreenFbo.getFirstColorAttachment()};
@@ -122,9 +119,7 @@ int main() {
       shader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
       shader.setVector3("u_CameraPosition", scene.camera.position);
       shader.bind();
-      glBindVertexArray(gridVao);
-      glDrawArrays(GL_TRIANGLES, 0, 6);
-      glBindVertexArray(0);
+      assetManager.drawWithEmptyVao(6);
     }
     ws::Shader::unbind();
 
