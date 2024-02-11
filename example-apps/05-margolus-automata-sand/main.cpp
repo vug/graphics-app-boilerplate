@@ -267,7 +267,7 @@ in VertexData {
   vec2 uv;
 } v;
 
-uniform sampler2D screenTexture;
+layout(binding = 0) uniform sampler2D screenTexture;
 
 layout (location = 0) out vec4 outColor;
 
@@ -428,12 +428,11 @@ void main () {
     const auto winSize = workshop.getWindowSize();
     glViewport(0, 0, winSize.x, winSize.y);
 
+    tex.bindToUnit(0);
     shader.bind();
-    tex.bind();
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
-    ws::Texture::unbind();
     shader.unbind();
 
     workshop.endFrame();

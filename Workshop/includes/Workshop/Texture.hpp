@@ -64,11 +64,11 @@ class Texture {
 
   uint32_t getId() const { return id; }
   bool isValid() const { return id != INVALID; }
-  void bind() const;
-  static void unbind();
+  //void bind() const;
+  //static void unbind();
   void bindToUnit(uint32_t unit) const;
   // Not needed in DSA see https://stackoverflow.com/q/50113147/5394043
-  void unbindFromUnit(uint32_t unit) const;
+  static void unbindFromUnit(uint32_t unit);
   void bindImageTexture(uint32_t textureUnit, Access access) const;
   // not type-safe
   void uploadPixels(const void* pixels);

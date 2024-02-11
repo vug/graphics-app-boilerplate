@@ -138,19 +138,19 @@ void Texture::activateTexture(uint32_t no) {
   glActiveTexture(GL_TEXTURE0 + no);
 }
 
-void Texture::bind() const {
-  glBindTexture(GL_TEXTURE_2D, id);
-}
-
-void Texture::unbind() {
-  glBindTexture(GL_TEXTURE_2D, 0);
-}
+//void Texture::bind() const {
+//  glBindTexture(GL_TEXTURE_2D, id);
+//}
+//
+//void Texture::unbind() {
+//  glBindTexture(GL_TEXTURE_2D, 0);
+//}
 
 void Texture::bindToUnit(uint32_t unit) const {
 	glBindTextureUnit(unit, id);
 }
 
-void Texture::unbindFromUnit(uint32_t unit) const {
+void Texture::unbindFromUnit(uint32_t unit) {
   glBindTextureUnit(unit, 0);
 }
 

@@ -259,7 +259,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
   outlineGrowthFbo.bind();
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  outlineSolidFbo.getFirstColorAttachment().bind();
+  outlineSolidFbo.getFirstColorAttachment().bindToUnit(0);
   outlineShader.bind();
   glBindVertexArray(emptyVao);
   glDrawArrays(GL_TRIANGLES, 0, 6);
