@@ -195,6 +195,7 @@ int main() {
         renderable.get().mesh.draw();
       }
       ws::Shader::unbind();
+      ws::Texture::unbindFromUnit(1);
     };
 
     auto drawShadowMap = [&]() {
@@ -229,6 +230,7 @@ int main() {
       glBindVertexArray(0);
     };
     ws::Shader::unbind();
+    ws::Texture::unbindFromUnit(0);
 
     drawShadowMap();
     drawScene();

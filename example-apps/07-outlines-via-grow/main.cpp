@@ -152,6 +152,7 @@ int main() {
     outlineShader.bind();
     assetManager.drawWithEmptyVao(6);
     ws::Shader::unbind();
+    ws::Texture::unbindFromUnit(0);
     outlineB.unbind();
     glEnable(GL_DEPTH_TEST);
 
@@ -162,6 +163,7 @@ int main() {
     assetManager.shaders.at("fullscreen").bind();
     assetManager.drawWithEmptyVao(6);
     ws::Shader::unbind();
+    ws::Texture::unbindFromUnit(0);
     glEnable(GL_DEPTH_TEST);
 
     textureViewer.draw();

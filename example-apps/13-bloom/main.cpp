@@ -164,6 +164,7 @@ int main() {
     assetManager.shaders.at("lumi_tresh").bind();
     assetManager.drawWithEmptyVao(6);
     ws::Shader::unbind();
+    ws::Texture::unbindFromUnit(0);
     lumTreshFbo.unbind();
 
     for (int ix = 0; ix < numBlooms; ++ix) {
@@ -177,6 +178,7 @@ int main() {
       assetManager.shaders.at("blur").bind();
       assetManager.drawWithEmptyVao(6);
       ws::Shader::unbind();
+      ws::Texture::unbindFromUnit(0);
       bloomHorFbos[ix].unbind();
 
       bloomVerFbos[ix].bind();
@@ -189,6 +191,7 @@ int main() {
       assetManager.shaders.at("blur").bind();
       assetManager.drawWithEmptyVao(6);
       ws::Shader::unbind();
+      ws::Texture::unbindFromUnit(0);
       bloomVerFbos[ix].unbind();
     }
 
@@ -200,6 +203,7 @@ int main() {
     assetManager.shaders.at("copy").bind();
     assetManager.drawWithEmptyVao(6);
     ws::Shader::unbind();
+    ws::Texture::unbindFromUnit(0);
 
 
     glEnable(GL_BLEND);
@@ -209,8 +213,9 @@ int main() {
       bloomVerFbos[ix].getFirstColorAttachment().bindToUnit(0);
       assetManager.shaders.at("copy").bind();
       assetManager.drawWithEmptyVao(6);
-      ws::Shader::unbind();
     }
+    ws::Shader::unbind();
+    ws::Texture::unbindFromUnit(0);
 
  	  workshop.drawUI();
     textureViewer.draw();

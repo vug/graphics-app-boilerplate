@@ -179,6 +179,7 @@ void drawSceneWithCamera(const ws::Scene& scene, const ws::Camera& cam, const Sk
     obj.mesh.draw();
   }
   ws::Shader::unbind();
+  ws::Texture::unbindFromUnit(1);
 }
 
 void drawSkybox(const Skybox& skybox, const ws::Camera& cam) {
@@ -190,4 +191,5 @@ void drawSkybox(const Skybox& skybox, const ws::Camera& cam) {
   skybox.shader.bind();
   skybox.mesh.draw();
   ws::Shader::unbind();
+  ws::Texture::unbindFromUnit(1);
 }

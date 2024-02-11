@@ -199,6 +199,8 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
     editorShader.bind();
     renderable.get().mesh.draw();
     editorShader.unbind();
+    if (!textureToBind.empty())
+      ws::Texture::unbindFromUnit(0);
   }
 
   if (showNormalViz) {
@@ -265,6 +267,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
   outlineShader.unbind();
+  ws::Texture::unbindFromUnit(0);
   outlineGrowthFbo.unbind();
   glEnable(GL_DEPTH_TEST);
 
@@ -280,6 +283,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
   copyShader.unbind();
+  ws::Texture::unbindFromUnit(0);
   fbo.unbind();
   glEnable(GL_DEPTH_TEST);
 
