@@ -55,7 +55,6 @@ void TextureViewer::draw() {
       glTextureParameteri(viewId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTextureParameteri(viewId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     }
-    ImGui::SameLine();
   }
 
   const auto availableSize = ImGui::GetContentRegionAvail();
