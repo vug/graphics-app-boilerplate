@@ -12,12 +12,11 @@ int main() {
     workshop.drawUI();
 
     ImGui::Begin("Clear");
-    static float bgColor[3] = {1.f, 0.f, 0.f};
-    ImGui::ColorEdit3("BG Color", bgColor);
+    static glm::vec4 bgColor{1, 0, 0, 1};
+    ImGui::ColorEdit4("BG Color", glm::value_ptr(bgColor));
     ImGui::End();
 
-    glClearColor(bgColor[0], bgColor[1], bgColor[2], 1);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClearNamedFramebufferfv(0, GL_COLOR, 0, glm::value_ptr(bgColor));
 
     workshop.endFrame();
   }
