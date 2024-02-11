@@ -1,6 +1,7 @@
 #include "Framebuffer.hpp"
 
 #include <glad/gl.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <cassert>
 #include <cstdio>
@@ -110,5 +111,25 @@ void Framebuffer::resizeIfNeeded(uint32_t w, uint32_t h) {
     depthStencilAttachment.value().resize(width, height);
 
   attachAttachments();
+}
+
+void Framebuffer::clearColor(uint32_t id, const glm::vec4& color) {
+  glClearNamedFramebufferfv(id, GL_COLOR, 0, glm::value_ptr(color));
+}
+void Framebuffer::clearDepth(uint32_t id, float depth) {
+  glClearNamedFramebufferfv(id, GL_DEPTH, 0, &depth);
+}
+void Framebuffer::clear(uint32_t id, const glm::vec4& color, float depth) {
+  clearColor(id, color);
+  clearDepth(id, depth);
+}
+void Framebuffer::clearColor(const glm::vec4& color) const {
+  clearColor(id, color);
+}
+void Framebuffer::clearDepth(float depth) const {
+  clearDepth(id, depth);
+}
+void Framebuffer::clear(const glm::vec4& color, float depth) const {
+  clear(id, color, depth);
 }
 }  // namespace ws
