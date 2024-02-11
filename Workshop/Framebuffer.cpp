@@ -81,7 +81,7 @@ void Framebuffer::bind() const {
   glBindFramebuffer(GL_FRAMEBUFFER, id);
 }
 
-void Framebuffer::unbind() const {
+void Framebuffer::unbind() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 

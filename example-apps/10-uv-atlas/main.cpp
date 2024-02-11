@@ -203,7 +203,7 @@ int main() {
       renderable.get().mesh.draw();
     }
     ws::Shader::unbind();
-    atlasFbo.unbind();
+    ws::Framebuffer::unbind();
 
     glViewport(0, 0, winSize.x, winSize.y);
     glEnable(GL_CULL_FACE);

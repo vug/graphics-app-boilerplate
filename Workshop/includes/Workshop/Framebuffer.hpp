@@ -27,7 +27,7 @@ class Framebuffer {
 
   uint32_t getId() const { return id; }
   void bind() const;
-  void unbind() const;
+  static void unbind();
   std::vector<Texture>& getColorAttachments();
   Texture& getFirstColorAttachment();
   Texture& getDepthAttachment();

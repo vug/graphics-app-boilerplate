@@ -234,7 +234,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
       ws::Shader::unbind();
     }
   }
-  fbo.unbind();
+  ws::Framebuffer::unbind();
 
   // Pass 2: Draw highlighted objects with solid color offscreen
   outlineSolidFbo.bind();
@@ -253,7 +253,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
     ptr->mesh.draw();
     ws::Shader::unbind();
   }
-  outlineSolidFbo.unbind();
+  ws::Framebuffer::unbind();
 
   // Pass 3: Out-grow highlight solid color area
   glDisable(GL_DEPTH_TEST);
@@ -267,7 +267,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
   glBindVertexArray(0);
   ws::Shader::unbind();
   ws::Texture::unbindFromUnit(0);
-  outlineGrowthFbo.unbind();
+  ws::Framebuffer::unbind();
   glEnable(GL_DEPTH_TEST);
 
   // Pass 4: Draw highlights as overlay to screen
@@ -283,7 +283,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
   glBindVertexArray(0);
   ws::Shader::unbind();
   ws::Texture::unbindFromUnit(0);
-  fbo.unbind();
+  ws::Framebuffer::unbind();
   glEnable(GL_DEPTH_TEST);
 
   // IsItemActivated checks whether InvisibleButton was clicked. IsItemClicked on the Image below didn't work for some reason. Probably because it's overlapping with the button.
@@ -309,7 +309,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
     glReadPixels(static_cast<int32_t>(pixCoord.x), static_cast<int32_t>(tex.specs.height - pixCoord.y), 1, 1, GL_RED_INTEGER, GL_INT, &hoveredMeshId);
     hoveredObjectName = hoveredMeshId >= 0 ? scene.renderables[hoveredMeshId].get().name : "None";
     // std::println("hoveredMeshId {}, selectedName {}, pixCoord ({:.1f}, {:.1f})", hoveredMeshId, hoveredObjectName, pixCoord.x, pixCoord.y);
-    fbo.unbind();
+    ws::Framebuffer::unbind();
   }
 
   VObjectPtr clickedObject{};

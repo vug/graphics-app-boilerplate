@@ -153,7 +153,7 @@ int main() {
     glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     scene.draw();
-    sceneFbo.unbind();
+    ws::Framebuffer::unbind();
 
     lumTreshFbo.bind();
     glViewport(0, 0, winSize.x, winSize.y);
@@ -165,7 +165,7 @@ int main() {
     assetManager.drawWithEmptyVao(6);
     ws::Shader::unbind();
     ws::Texture::unbindFromUnit(0);
-    lumTreshFbo.unbind();
+    ws::Framebuffer::unbind();
 
     for (int ix = 0; ix < numBlooms; ++ix) {
       bloomHorFbos[ix].bind();
@@ -179,7 +179,7 @@ int main() {
       assetManager.drawWithEmptyVao(6);
       ws::Shader::unbind();
       ws::Texture::unbindFromUnit(0);
-      bloomHorFbos[ix].unbind();
+      ws::Framebuffer::unbind();
 
       bloomVerFbos[ix].bind();
       glViewport(0, 0, bloomVerFbos[ix].getFirstColorAttachment().specs.width, bloomVerFbos[ix].getFirstColorAttachment().specs.height);
@@ -192,7 +192,7 @@ int main() {
       assetManager.drawWithEmptyVao(6);
       ws::Shader::unbind();
       ws::Texture::unbindFromUnit(0);
-      bloomVerFbos[ix].unbind();
+      ws::Framebuffer::unbind();
     }
 
     glViewport(0, 0, winSize.x, winSize.y);

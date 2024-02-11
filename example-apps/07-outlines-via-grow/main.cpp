@@ -139,7 +139,7 @@ int main() {
     }
     ws::Shader::unbind();
     glEnable(GL_DEPTH_TEST);
-    outlineA.unbind();
+    ws::Framebuffer::unbind();
 
 
     // Pass 3: Out-grow highlight solid color area
@@ -153,7 +153,7 @@ int main() {
     assetManager.drawWithEmptyVao(6);
     ws::Shader::unbind();
     ws::Texture::unbindFromUnit(0);
-    outlineB.unbind();
+    ws::Framebuffer::unbind();
     glEnable(GL_DEPTH_TEST);
 
 

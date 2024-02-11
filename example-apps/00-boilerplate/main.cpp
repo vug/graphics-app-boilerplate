@@ -124,7 +124,7 @@ int main() {
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT);
     scene.draw(assetManager.materials.at("boilerplate-box"));
-    offscreenFbo.unbind();
+    ws::Framebuffer::unbind();
 
     glViewport(0, 0, winSize.x, winSize.y);
     glEnable(GL_CULL_FACE);
