@@ -119,6 +119,9 @@ void Framebuffer::clearColor(uint32_t id, const glm::vec4& color) {
 void Framebuffer::clearDepth(uint32_t id, float depth) {
   glClearNamedFramebufferfv(id, GL_DEPTH, 0, &depth);
 }
+void Framebuffer::clearStencil(uint32_t id, int32_t stencil) {
+  glClearNamedFramebufferiv(id, GL_STENCIL, 0, &stencil);
+}
 void Framebuffer::clear(uint32_t id, const glm::vec4& color, float depth) {
   clearColor(id, color);
   clearDepth(id, depth);
@@ -128,6 +131,9 @@ void Framebuffer::clearColor(const glm::vec4& color) const {
 }
 void Framebuffer::clearDepth(float depth) const {
   clearDepth(id, depth);
+}
+void Framebuffer::clearStencil(int32_t stencil) const {
+  clearStencil(id, stencil);
 }
 void Framebuffer::clear(const glm::vec4& color, float depth) const {
   clear(id, color, depth);
