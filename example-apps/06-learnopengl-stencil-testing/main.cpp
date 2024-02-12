@@ -1,6 +1,7 @@
 #include <Workshop/AssetManager.hpp>
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
+#include <Workshop/Framebuffer.hpp>
 #include <Workshop/Model.hpp>
 #include <Workshop/Scene.hpp>
 #include <Workshop/Shader.hpp>
@@ -96,16 +97,16 @@ int main() {
     workshop.drawUI();
 
     ImGui::Begin("Main");
-    static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
-    ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
+    static glm::vec4 bgColor{42 / 256.f, 96 / 256.f, 87 / 256.f, 1.f};
+    ImGui::ColorEdit4("BG Color", glm::value_ptr(bgColor));
     ImGui::End();
 
     orbitingCamController.update(0.01f);
     scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
     scene.uploadUniforms();
 
-    glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    ws::Framebuffer::clear(0, bgColor);
+    ws::Framebuffer::clearStencil(0, 0);
     glEnable(GL_DEPTH_TEST);
     glStencilFunc(GL_ALWAYS, 1, 0xFF);
     for (const auto& [shouldHighlight, objRef] : std::views::zip(shouldHighlights, scene.renderables)) {

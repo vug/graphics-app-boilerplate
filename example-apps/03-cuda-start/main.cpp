@@ -2,6 +2,7 @@
 // I was able to overcome this in VS Code by compiling CU files via NVCC into a library and compile main.cpp via MSVC and link them later
 #include "kernels.h"
 
+#include <Workshop/Framebuffer.hpp>
 #include <Workshop/Shader.hpp>
 #include <Workshop/Texture.hpp>
 #include <Workshop/Workshop.hpp>
@@ -152,8 +153,7 @@ void main () {
 
     workshop.drawUI();
 
-    glClearColor(1, 0, 1, 1);
-    glClear(GL_COLOR_BUFFER_BIT);
+    ws::Framebuffer::clearColor(0, {1, 0, 1, 1});
     glViewport(0, 0, winSize.x, winSize.y);
 
     tex.bindToUnit(0);

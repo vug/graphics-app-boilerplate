@@ -104,8 +104,8 @@ int main() {
     workshop.drawUI();
 
     ImGui::Begin("Outlines via Growth");
-    static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
-    ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
+    static glm::vec4 bgColor{42 / 256.f, 96 / 256.f, 87 / 256.f, 1.f};
+    ImGui::ColorEdit4("BG Color", glm::value_ptr(bgColor));
     static glm::vec4 outlineColor{0.85, 0.65, 0.15, 1};
     ImGui::ColorEdit4("Outline Color", glm::value_ptr(outlineColor));
     ImGui::End();
@@ -115,14 +115,12 @@ int main() {
     scene.uploadUniforms();
 
     // Pass 1: Draw scene to screen
-    glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    ws::Framebuffer::clear(0, bgColor);
     scene.draw();
 
     // Pass 2: Draw highlighted objects with solid color offscreen
+    outlineA.clear({0, 0, 0, 1});
     outlineA.bind();
-    glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
     for (const auto& [shouldHighlight, objRef] : std::views::zip(shouldHighlights, scene.renderables)) {
       if (!shouldHighlight)
@@ -144,9 +142,8 @@ int main() {
 
     // Pass 3: Out-grow highlight solid color area
     glDisable(GL_DEPTH_TEST);
+    outlineB.clear({0, 0, 0, 0});
     outlineB.bind();
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     outlineShader.setVector4("u_OutlineColor", outlineColor);
     outlineA.getFirstColorAttachment().bindToUnit(0);
     outlineShader.bind();

@@ -1,3 +1,4 @@
+#include <Workshop/Framebuffer.hpp>
 #include <Workshop/Shader.hpp>
 #include <Workshop/Workshop.hpp>
 
@@ -51,12 +52,11 @@ void main () { outColor = vec4 (fragColor, 1.0); }
     workshop.drawUI();
 
     ImGui::Begin("Triangle w/o VBO");
-    static float bgColor[3] = {42 / 256.f, 96 / 256.f, 87 / 256.f};
-    ImGui::ColorEdit3("BG Color", bgColor);
+    static glm::vec4 bgColor{42 / 256.f, 96 / 256.f, 87 / 256.f, 1.f};
+    ImGui::ColorEdit4("BG Color", glm::value_ptr(bgColor));
     ImGui::End();
 
-    glClearColor(bgColor[0], bgColor[1], bgColor[2], 1);
-    glClear(GL_COLOR_BUFFER_BIT);
+    ws::Framebuffer::clearColor(0, bgColor);
     shader.bind();
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
