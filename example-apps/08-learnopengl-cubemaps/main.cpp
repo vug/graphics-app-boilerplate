@@ -2,6 +2,7 @@
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
 #include <Workshop/Cubemap.hpp>
+#include <Workshop/Framebuffer.hpp>
 #include <Workshop/Model.hpp>
 #include <Workshop/Scene.hpp>
 #include <Workshop/Shader.hpp>
@@ -123,8 +124,7 @@ int main() {
     scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
     scene.uploadUniforms();
 
-    glClearColor(1, 0, 1, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    ws::Framebuffer::clear(0, {1, 0, 1, 1});
 
     // First draw skybox without writing into depth buffer
     // Then draw scene objects

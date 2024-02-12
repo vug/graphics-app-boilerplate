@@ -130,8 +130,8 @@ int main() {
 
 
     ImGui::Begin("Bloom");
-    static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
-    ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
+    static glm::vec4 bgColor{42 / 256.f, 96 / 256.f, 87 / 256.f, 1.f};
+    ImGui::ColorEdit4("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
     static float luminanceThreshold = 0.75f;
     ImGui::SliderFloat("Luminance Treshold", &luminanceThreshold, 0, 1);
@@ -146,19 +146,17 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+    sceneFbo.clear(bgColor);
     sceneFbo.bind();
     glViewport(0, 0, winSize.x, winSize.y);
     glCullFace(GL_BACK);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     scene.draw();
     ws::Framebuffer::unbind();
 
+    lumTreshFbo.clearColor({0, 0, 0, 0,});
     lumTreshFbo.bind();
     glViewport(0, 0, winSize.x, winSize.y);
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT);
     sceneFbo.getFirstColorAttachment().bindToUnit(0);
     assetManager.shaders.at("lumi_tresh").setFloat("u_LuminanceThreshold", luminanceThreshold);
     assetManager.shaders.at("lumi_tresh").bind();
@@ -168,10 +166,9 @@ int main() {
     ws::Framebuffer::unbind();
 
     for (int ix = 0; ix < numBlooms; ++ix) {
+      bloomHorFbos[ix].clearColor({0, 0, 0, 0});
       bloomHorFbos[ix].bind();
       glViewport(0, 0, bloomHorFbos[ix].getFirstColorAttachment().specs.width, bloomHorFbos[ix].getFirstColorAttachment().specs.height);
-      glClearColor(0, 0, 0, 0);
-      glClear(GL_COLOR_BUFFER_BIT);
 
       assetManager.shaders.at("blur").setInteger("u_IsHorizontal", 0);
       (ix == 0 ? lumTreshFbo : bloomVerFbos[ix - 1]).getFirstColorAttachment().bindToUnit(0);
@@ -181,10 +178,9 @@ int main() {
       ws::Texture::unbindFromUnit(0);
       ws::Framebuffer::unbind();
 
+      bloomVerFbos[ix].clearColor({0, 0, 0, 0});
       bloomVerFbos[ix].bind();
       glViewport(0, 0, bloomVerFbos[ix].getFirstColorAttachment().specs.width, bloomVerFbos[ix].getFirstColorAttachment().specs.height);
-      glClearColor(0, 0, 0, 0);
-      glClear(GL_COLOR_BUFFER_BIT);
 
       assetManager.shaders.at("blur").setInteger("u_IsHorizontal", 1);
       bloomHorFbos[ix].getFirstColorAttachment().bindToUnit(0);

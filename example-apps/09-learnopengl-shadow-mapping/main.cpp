@@ -142,8 +142,8 @@ int main() {
     workshop.drawUI();
 
     ImGui::Begin("Main");
-    static glm::vec3 bgColor{144.f/255, 225.f/255, 236.f/255};
-    ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
+    static glm::vec4 bgColor{42 / 256.f, 96 / 256.f, 87 / 256.f, 1.f};
+    ImGui::ColorEdit4("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
     ImGui::Text("Light");
     ImGui::DragFloat3("Position", glm::value_ptr(light.position));
@@ -172,8 +172,7 @@ int main() {
     cam.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
     scene.uploadUniforms();
 
-    glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    ws::Framebuffer::clear(0, bgColor);
 
     auto drawScene = [&]() {
       glViewport(0, 0, winSize.x, winSize.y);
@@ -200,7 +199,7 @@ int main() {
       glViewport(0, 0, light.shadowWidth, light.shadowHeight);
       shadowFbo.bind();
       //if (cullFrontFaces) glCullFace(GL_FRONT);
-      glClear(GL_DEPTH_BUFFER_BIT);
+      shadowFbo.clearDepth();
       // cam.getProjectionFromView() * cam.getViewFromWorld() to see from camera's perspective
       assetManager.shaders.at("simpleDepth").setMatrix4("u_LightSpaceMatrix", light.getLightSpaceMatrix());
 

@@ -181,7 +181,7 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
   glEnable(GL_DEPTH_TEST);
   fbo.getColorAttachments()[0].clear(glm::vec4(0, 0, 0, 1));
   fbo.getColorAttachments()[1].clear(-1);
-  glClear(GL_DEPTH_BUFFER_BIT);
+  fbo.clearDepth();
   glPolygonMode(GL_FRONT_AND_BACK, shouldBeWireframe ? GL_LINE : GL_FILL);
   for (auto [ix, renderable] : scene.renderables | std::ranges::views::enumerate) {
     editorShader.setMatrix4("u_WorldFromObject", renderable.get().transform.getWorldFromObjectMatrix());
@@ -237,9 +237,8 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
   ws::Framebuffer::unbind();
 
   // Pass 2: Draw highlighted objects with solid color offscreen
+  outlineSolidFbo.clearColor({0, 0, 0, 0});
   outlineSolidFbo.bind();
-  glClearColor(0, 0, 0, 0);
-  glClear(GL_COLOR_BUFFER_BIT);
   glDisable(GL_DEPTH_TEST);
   const bool hasSelectedObject = std::visit([](auto&& ptr) { return ptr != nullptr; }, selectedObject) && std::holds_alternative<RenderableObject*>(selectedObject);
   if (hasSelectedObject) {
@@ -257,9 +256,8 @@ VObjectPtr EditorWindow::draw(const std::unordered_map<std::string, ws::Texture>
 
   // Pass 3: Out-grow highlight solid color area
   glDisable(GL_DEPTH_TEST);
+  outlineGrowthFbo.clear({0, 0, 0, 0});
   outlineGrowthFbo.bind();
-  glClearColor(0, 0, 0, 0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   outlineSolidFbo.getFirstColorAttachment().bindToUnit(0);
   outlineShader.bind();
   glBindVertexArray(emptyVao);

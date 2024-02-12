@@ -177,8 +177,8 @@ int main() {
 	  atlasFbo.resizeIfNeeded(atlasSize.x, atlasSize.y);
 
     ImGui::Begin("LightMapper");
-    static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
-    ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
+    static glm::vec4 bgColor{42 / 256.f, 96 / 256.f, 87 / 256.f, 1.f};
+    ImGui::ColorEdit4("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
 
     if (ImGui::Button("Save my Uv Atlas Image"))
@@ -193,8 +193,7 @@ int main() {
     atlasFbo.bind();
     glViewport(0, 0, atlasSize.x, atlasSize.y);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT);
+    atlasFbo.clearColor({0, 0, 0, 0});
     uvAtlasShader.setMatrix4("u_ViewFromWorld", scene.camera.getViewFromWorld());
     uvAtlasShader.setMatrix4("u_ProjectionFromView", scene.camera.getProjectionFromView());
     uvAtlasShader.bind();
@@ -209,8 +208,7 @@ int main() {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    ws::Framebuffer::clear(0, bgColor);
     scene.draw();
 
 	  workshop.drawUI();

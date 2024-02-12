@@ -110,8 +110,8 @@ int main() {
     const glm::uvec2 winSize = workshop.getWindowSize();
 
     ImGui::Begin("Normal Mapping");
-    static glm::vec3 bgColor{42 / 256.0, 96 / 256.0, 87 / 256.0};
-    ImGui::ColorEdit3("BG Color", glm::value_ptr(bgColor));
+    static glm::vec4 bgColor{42 / 256.f, 96 / 256.f, 87 / 256.f, 1.f};
+    ImGui::ColorEdit4("BG Color", glm::value_ptr(bgColor));
     ImGui::Separator();
 
     static float normalMapAmount = 1.f;
@@ -135,8 +135,7 @@ int main() {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glClearColor(bgColor.x, bgColor.y, bgColor.z, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    ws::Framebuffer::clear(0, bgColor);
     for (auto& renderable : scene.renderables) {
       ws::Shader& shader = renderable.get().material.shader;
       renderable.get().material.uploadParameters();
