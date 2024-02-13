@@ -29,7 +29,6 @@ add_library(imgui STATIC
   imgui/misc/cpp/imgui_stdlib.cpp
 )
 target_compile_definitions(imgui PRIVATE
-  -DIMGUI_IMPL_OPENGL_LOADER_GLAD # configure GLAD as the loader
   -DGLFW_INCLUDE_NONE
 )
 target_link_libraries(imgui PRIVATE
