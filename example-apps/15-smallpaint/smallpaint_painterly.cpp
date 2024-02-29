@@ -12,6 +12,8 @@
 // course at TU Wien. Course webpage:
 // http://cg.tuwien.ac.at/courses/Rendering/
 
+#include <stb/stb_image_write.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -260,13 +262,17 @@ int main() {
 		}
 	}
 
-	FILE *f = fopen("ray.ppm", "w");
-	fprintf(f, "P3\n%d %d\n%d\n ",width,height,255);
-	for (int i=0;i<width;i++)
-	for (int j=0;j<height;j++) {
-		fprintf(f,"%d %d %d ", min((int)pix[i][j].x,255), min((int)pix[i][j].y,255), min((int)pix[i][j].z,255));
+	std::vector<uint8_t> pixels(width * height * 3);
+	for (size_t j = 0; j < height; j++) {
+		for (size_t i = 0; i < width; i++) {
+			const size_t ix = (j * width + i) * 3;
+			pixels[ix + 0] = std::min((int)pix[j][i].x, 255);
+			pixels[ix + 1] = std::min((int)pix[j][i].y, 255);
+			pixels[ix + 2] = std::min((int)pix[j][i].z, 255);
+		}
 	}
-	fclose(f);
+	stbi_write_png("ray.png", width, height, 3, pixels.data(), sizeof(uint8_t) * width * 3);
+
 	clock_t end = clock();
 	double t = (double)(end-start)/CLOCKS_PER_SEC;
 	printf("\nRender time: %fs.\n",t);
