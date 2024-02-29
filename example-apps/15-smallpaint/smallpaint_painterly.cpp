@@ -56,34 +56,34 @@ class Obj {
 	int type;
 	void setMat(glm::dvec3 cl_={}, double emission_=0, int type_=0) { cl=cl_; emission=emission_; type=type_; }
 	virtual double intersect(const Ray&) const =0;
-	virtual Vec normal(const Vec&) const =0;
+	virtual glm::dvec3 normal(const glm::dvec3&) const =0;
 };
 
 class Plane : public Obj {
 	public:
-	Vec n;
+	glm::dvec3 n;
 	double d;
-	Plane(double d_ =0, Vec n_=0) { d=d_; n=n_; }
+	Plane(double d_ =0, glm::dvec3 n_={}) { d=d_; n=n_; }
 	double intersect(const Ray& ray) const {
-		double d0 = glm::dot(n.v, ray.d);
+		double d0 = glm::dot(n, ray.d);
 		if(d0!=0) {
-			double t = -1*(((glm::dot(n.v,ray.o))+d)/d0);
+			double t = -1*(((glm::dot(n,ray.o))+d)/d0);
 			return (t>eps) ? t : 0;
 		}
 		else return 0;
 	}
-	Vec normal(const Vec& p0) const { return n; }
+	glm::dvec3 normal(const glm::dvec3& p0) const { return n; }
 };
 
 class Sphere : public Obj {
 	public:
-	Vec c;
+	glm::dvec3 c;
 	double r;
 
-	Sphere(double r_= 0, Vec c_=0) { c=c_; r=r_; }
+	Sphere(double r_= 0, glm::dvec3 c_={}) { c=c_; r=r_; }
 	double intersect(const Ray& ray) const {
-		double b = glm::dot((ray.o-c.v)*2.0, ray.d);
-		double c_ = glm::dot(ray.o-c.v, (ray.o-c.v))-(r*r);
+		double b = glm::dot((ray.o-c)*2.0, ray.d);
+		double c_ = glm::dot(ray.o-c, (ray.o-c))-(r*r);
 		double disc = b*b - 4*c_;
 		if (disc<0) return 0;
 		else disc = sqrt(disc);
@@ -92,10 +92,10 @@ class Sphere : public Obj {
 		return (sol2>eps) ? sol2/2 : ((sol1>eps) ? sol1/2 : 0);
 	}
 
-	Vec normal(const Vec& p0) const {
-		return Vec((p0.v.x-c.v.x)/r,
-					(p0.v.y-c.v.y)/r,
-					(p0.v.z-c.v.z)/r);
+	glm::dvec3 normal(const glm::dvec3& p0) const {
+		return glm::dvec3((p0.x-c.x)/r,
+					(p0.y-c.y)/r,
+					(p0.z-c.z)/r);
 	}
 };
 
@@ -123,12 +123,12 @@ class Halton {
 	double get() { return value; }
 };
 
-Vec camcr(const double x, const double y) {
+glm::dvec3 camcr(const double x, const double y) {
 	double w=width;
 	double h=height;
 	float fovx = PI/4;
 	float fovy = (h/w)*fovx;
-	return Vec(((2*x-w)/w)*tan(fovx),
+	return glm::dvec3(((2*x-w)/w)*tan(fovx),
 				((2*y-h)/h)*tan(fovy),
 				-1.0);
 }
@@ -153,9 +153,9 @@ void trace(Ray &ray, const vector<Obj*>& scene, int depth, Vec& clr, pl& params,
 					if (t>eps && t < mint) { mint=t; id=x; }
 				}
 			if (id == -1) return;
-			Vec hp = ray.o + ray.d*mint;
+			glm::dvec3 hp = ray.o + ray.d*mint;
 			Vec N = scene[id]->normal(hp);
-			ray.o = hp.v;
+			ray.o = hp;
 			clr = clr.v + glm::dvec3(scene[id]->emission,scene[id]->emission,scene[id]->emission)*2.0;
 
 			if(scene[id]->type == 1) {
@@ -208,17 +208,17 @@ int main() {
 	};
 
 	// Radius, position, color, emission, type (1=diff, 2=spec, 3=refr) for spheres
-	add(new Sphere(1.05,Vec(1.45,-0.75,-4.4)),Vec(4,8,4),0,2); // Middle sphere
-	add(new Sphere(0.45,Vec(2.05,0.8,-3.7)),Vec(10,10,1),0,3); // Right sphere
-	add(new Sphere(0.6,Vec(1.95,-1.75,-3.1)),Vec(4,4,12),0,1); // Left sphere
+	add(new Sphere(1.05,glm::dvec3(1.45,-0.75,-4.4)),Vec(4,8,4),0,2); // Middle sphere
+	add(new Sphere(0.45,glm::dvec3(2.05,0.8,-3.7)),Vec(10,10,1),0,3); // Right sphere
+	add(new Sphere(0.6,glm::dvec3(1.95,-1.75,-3.1)),Vec(4,4,12),0,1); // Left sphere
 	// Position, normal, color, emission, type for planes
-	add(new Plane(2.5,Vec(-1,0,0)),Vec(6,6,6),0,1); // Bottom plane
-	add(new Plane(5.5,Vec(0,0,1)),Vec(6,6,6),0,1); // Back plane
-	add(new Plane(2.75,Vec(0,1,0)),Vec(10,2,2),0,1); // Left plane
-	add(new Plane(2.75,Vec(0,-1,0)),Vec(2,10,2),0,1); // Right plane
-	add(new Plane(3.0,Vec(1,0,0)),Vec(6,6,6),0,1); // Ceiling plane
-	add(new Plane(0.5,Vec(0,0,-1)),Vec(6,6,6),0,1); // Front plane
-	const Vec L0 = (Vec(-1.9,0,-3));
+	add(new Plane(2.5,glm::dvec3(-1,0,0)),Vec(6,6,6),0,1); // Bottom plane
+	add(new Plane(5.5,glm::dvec3(0,0,1)),Vec(6,6,6),0,1); // Back plane
+	add(new Plane(2.75,glm::dvec3(0,1,0)),Vec(10,2,2),0,1); // Left plane
+	add(new Plane(2.75,glm::dvec3(0,-1,0)),Vec(2,10,2),0,1); // Right plane
+	add(new Plane(3.0,glm::dvec3(1,0,0)),Vec(6,6,6),0,1); // Ceiling plane
+	add(new Plane(0.5,glm::dvec3(0,0,-1)),Vec(6,6,6),0,1); // Front plane
+	const glm::dvec3 L0 = (glm::dvec3(-1.9,0,-3));
 	add(new Sphere(eps,L0),Vec(0,0,0),120,1); // Light
 	params["refr_index"] = 1.9;
 	params["spp"] = 8.0; // samples per pixel
