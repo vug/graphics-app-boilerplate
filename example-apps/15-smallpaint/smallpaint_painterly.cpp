@@ -45,7 +45,7 @@ struct Vec {
 };
 
 struct Ray {
-	Vec o, d;
+	glm::dvec3 o, d;
 	Ray(glm::dvec3 o0 = {}, glm::dvec3 d0 = {}) { o = o0, d = glm::normalize(d0); }
 };
 
@@ -65,9 +65,9 @@ class Plane : public Obj {
 	double d;
 	Plane(double d_ =0, Vec n_=0) { d=d_; n=n_; }
 	double intersect(const Ray& ray) const {
-		double d0 = glm::dot(n.v, ray.d.v);
+		double d0 = glm::dot(n.v, ray.d);
 		if(d0!=0) {
-			double t = -1*(((glm::dot(n.v,ray.o.v))+d)/d0);
+			double t = -1*(((glm::dot(n.v,ray.o))+d)/d0);
 			return (t>eps) ? t : 0;
 		}
 		else return 0;
@@ -82,8 +82,8 @@ class Sphere : public Obj {
 
 	Sphere(double r_= 0, Vec c_=0) { c=c_; r=r_; }
 	double intersect(const Ray& ray) const {
-		double b = glm::dot((ray.o.v-c.v)*2.0, ray.d.v);
-		double c_ = glm::dot(ray.o.v-c.v, (ray.o.v-c.v))-(r*r);
+		double b = glm::dot((ray.o-c.v)*2.0, ray.d);
+		double c_ = glm::dot(ray.o-c.v, (ray.o-c.v))-(r*r);
 		double disc = b*b - 4*c_;
 		if (disc<0) return 0;
 		else disc = sqrt(disc);
@@ -153,16 +153,16 @@ void trace(Ray &ray, const vector<Obj*>& scene, int depth, Vec& clr, pl& params,
 					if (t>eps && t < mint) { mint=t; id=x; }
 				}
 			if (id == -1) return;
-			Vec hp = ray.o.v + ray.d.v*mint;
+			Vec hp = ray.o + ray.d*mint;
 			Vec N = scene[id]->normal(hp);
-			ray.o = hp;
+			ray.o = hp.v;
 			clr = clr.v + glm::dvec3(scene[id]->emission,scene[id]->emission,scene[id]->emission)*2.0;
 
 			if(scene[id]->type == 1) {
 				hal.next();
 				hal2.next();
 				ray.d = (N.v+hemisphere(hal.get(),hal2.get()));
-				double cost=glm::dot(ray.d.v, N.v);
+				double cost=glm::dot(ray.d, N.v);
 				Vec tmp=Vec();
 				trace(ray,scene,depth+1,tmp,params,hal,hal2);
 				clr.v.x += cost*(tmp.v.x*scene[id]->cl.x)*0.1;
@@ -171,8 +171,8 @@ void trace(Ray &ray, const vector<Obj*>& scene, int depth, Vec& clr, pl& params,
 			}
 
 			if(scene[id]->type == 2) {
-				double cost = glm::dot(ray.d.v, N.v);
-				ray.d = glm::normalize(ray.d.v-N.v*(cost*2));
+				double cost = glm::dot(ray.d, N.v);
+				ray.d = glm::normalize(ray.d-N.v*(cost*2));
 				Vec tmp=Vec(0, 0, 0);
 				trace(ray,scene,depth+1,tmp,params,hal,hal2);
 				clr = clr.v + tmp.v;
@@ -180,16 +180,16 @@ void trace(Ray &ray, const vector<Obj*>& scene, int depth, Vec& clr, pl& params,
 
 			if(scene[id]->type == 3) {
 				double n = params["refr_index"];
-				if(glm::dot(N.v, ray.d.v)>0) {
+				if(glm::dot(N.v, ray.d)>0) {
 					N = N.v*-1.0;
 					n = 1/n;
 				}
 				n=1/n;
-				double cost1 = (glm::dot(N.v, ray.d.v))*-1;
+				double cost1 = (glm::dot(N.v, ray.d))*-1;
 				double cost2 = 1.0-n*n*(1.0-cost1*cost1);
 				if(cost2 > 0) {
-					ray.d = (ray.d.v*n)+(N.v*(n*cost1-sqrt(cost2)));
-					ray.d = glm::normalize(ray.d.v);
+					ray.d = (ray.d*n)+(N.v*(n*cost1-sqrt(cost2)));
+					ray.d = glm::normalize(ray.d);
 					Vec tmp = Vec(0,0,0);
 					trace(ray,scene,depth+1,tmp,params,hal,hal2);
 					clr = clr.v + tmp.v;
@@ -243,11 +243,11 @@ int main() {
 			for(int s=0;s<spp;s++) {
 				Vec c;
 				Ray ray;
-				ray.o = (Vec(0,0,0));
+				ray.o = {};
 				Vec cam = camcr(i,j);
 				cam.v.x = cam.v.x + RND/700;
 				cam.v.y = cam.v.y + RND/700;
-				ray.d = glm::normalize(cam.v - ray.o.v);
+				ray.d = glm::normalize(cam.v - ray.o);
 				trace(ray,scene,0,c,params,hal,hal2);
 				pix[i][j].v.x += c.v.x*(1/spp);
 				pix[i][j].v.y += c.v.y*(1/spp);
