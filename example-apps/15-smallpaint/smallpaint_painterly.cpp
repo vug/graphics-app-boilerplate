@@ -46,15 +46,15 @@ struct Vec {
 
 struct Ray {
 	Vec o, d;
-	Ray(Vec o0 = 0, Vec d0 = 0) { o = o0, d = glm::normalize(d0.v); }
+	Ray(glm::dvec3 o0 = {}, glm::dvec3 d0 = {}) { o = o0, d = glm::normalize(d0); }
 };
 
 class Obj {
 	public:
-	Vec cl;
+	glm::dvec3 cl;
 	double emission;
 	int type;
-	void setMat(Vec cl_=0, double emission_=0, int type_=0) { cl=cl_; emission=emission_; type=type_; }
+	void setMat(glm::dvec3 cl_={}, double emission_=0, int type_=0) { cl=cl_; emission=emission_; type=type_; }
 	virtual double intersect(const Ray&) const =0;
 	virtual Vec normal(const Vec&) const =0;
 };
@@ -165,9 +165,9 @@ void trace(Ray &ray, const vector<Obj*>& scene, int depth, Vec& clr, pl& params,
 				double cost=glm::dot(ray.d.v, N.v);
 				Vec tmp=Vec();
 				trace(ray,scene,depth+1,tmp,params,hal,hal2);
-				clr.v.x += cost*(tmp.v.x*scene[id]->cl.v.x)*0.1;
-				clr.v.y += cost*(tmp.v.y*scene[id]->cl.v.y)*0.1;
-				clr.v.z += cost*(tmp.v.z*scene[id]->cl.v.z)*0.1;
+				clr.v.x += cost*(tmp.v.x*scene[id]->cl.x)*0.1;
+				clr.v.y += cost*(tmp.v.y*scene[id]->cl.y)*0.1;
+				clr.v.z += cost*(tmp.v.z*scene[id]->cl.z)*0.1;
 			}
 
 			if(scene[id]->type == 2) {
@@ -203,7 +203,7 @@ int main() {
 	pl params;
 	vector<Obj*> scene;
 	auto add=[&scene](Obj* s, Vec cl, double emission, int type) {
-			s->setMat(cl,emission,type);
+			s->setMat(cl.v,emission,type);
 			scene.push_back(s);
 	};
 
