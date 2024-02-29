@@ -15,27 +15,17 @@
 #include <stb/stb_image_write.h>
 #include <glm/glm.hpp>
 
-#include <limits.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctime>
+#include <numbers>
+#include <print>
+#include <random>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#define RND (2.0 * (double)rand() / RAND_MAX - 1.0)
-#define RND2 ((double)rand() / RAND_MAX)
-
-#define PI 3.1415926536
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
-
 const int width = 900, height = 900;
 const double inf = 1e9;
 const double eps = 1e-4;
-using namespace std;
-typedef unordered_map<string, double> pl;
+typedef std::unordered_map<std::string, double> pl;
 
 struct Ray {
   glm::dvec3 o{}, d{};
@@ -134,7 +124,7 @@ class Halton {
 glm::dvec3 camcr(const double x, const double y) {
   double w = width;
   double h = height;
-  double fovx = PI / 4;
+  double fovx = std::numbers::pi / 4;
   double fovy = (h / w) * fovx;
   return glm::dvec3(((2 * x - w) / w) * tan(fovx),
                     ((2 * y - h) / h) * tan(fovy),
@@ -145,11 +135,11 @@ glm::dvec3 camcr(const double x, const double y) {
 // courtesy of http://www.rorydriscoll.com/2009/01/07/better-sampling/
 glm::dvec3 hemisphere(double u1, double u2) {
   const double r = sqrt(1.0 - u1 * u1);
-  const double phi = 2 * PI * u2;
+  const double phi = 2 * std::numbers::pi * u2;
   return glm::dvec3(cos(phi) * r, sin(phi) * r, u1);
 }
 
-void trace(Ray& ray, const vector<Obj*>& scene, int depth, glm::dvec3& clr, pl& params, Halton& hal, Halton& hal2) {
+void trace(Ray& ray, const std::vector<Obj*>& scene, int depth, glm::dvec3& clr, pl& params, Halton& hal, Halton& hal2) {
   if (depth >= 20)
     return;
   double t;
@@ -211,9 +201,12 @@ void trace(Ray& ray, const vector<Obj*>& scene, int depth, glm::dvec3& clr, pl& 
   }
 }
 int main() {
-  srand(static_cast<uint32_t>(time(NULL)));
+  std::random_device rndDev;
+  std::mt19937 rndGen(rndDev());
+  std::uniform_real_distribution<> uDist(-1., 1.);
+
   pl params;
-  vector<Obj*> scene;
+  std::vector<Obj*> scene;
   auto add = [&scene](Obj* s, glm::dvec3 cl, double emission, int type) {
     s->setMat(cl, emission, type);
     scene.push_back(s);
@@ -235,9 +228,9 @@ int main() {
   params["refr_index"] = 1.9;
   params["spp"] = 8.0;  // samples per pixel
 
-  glm::dvec3** pix = new glm::dvec3*[width];
+  std::vector<std::vector<glm::dvec3>> pix(width);
   for (int i = 0; i < width; i++)
-    pix[i] = new glm::dvec3[height];
+    pix[i].resize(height);
 
   const double spp = params["spp"];
   // correlated Halton-sequence dimensions
@@ -249,15 +242,15 @@ int main() {
 
 #pragma omp parallel for schedule(dynamic) firstprivate(hal, hal2)
   for (int i = 0; i < width; i++) {
-    printf("\rRendering: %1.0fspp %8.2f%%", spp, (double)i / width * 100);
+    std::print("\rRendering: samples per pixel: {:1.0f}, {:8.2f}%", spp, (double)i / width * 100);
     for (int j = 0; j < height; j++) {
       for (int s = 0; s < spp; s++) {
         glm::dvec3 c{};
         Ray ray;
         ray.o = {};
         glm::dvec3 cam = camcr(i, j);
-        cam.x = cam.x + RND / 700;
-        cam.y = cam.y + RND / 700;
+        cam.x = cam.x + uDist(rndGen) / 700;
+        cam.y = cam.y + uDist(rndGen) / 700;
         ray.d = glm::normalize(cam - ray.o);
         trace(ray, scene, 0, c, params, hal, hal2);
         pix[i][j].x += c.x * (1 / spp);
@@ -267,19 +260,14 @@ int main() {
     }
   }
 
-  std::vector<uint8_t> pixels(width * height * 3);
-  for (size_t j = 0; j < height; j++) {
-    for (size_t i = 0; i < width; i++) {
-      const size_t ix = (j * width + i) * 3;
-      pixels[ix + 0] = std::min((uint8_t)pix[j][i].x, 255ui8);
-      pixels[ix + 1] = std::min((uint8_t)pix[j][i].y, 255ui8);
-      pixels[ix + 2] = std::min((uint8_t)pix[j][i].z, 255ui8);
-    }
-  }
+  std::vector<glm::u8vec3> pixels(width * height);
+  for (size_t j = 0; j < height; j++)
+    for (size_t i = 0; i < width; i++)
+      pixels[j * width + i] = glm::min(pix[j][i], 255.);
   stbi_write_png("ray.png", width, height, 3, pixels.data(), sizeof(uint8_t) * width * 3);
 
   clock_t end = clock();
   double t = (double)(end - start) / CLOCKS_PER_SEC;
-  printf("\nRender time: %fs.\n", t);
+  std::println("\nRender time: {}s.", t);
   return 0;
 }
