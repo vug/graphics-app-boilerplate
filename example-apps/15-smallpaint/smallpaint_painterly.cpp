@@ -12,6 +12,7 @@
 // course at TU Wien. Course webpage:
 // http://cg.tuwien.ac.at/courses/Rendering/
 
+#include <glm/glm.hpp>
 #include <stb/stb_image_write.h>
 
 #include <stdio.h>
@@ -37,17 +38,18 @@ using namespace std;
 typedef unordered_map<string, double> pl;
 
 struct Vec {
-	double x, y, z;
-	Vec(double x0=0, double y0=0, double z0=0){ x=x0; y=y0; z=z0; }
-	Vec operator+(const Vec &b) const { return Vec(x+b.x,y+b.y,z+b.z); }
-	Vec operator-(const Vec &b) const { return Vec(x-b.x,y-b.y,z-b.z); }
-	Vec operator*(double b) const { return Vec(x*b,y*b,z*b); }
-	Vec operator/(double b) const { return Vec(x/b,y/b,z/b); }
-	Vec mult(const Vec &b) const { return Vec(x*b.x,y*b.y,z*b.z); }
-	Vec& norm(){ return *this = *this * (1/sqrt(x*x+y*y+z*z)); }
-	double length() { return sqrt(x*x+y*y+z*z); }
-	double dot(const Vec &b) const { return x*b.x+y*b.y+z*b.z; }
-	Vec operator%(Vec &b){return Vec(y*b.z-z*b.y,z*b.x-x*b.z,x*b.y-y*b.x);}
+	glm::vec3 v; // can choose between vec3 and dvec3
+	Vec(double x0=0, double y0=0, double z0=0){ v.x=x0; v.y=y0; v.z=z0; }
+
+	Vec operator+(const Vec &b) const { return Vec(v.x+b.v.x,v.y+b.v.y,v.z+b.v.z); }
+	Vec operator-(const Vec &b) const { return Vec(v.x-b.v.x,v.y-b.v.y,v.z-b.v.z); }
+	Vec operator*(double b) const { return Vec(v.x*b,v.y*b,v.z*b); }
+	Vec operator/(double b) const { return Vec(v.x/b,v.y/b,v.z/b); }
+	Vec mult(const Vec &b) const { return Vec(v.x*b.v.x,v.y*b.v.y,v.z*b.v.z); }
+	Vec& norm(){ v = glm::normalize(v); return *this; }
+	double length() { return glm::length(v); }
+	double dot(const Vec &b) const { return glm::dot(v, b.v); }
+	//Vec operator%(Vec &b){return v % b.v;}
 };
 
 struct Ray {
@@ -99,9 +101,9 @@ class Sphere : public Obj {
 	}
 
 	Vec normal(const Vec& p0) const {
-		return Vec((p0.x-c.x)/r,
-					(p0.y-c.y)/r,
-					(p0.z-c.z)/r);
+		return Vec((p0.v.x-c.v.x)/r,
+					(p0.v.y-c.v.y)/r,
+					(p0.v.z-c.v.z)/r);
 	}
 };
 
@@ -171,9 +173,9 @@ void trace(Ray &ray, const vector<Obj*>& scene, int depth, Vec& clr, pl& params,
 				double cost=ray.d.dot(N);
 				Vec tmp=Vec();
 				trace(ray,scene,depth+1,tmp,params,hal,hal2);
-				clr.x += cost*(tmp.x*scene[id]->cl.x)*0.1;
-				clr.y += cost*(tmp.y*scene[id]->cl.y)*0.1;
-				clr.z += cost*(tmp.z*scene[id]->cl.z)*0.1;
+				clr.v.x += cost*(tmp.v.x*scene[id]->cl.v.x)*0.1;
+				clr.v.y += cost*(tmp.v.y*scene[id]->cl.v.y)*0.1;
+				clr.v.z += cost*(tmp.v.z*scene[id]->cl.v.z)*0.1;
 			}
 
 			if(scene[id]->type == 2) {
@@ -251,13 +253,13 @@ int main() {
 				Ray ray;
 				ray.o = (Vec(0,0,0));
 				Vec cam = camcr(i,j);
-				cam.x = cam.x + RND/700;
-				cam.y = cam.y + RND/700;
+				cam.v.x = cam.v.x + RND/700;
+				cam.v.y = cam.v.y + RND/700;
 				ray.d = (cam - ray.o).norm();
 				trace(ray,scene,0,c,params,hal,hal2);
-				pix[i][j].x += c.x*(1/spp);
-				pix[i][j].y += c.y*(1/spp);
-				pix[i][j].z += c.z*(1/spp);
+				pix[i][j].v.x += c.v.x*(1/spp);
+				pix[i][j].v.y += c.v.y*(1/spp);
+				pix[i][j].v.z += c.v.z*(1/spp);
 			}
 		}
 	}
@@ -266,9 +268,9 @@ int main() {
 	for (size_t j = 0; j < height; j++) {
 		for (size_t i = 0; i < width; i++) {
 			const size_t ix = (j * width + i) * 3;
-			pixels[ix + 0] = std::min((int)pix[j][i].x, 255);
-			pixels[ix + 1] = std::min((int)pix[j][i].y, 255);
-			pixels[ix + 2] = std::min((int)pix[j][i].z, 255);
+			pixels[ix + 0] = std::min((int)pix[j][i].v.x, 255);
+			pixels[ix + 1] = std::min((int)pix[j][i].v.y, 255);
+			pixels[ix + 2] = std::min((int)pix[j][i].v.z, 255);
 		}
 	}
 	stbi_write_png("ray.png", width, height, 3, pixels.data(), sizeof(uint8_t) * width * 3);
