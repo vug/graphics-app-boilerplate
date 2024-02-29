@@ -21,16 +21,8 @@
 #include <string>
 #include <unordered_map>
 
-#if defined(__linux) || defined(__linux__)
-	unsigned int seed = time(NULL);
-	#define RND (2.0*(double)rand_r(&seed)/RAND_MAX-1.0)
-	#define RND2 ((double)rand_r(&seed)/RAND_MAX)
-#endif
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
-	#define RND (2.0*(double)rand()/RAND_MAX-1.0)
-	#define RND2 ((double)rand()/RAND_MAX)
-#endif
+#define RND (2.0*(double)rand()/RAND_MAX-1.0)
+#define RND2 ((double)rand()/RAND_MAX)
 
 #define PI 3.1415926536
 #define MIN(a,b) (((a)<(b))?(a):(b))
