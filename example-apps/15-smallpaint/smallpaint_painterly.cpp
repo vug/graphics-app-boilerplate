@@ -38,25 +38,25 @@ using namespace std;
 typedef unordered_map<string, double> pl;
 
 struct Ray {
-	glm::dvec3 o, d;
-	Ray(glm::dvec3 o0 = {}, glm::dvec3 d0 = {}) { o = o0, d = glm::normalize(d0); }
+	glm::dvec3 o{}, d{};
+	Ray(const glm::dvec3& o0 = {}, const glm::dvec3& d0 = {}) { o = o0, d = glm::normalize(d0); }
 };
 
 class Obj {
 	public:
-	glm::dvec3 cl;
+	glm::dvec3 cl{};
 	double emission;
 	int type;
-	void setMat(glm::dvec3 cl_={}, double emission_=0, int type_=0) { cl=cl_; emission=emission_; type=type_; }
+	void setMat(const glm::dvec3& cl_={}, double emission_=0, int type_=0) { cl=cl_; emission=emission_; type=type_; }
 	virtual double intersect(const Ray&) const =0;
 	virtual glm::dvec3 normal(const glm::dvec3&) const =0;
 };
 
 class Plane : public Obj {
 	public:
-	glm::dvec3 n;
-	double d;
-	Plane(double d_ =0, glm::dvec3 n_={}) { d=d_; n=n_; }
+	glm::dvec3 n{};
+	double d{};
+	Plane(double d_ =0, const glm::dvec3& n_={}) { d=d_; n=n_; }
 	double intersect(const Ray& ray) const {
 		double d0 = glm::dot(n, ray.d);
 		if(d0!=0) {
@@ -70,10 +70,10 @@ class Plane : public Obj {
 
 class Sphere : public Obj {
 	public:
-	glm::dvec3 c;
+	glm::dvec3 c{};
 	double r;
 
-	Sphere(double r_= 0, glm::dvec3 c_={}) { c=c_; r=r_; }
+	Sphere(double r_= 0, const glm::dvec3& c_={}) { c=c_; r=r_; }
 	double intersect(const Ray& ray) const {
 		double b = glm::dot((ray.o-c)*2.0, ray.d);
 		double c_ = glm::dot(ray.o-c, (ray.o-c))-(r*r);
@@ -86,9 +86,7 @@ class Sphere : public Obj {
 	}
 
 	glm::dvec3 normal(const glm::dvec3& p0) const {
-		return glm::dvec3((p0.x-c.x)/r,
-					(p0.y-c.y)/r,
-					(p0.z-c.z)/r);
+		return (p0 - c) / r;
 	}
 };
 
@@ -217,12 +215,11 @@ int main() {
 	params["spp"] = 8.0; // samples per pixel
 
 	glm::dvec3 **pix = new glm::dvec3*[width];
-	for(int i=0;i<width;i++) {
+	for(int i=0;i<width;i++)
 			pix[i] = new glm::dvec3[height];
-	}
 
 	const double spp = params["spp"];
-	// correlated Halton-sequence dimensions
+	// correlated Halton-sequence dimensions 
 	Halton hal, hal2;
 	hal.number(0,2);
 	hal2.number(0,2);
@@ -231,7 +228,7 @@ int main() {
 
 	#pragma omp parallel for schedule(dynamic) firstprivate(hal,hal2)
 	for (int i=0;i<width;i++) {
-		fprintf(stdout,"\rRendering: %1.0fspp %8.2f%%",spp,(double)i/width*100);
+		printf("\rRendering: %1.0fspp %8.2f%%",spp,(double)i/width*100);
 		for(int j=0;j<height;j++) {
 			for(int s=0;s<spp;s++) {
 				glm::dvec3 c{};
