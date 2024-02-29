@@ -65,7 +65,7 @@ class Plane : public Obj {
 		}
 		else return 0;
 	}
-	glm::dvec3 normal(const glm::dvec3& p0) const { return n; }
+	glm::dvec3 normal([[maybe_unused]] const glm::dvec3& p0) const { return n; }
 };
 
 class Sphere : public Obj {
@@ -119,8 +119,8 @@ class Halton {
 glm::dvec3 camcr(const double x, const double y) {
 	double w=width;
 	double h=height;
-	float fovx = PI/4;
-	float fovy = (h/w)*fovx;
+	double fovx = PI/4;
+	double fovy = (h/w)*fovx;
 	return glm::dvec3(((2*x-w)/w)*tan(fovx),
 				((2*y-h)/h)*tan(fovy),
 				-1.0);
@@ -139,7 +139,7 @@ void trace(Ray &ray, const vector<Obj*>& scene, int depth, glm::dvec3& clr, pl& 
 	double t;
 	int id = -1;
 	double mint = inf;
-	const unsigned int size = scene.size();
+	const size_t size = scene.size();
 
 			for(unsigned int x=0;x<size;x++) {
 					t = scene[x]->intersect(ray);
@@ -192,7 +192,7 @@ void trace(Ray &ray, const vector<Obj*>& scene, int depth, glm::dvec3& clr, pl& 
 }
 int main() {
 
-	srand(time(NULL));
+	srand(static_cast<uint32_t>(time(NULL)));
 	pl params;
 	vector<Obj*> scene;
 	auto add=[&scene](Obj* s, glm::dvec3 cl, double emission, int type) {
@@ -253,9 +253,9 @@ int main() {
 	for (size_t j = 0; j < height; j++) {
 		for (size_t i = 0; i < width; i++) {
 			const size_t ix = (j * width + i) * 3;
-			pixels[ix + 0] = std::min((int)pix[j][i].x, 255);
-			pixels[ix + 1] = std::min((int)pix[j][i].y, 255);
-			pixels[ix + 2] = std::min((int)pix[j][i].z, 255);
+			pixels[ix + 0] = std::min((uint8_t)pix[j][i].x, 255ui8);
+			pixels[ix + 1] = std::min((uint8_t)pix[j][i].y, 255ui8);
+			pixels[ix + 2] = std::min((uint8_t)pix[j][i].z, 255ui8);
 		}
 	}
 	stbi_write_png("ray.png", width, height, 3, pixels.data(), sizeof(uint8_t) * width * 3);
