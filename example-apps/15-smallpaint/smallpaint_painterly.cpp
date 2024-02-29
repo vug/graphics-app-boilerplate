@@ -38,23 +38,15 @@ using namespace std;
 typedef unordered_map<string, double> pl;
 
 struct Vec {
-	glm::vec3 v; // can choose between vec3 and dvec3
+	glm::dvec3 v; // can choose between vec3 and dvec3
 	Vec(double x0=0, double y0=0, double z0=0){ v.x=x0; v.y=y0; v.z=z0; }
-
-	Vec operator+(const Vec &b) const { return Vec(v.x+b.v.x,v.y+b.v.y,v.z+b.v.z); }
-	Vec operator-(const Vec &b) const { return Vec(v.x-b.v.x,v.y-b.v.y,v.z-b.v.z); }
-	Vec operator*(double b) const { return Vec(v.x*b,v.y*b,v.z*b); }
-	Vec operator/(double b) const { return Vec(v.x/b,v.y/b,v.z/b); }
-	Vec mult(const Vec &b) const { return Vec(v.x*b.v.x,v.y*b.v.y,v.z*b.v.z); }
-	Vec& norm(){ v = glm::normalize(v); return *this; }
-	double length() { return glm::length(v); }
-	double dot(const Vec &b) const { return glm::dot(v, b.v); }
-	//Vec operator%(Vec &b){return v % b.v;}
+	Vec(const glm::dvec3& u) : v(u) {}
+	void operator=(const glm::dvec3& u) { v = u; }
 };
 
 struct Ray {
 	Vec o, d;
-	Ray(Vec o0 = 0, Vec d0 = 0) { o = o0, d = d0.norm(); }
+	Ray(Vec o0 = 0, Vec d0 = 0) { o = o0, d = glm::normalize(d0.v); }
 };
 
 class Obj {
@@ -73,9 +65,9 @@ class Plane : public Obj {
 	double d;
 	Plane(double d_ =0, Vec n_=0) { d=d_; n=n_; }
 	double intersect(const Ray& ray) const {
-		double d0 = n.dot(ray.d);
+		double d0 = glm::dot(n.v, ray.d.v);
 		if(d0!=0) {
-			double t = -1*(((n.dot(ray.o))+d)/d0);
+			double t = -1*(((glm::dot(n.v,ray.o.v))+d)/d0);
 			return (t>eps) ? t : 0;
 		}
 		else return 0;
@@ -90,8 +82,8 @@ class Sphere : public Obj {
 
 	Sphere(double r_= 0, Vec c_=0) { c=c_; r=r_; }
 	double intersect(const Ray& ray) const {
-		double b = ((ray.o-c)*2).dot(ray.d);
-		double c_ = (ray.o-c).dot((ray.o-c))-(r*r);
+		double b = glm::dot((ray.o.v-c.v)*2.0, ray.d.v);
+		double c_ = glm::dot(ray.o.v-c.v, (ray.o.v-c.v))-(r*r);
 		double disc = b*b - 4*c_;
 		if (disc<0) return 0;
 		else disc = sqrt(disc);
@@ -143,10 +135,10 @@ Vec camcr(const double x, const double y) {
 
 // a messed up sampling function (at least in this context).
 // courtesy of http://www.rorydriscoll.com/2009/01/07/better-sampling/
-Vec hemisphere(double u1, double u2) {
+glm::dvec3 hemisphere(double u1, double u2) {
 	const double r=sqrt(1.0-u1*u1);
 	const double phi=2*PI*u2;
-	return Vec(cos(phi)*r,sin(phi)*r,u1);
+	return glm::dvec3(cos(phi)*r,sin(phi)*r,u1);
 }
 
 void trace(Ray &ray, const vector<Obj*>& scene, int depth, Vec& clr, pl& params, Halton& hal, Halton& hal2) {
@@ -161,16 +153,16 @@ void trace(Ray &ray, const vector<Obj*>& scene, int depth, Vec& clr, pl& params,
 					if (t>eps && t < mint) { mint=t; id=x; }
 				}
 			if (id == -1) return;
-			Vec hp = ray.o + ray.d*mint;
+			Vec hp = ray.o.v + ray.d.v*mint;
 			Vec N = scene[id]->normal(hp);
 			ray.o = hp;
-			clr = clr + Vec(scene[id]->emission,scene[id]->emission,scene[id]->emission)*2;
+			clr = clr.v + glm::dvec3(scene[id]->emission,scene[id]->emission,scene[id]->emission)*2.0;
 
 			if(scene[id]->type == 1) {
 				hal.next();
 				hal2.next();
-				ray.d = (N+hemisphere(hal.get(),hal2.get()));
-				double cost=ray.d.dot(N);
+				ray.d = (N.v+hemisphere(hal.get(),hal2.get()));
+				double cost=glm::dot(ray.d.v, N.v);
 				Vec tmp=Vec();
 				trace(ray,scene,depth+1,tmp,params,hal,hal2);
 				clr.v.x += cost*(tmp.v.x*scene[id]->cl.v.x)*0.1;
@@ -179,28 +171,28 @@ void trace(Ray &ray, const vector<Obj*>& scene, int depth, Vec& clr, pl& params,
 			}
 
 			if(scene[id]->type == 2) {
-				double cost = ray.d.dot(N);
-				ray.d = (ray.d-N*(cost*2)).norm();
-				Vec tmp = Vec(0,0,0);
+				double cost = glm::dot(ray.d.v, N.v);
+				ray.d = glm::normalize(ray.d.v-N.v*(cost*2));
+				Vec tmp=Vec(0, 0, 0);
 				trace(ray,scene,depth+1,tmp,params,hal,hal2);
-				clr = clr + tmp;
+				clr = clr.v + tmp.v;
 			}
 
 			if(scene[id]->type == 3) {
 				double n = params["refr_index"];
-				if(N.dot(ray.d)>0) {
-					N = N*-1;
+				if(glm::dot(N.v, ray.d.v)>0) {
+					N = N.v*-1.0;
 					n = 1/n;
 				}
 				n=1/n;
-				double cost1 = (N.dot(ray.d))*-1;
+				double cost1 = (glm::dot(N.v, ray.d.v))*-1;
 				double cost2 = 1.0-n*n*(1.0-cost1*cost1);
 				if(cost2 > 0) {
-					ray.d = (ray.d*n)+(N*(n*cost1-sqrt(cost2)));
-					ray.d = ray.d.norm();
+					ray.d = (ray.d.v*n)+(N.v*(n*cost1-sqrt(cost2)));
+					ray.d = glm::normalize(ray.d.v);
 					Vec tmp = Vec(0,0,0);
 					trace(ray,scene,depth+1,tmp,params,hal,hal2);
-					clr = clr + tmp;
+					clr = clr.v + tmp.v;
 				}
 				else return;
 			}
@@ -255,7 +247,7 @@ int main() {
 				Vec cam = camcr(i,j);
 				cam.v.x = cam.v.x + RND/700;
 				cam.v.y = cam.v.y + RND/700;
-				ray.d = (cam - ray.o).norm();
+				ray.d = glm::normalize(cam.v - ray.o.v);
 				trace(ray,scene,0,c,params,hal,hal2);
 				pix[i][j].v.x += c.v.x*(1/spp);
 				pix[i][j].v.y += c.v.y*(1/spp);
