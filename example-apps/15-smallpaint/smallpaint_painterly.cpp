@@ -28,8 +28,8 @@ const double eps = 1e-4;
 typedef std::unordered_map<std::string, double> pl;
 
 struct Ray {
-  glm::dvec3 o{}, d{};
-  Ray(const glm::dvec3& o0 = {}, const glm::dvec3& d0 = {}) { o = o0, d = glm::normalize(d0); }
+  glm::dvec3 o{};
+  glm::dvec3 d{};
 };
 
 class Obj {
@@ -48,12 +48,12 @@ class Obj {
 
 class Plane : public Obj {
  public:
-  glm::dvec3 n{};
   double d{};
-  Plane(double d_ = 0, const glm::dvec3& n_ = {}) {
-    d = d_;
-    n = n_;
-  }
+  glm::dvec3 n{};
+
+  Plane(double d_ = 0, const glm::dvec3& n_ = {})
+      : d(d_), n(n_) {}
+
   double intersect(const Ray& ray) const {
     double d0 = glm::dot(n, ray.d);
     if (d0 != 0) {
@@ -62,18 +62,18 @@ class Plane : public Obj {
     } else
       return 0;
   }
+
   glm::dvec3 normal([[maybe_unused]] const glm::dvec3& p0) const { return n; }
 };
 
 class Sphere : public Obj {
  public:
-  glm::dvec3 c{};
   double r;
+  glm::dvec3 c{};
 
-  Sphere(double r_ = 0, const glm::dvec3& c_ = {}) {
-    c = c_;
-    r = r_;
-  }
+  Sphere(double r_ = 0, const glm::dvec3& c_ = {})
+      : r(r_), c(c_) {}
+
   double intersect(const Ray& ray) const {
     double b = glm::dot((ray.o - c) * 2.0, ray.d);
     double c_ = glm::dot(ray.o - c, (ray.o - c)) - (r * r);
@@ -105,6 +105,7 @@ class Halton {
       f *= inv_base;
     }
   }
+
   void next() {
     double r = 1.0 - value - 0.0000001;
     if (inv_base < r)
