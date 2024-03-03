@@ -32,6 +32,7 @@ add_subdirectory(example-apps/12-normal-mapping)
 add_subdirectory(example-apps/13-bloom)
 add_subdirectory(example-apps/14-material-system)
 add_subdirectory(example-apps/15-smallpaint)
+add_subdirectory(example-apps/16-embree)
 
 file(GLOB_RECURSE ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/assets/*)
 set(WORKSHOP_ASSETS ${ASSETS})
