@@ -1,5 +1,8 @@
+#include <Workshop/Camera.hpp>
+
 #include <embree4/rtcore.h>
 #include <glm/glm.hpp>
+#include <stb/stb_image_write.h>
 
 #include "pmmintrin.h"
 #include "xmmintrin.h"
@@ -17,7 +20,7 @@ RTCRayHit castRay(RTCScene scene, const glm::vec3& o, const glm::vec3& d) {
   rayhit.ray.dir_z = d.z;
   rayhit.ray.tnear = 0;
   rayhit.ray.tfar = std::numeric_limits<float>::infinity();
-  rayhit.ray.mask = -1;
+  rayhit.ray.mask = static_cast<unsigned>(-1);
   rayhit.ray.flags = 0;
   rayhit.hit.geomID = RTC_INVALID_GEOMETRY_ID;
   rayhit.hit.instID[0] = RTC_INVALID_GEOMETRY_ID;
@@ -72,7 +75,6 @@ int main() {
   RTCDevice device = rtcNewDevice("verbose=1");
   RTCScene scene = rtcNewScene(device);
 
-  // Assume read from a file
   const std::vector<glm::vec3> verts{
       {0, 0, 0},
       {1, 0, 0},
@@ -85,11 +87,31 @@ int main() {
   rtcReleaseGeometry(geom);
   rtcCommitScene(scene);
 
-  RTCRayHit hit;
-  hit = castRay(scene, {0.33f, 0.33f, -1}, {0, 0, 1}); /* This will hit the triangle at t=1. */
-  handleHit(hit);
-  hit = castRay(scene, {1.00f, 1.00f, -1}, {0, 0, 1}); /* This will not hit anything. */
-  handleHit(hit);
+  const int32_t width = 800;
+  const int32_t height = 600;
+  ws::Camera cam;
+  cam.position = {0, 0, 5};
+  cam.target = {0, 0, 0};
+  cam.aspectRatio = static_cast<float>(width) / height;
+  const glm::u8vec3 hitColor{255, 0, 0};
+  const glm::u8vec3 missColor{0, 0, 255};
+  std::vector<glm::u8vec3> pixels(width * height);
+  for (int32_t i = 0; i < width; ++i) {
+    for (int32_t j = 0; j < height; ++j) {
+      float x = (i + 0.5f) / width - 0.5f;
+      float y = (j + 0.5f) / height - 0.5f;
+
+      const glm::vec3 forward = cam.getForward() * 0.5f / glm::tan(glm::radians(cam.fov) * 0.5f);
+      const glm::vec3 right = cam.getRight() * cam.aspectRatio * x;
+      const glm::vec3 up = cam.getUp() * y;
+      const glm::vec3 d = glm::normalize(forward + right + up);
+      const glm::vec3 o = cam.position;
+      RTCRayHit rayHit = castRay(scene, o, d);
+
+      pixels[(height - j - 1) * width + i] = (rayHit.hit.geomID != RTC_INVALID_GEOMETRY_ID) ? hitColor : missColor;
+    }
+  }
+  stbi_write_png("raytraced.png", width, height, 3, pixels.data(), sizeof(uint8_t) * width * 3);
 
   rtcReleaseScene(scene);
   rtcReleaseDevice(device);
