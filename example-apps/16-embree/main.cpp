@@ -36,7 +36,7 @@
   return rayhit;
 }
 
-[[no_discard]] RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<uint32_t>& ixs) {
+[[no_discard]] RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<glm::vec3>& norms, const std::vector<uint32_t>& ixs) {
   RTCGeometry geom = rtcNewGeometry(dev, RTC_GEOMETRY_TYPE_TRIANGLE);
   float* vertices = static_cast<float*>(rtcSetNewGeometryBuffer(geom,
                                                                 RTC_BUFFER_TYPE_VERTEX,
@@ -50,9 +50,11 @@
                                                                      RTC_FORMAT_UINT3,
                                                                      3 * sizeof(unsigned),
                                                                      ixs.size()));
-
   std::memcpy(vertices, verts.data(), verts.size() * sizeof(glm::vec3));
   std::memcpy(indices, ixs.data(), ixs.size() * sizeof(uint32_t));
+
+  rtcSetGeometryVertexAttributeCount(geom, 1);
+  rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, RTC_FORMAT_FLOAT3, norms.data(), 0, sizeof(glm::vec3), norms.size());
 
   rtcCommitGeometry(geom);
   return geom;
@@ -61,7 +63,7 @@
 int main() {
   ws::Workshop workshop{800, 600, "Embree Path Tracer Study"};
   ws::AssetManager assetManager;
-  assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
+  assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne_smooth.obj"));
   assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
   assetManager.shaders.emplace("solid_color", ws::Shader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"});
   assetManager.shaders.emplace("copy", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"});
@@ -93,8 +95,11 @@ int main() {
   std::vector<glm::vec3> verts; 
   for (const auto& v : assetManager.meshes.at("monkey").meshData.vertices)
     verts.push_back(v.position);  
+  std::vector<glm::vec3> norms; 
+  for (const auto& v : assetManager.meshes.at("monkey").meshData.vertices)
+    norms.push_back(v.normal);  
 
-  RTCGeometry geom = makeTriangularGeometry(device, verts, assetManager.meshes.at("monkey").meshData.indices);
+  RTCGeometry geom = makeTriangularGeometry(device, verts, norms, assetManager.meshes.at("monkey").meshData.indices);
   rtcAttachGeometry(eScene, geom);
   rtcReleaseGeometry(geom);
   rtcCommitScene(eScene);
