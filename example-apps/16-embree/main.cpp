@@ -125,11 +125,12 @@ int main() {
     scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
     scene.uploadUniforms();
 
+    const glm::vec3 lightPos{10, 10, 10};
+
     if (isRayTraced) {
       const int32_t width = winSize.x;
       const int32_t height = winSize.y;
       ws::Camera& cam = scene.camera;
-      const glm::u8vec4 hitColor{255, 0, 0, 255};
       const glm::u8vec4 missColor{0, 0, 255, 255};
       std::vector<glm::u8vec4> pixels(width * height);
       for (int32_t i = 0; i < width; ++i) {
@@ -144,7 +145,31 @@ int main() {
           const glm::vec3 o = cam.position;
           RTCRayHit rayHit = castRay(eScene, o, d);
 
-          pixels[j * width + i] = (rayHit.hit.geomID != RTC_INVALID_GEOMETRY_ID) ? hitColor : missColor;
+          if (rayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID) {
+            pixels[j * width + i] = missColor;
+            continue;
+          }
+
+          auto geo = rtcGetGeometry(eScene, rayHit.hit.geomID);
+
+          glm::vec3 normal;
+          rtcInterpolate0(geo, rayHit.hit.primID, rayHit.hit.u, rayHit.hit.v, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, glm::value_ptr(normal), 3);
+          //normal = glm::vec3{rayHit.hit.Ng_x, rayHit.hit.Ng_y, rayHit.hit.Ng_z};
+          normal = glm::normalize(normal);
+
+          glm::vec3 pos;
+          //rtcInterpolate0(geo, rayHit.hit.primID, rayHit.hit.u, rayHit.hit.v, RTC_BUFFER_TYPE_VERTEX, 0, glm::value_ptr(pos), 3);
+          pos = {o + d * rayHit.ray.tfar};
+
+          glm::u8vec4 color{255, 0, 0, 255};
+          //color = glm::u8vec4((normal * 0.5f + 0.5f) * 255.f, 255); // world normal
+          //color = glm::u8vec4(rayHit.hit.u * 255, rayHit.hit.v * 255, 0, 255); // barycentric
+          //color = glm::u8vec4(pos * 255.f, 255); // world pos
+          const glm::vec3 lightDir = glm::normalize(lightPos - pos);
+          float diffuse = glm::max(glm::dot(lightDir, normal), 0.f);
+          color = glm::u8vec4(glm::vec3(diffuse * 255.f), 255);  // diffuse
+
+          pixels[j * width + i] = color;
         }
       }
       offscreenFbo.getFirstColorAttachment().uploadPixels(pixels.data());
