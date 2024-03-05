@@ -14,6 +14,7 @@
 #include "xmmintrin.h"
 
 #include <print>
+#include <random>
 #include <vector>
 
 [[no_discard]] RTCRayHit castRay(RTCScene scene, const glm::vec3& o, const glm::vec3& d) {
@@ -74,6 +75,38 @@ RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& 
 
   rtcCommitGeometry(geom);
   return geom;
+}
+
+std::random_device rndDev;
+std::mt19937 rndEngine(rndDev());
+std::uniform_real_distribution<float> uniDistCircle(0.f, std::numbers::pi_v<float>);
+std::uniform_real_distribution<float> uniDist(0.f, 1.0f);
+
+glm::vec3 sampleHemisphere(const glm::vec3& norm) {
+  // surface coordinate system
+  const glm::vec3& Z = norm;
+  glm::vec3 axis;
+  if (Z.x < Z.y && Z.x < Z.z)
+    axis = {1.0f, 0.0f, 0.0f};
+  else if (Z.y < Z.z)
+    axis = {0.0f, 1.0f, 0.0f};
+  else
+    axis = {0.0f, 0.0f, 1.0f};
+  const glm::vec3 X = glm::normalize(glm::cross(Z, axis));
+  const glm::vec3 Y = glm::cross(Z, X);
+
+  // sample unit disk
+  const float phi = uniDistCircle(rndEngine);
+  const float r = uniDist(rndEngine);
+  const float r2 = r * r;
+  const float x = r2 * std::cos(phi);
+  const float y = r2 * std::sin(phi);
+
+  // project to hemisphere
+  const float z = std::sqrtf(1 - x * x - y * y);
+  const glm::vec3 refDir = X * x + Y * y + Z * z;
+
+  return refDir;
 }
 
 int main() {
