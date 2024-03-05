@@ -17,7 +17,7 @@
 #include <random>
 #include <vector>
 
-[[no_discard]] RTCRayHit castRay(RTCScene scene, const glm::vec3& o, const glm::vec3& d) {
+RTCRayHit castRay(RTCScene scene, const glm::vec3& o, const glm::vec3& d) {
   struct RTCRayHit rayhit;
   rayhit.ray.org_x = o.x;
   rayhit.ray.org_y = o.y;
@@ -136,6 +136,9 @@ int main() {
   ws::Scene scene{
     .renderables{monkey, sphere},
   };
+  std::vector<float> objEmissiveness = {0.f, 5.0f};
+  std::vector<glm::vec3> objColors = {{1.f, 0.8f, 0.6f},
+                                      {1, 1, 1}};
   ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   ws::AutoOrbitingCameraController orbitingCamController{scene.camera};
@@ -198,35 +201,39 @@ int main() {
           const glm::vec3 forward = cam.getForward() * 0.5f / glm::tan(glm::radians(cam.fov) * 0.5f);
           const glm::vec3 right = cam.getRight() * cam.aspectRatio * x;
           const glm::vec3 up = cam.getUp() * y;
-          const glm::vec3 d = glm::normalize(forward + right + up);
-          const glm::vec3 o = cam.position;
-          RTCRayHit rayHit = castRay(eScene, o, d);
+          glm::vec3 d = glm::normalize(forward + right + up);
+          glm::vec3 o = cam.position;
 
-          if (rayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID) {
+          glm::vec3 attenuation{1, 1, 1};
+          glm::vec3 color{};
+          const int32_t numMaxBounces = 3;
+          for (int32_t k = 0; k < numMaxBounces; ++k) {
+            RTCRayHit rayHit = castRay(eScene, o, d);
+            const uint32_t geoId = rayHit.hit.geomID;
+            if (geoId == RTC_INVALID_GEOMETRY_ID) {
             pixels[j * width + i] = missColor;
-            continue;
+              color += glm::vec3(0.05f);
+              attenuation = {0, 0, 0};
+              break;
           }
 
-          auto geo = rtcGetGeometry(eScene, rayHit.hit.geomID);
-
+            auto geo = rtcGetGeometry(eScene, geoId);
           glm::vec3 normal;
           rtcInterpolate0(geo, rayHit.hit.primID, rayHit.hit.u, rayHit.hit.v, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, glm::value_ptr(normal), 3);
-          //normal = glm::vec3{rayHit.hit.Ng_x, rayHit.hit.Ng_y, rayHit.hit.Ng_z};
           normal = glm::normalize(normal);
 
           glm::vec3 pos;
-          //rtcInterpolate0(geo, rayHit.hit.primID, rayHit.hit.u, rayHit.hit.v, RTC_BUFFER_TYPE_VERTEX, 0, glm::value_ptr(pos), 3);
           pos = {o + d * rayHit.ray.tfar};
 
-          glm::u8vec4 color{255, 0, 0, 255};
-          //color = glm::u8vec4((normal * 0.5f + 0.5f) * 255.f, 255); // world normal
-          //color = glm::u8vec4(rayHit.hit.u * 255, rayHit.hit.v * 255, 0, 255); // barycentric
-          //color = glm::u8vec4(pos * 255.f, 255); // world pos
-          const glm::vec3 lightDir = glm::normalize(lightPos - pos);
-          float diffuse = glm::max(glm::dot(lightDir, normal), 0.f);
-          color = glm::u8vec4(glm::vec3(diffuse * 255.f), 255);  // diffuse
+            const float objEmis = objEmissiveness[geoId];
+            const glm::vec3 objCol = objColors[geoId];
+            color += glm::vec3(objEmis) * attenuation;
+            attenuation *= objCol;
+            o = pos;
+            d = sampleHemisphere(normal);
+          }
 
-          pixels[j * width + i] = color;
+          pixels[j * width + i] = glm::u8vec4{color * 255.f, 255};
         }
       }
       offscreenFbo.getFirstColorAttachment().uploadPixels(pixels.data());
