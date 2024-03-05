@@ -64,7 +64,7 @@ int main() {
   ws::Workshop workshop{800, 600, "Embree Path Tracer Study"};
   ws::AssetManager assetManager;
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne_smooth.obj"));
-  assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
+  assetManager.meshes.emplace("sphere", ws::loadOBJ(ws::ASSETS_FOLDER / "models/sphere_ico_smooth.obj"));
   assetManager.shaders.emplace("solid_color", ws::Shader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"});
   assetManager.shaders.emplace("copy", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"});
   assetManager.materials.emplace("solid_red", ws::Material{
@@ -78,8 +78,14 @@ int main() {
     assetManager.meshes.at("monkey"),
     assetManager.materials.at("solid_red"),
   };
+  ws::RenderableObject sphere = {
+      //{"Monkey", {glm::vec3{0, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
+      {"Sphere", {glm::vec3{3, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{0.5, 2.5, 0.5}}},
+      assetManager.meshes.at("sphere"),
+      assetManager.materials.at("solid_red"),
+  };
   ws::Scene scene{
-    .renderables{monkey},
+    .renderables{monkey, sphere},
   };
   ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
@@ -92,17 +98,19 @@ int main() {
   RTCDevice device = rtcNewDevice("verbose=1");
   RTCScene eScene = rtcNewScene(device);
 
+  for (const auto& r : scene.renderables) {
   std::vector<glm::vec3> verts; 
-  for (const auto& v : assetManager.meshes.at("monkey").meshData.vertices)
+    for (const auto& v : r.get().mesh.meshData.vertices)
     verts.push_back(v.position);  
   std::vector<glm::vec3> norms; 
-  for (const auto& v : assetManager.meshes.at("monkey").meshData.vertices)
+    for (const auto& v : r.get().mesh.meshData.vertices)
     norms.push_back(v.normal);  
 
-  RTCGeometry geom = makeTriangularGeometry(device, verts, norms, assetManager.meshes.at("monkey").meshData.indices);
+    RTCGeometry geom = makeTriangularGeometry(device, verts, norms, r.get().mesh.meshData.indices, r.get().getGlobalTransformMatrix());
   rtcAttachGeometry(eScene, geom);
   rtcReleaseGeometry(geom);
   rtcCommitScene(eScene);
+  }
 
   //glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
