@@ -51,11 +51,9 @@ RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& 
                                                                      3 * sizeof(unsigned),
                                                                      ixs.size()));
 
-  for (int i = 0; i < verts.size(); ++i)
-    for (int j = 0; j < 3; ++j)
-      vertices[3 * i + j] = verts[i][j];
-  for (unsigned ix : ixs)
-    indices[ix] = ix;
+  std::memcpy(vertices, verts.data(), verts.size() * sizeof(glm::vec3));
+  std::memcpy(indices, ixs.data(), ixs.size() * sizeof(uint32_t));
+
   rtcCommitGeometry(geom);
   return geom;
 }
