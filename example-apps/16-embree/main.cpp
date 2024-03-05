@@ -16,7 +16,7 @@
 #include <print>
 #include <vector>
 
-RTCRayHit castRay(RTCScene scene, const glm::vec3& o, const glm::vec3& d) {
+[[no_discard]] RTCRayHit castRay(RTCScene scene, const glm::vec3& o, const glm::vec3& d) {
   struct RTCRayHit rayhit;
   rayhit.ray.org_x = o.x;
   rayhit.ray.org_y = o.y;
@@ -36,7 +36,7 @@ RTCRayHit castRay(RTCScene scene, const glm::vec3& o, const glm::vec3& d) {
   return rayhit;
 }
 
-RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<uint32_t>& ixs) {
+[[no_discard]] RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<uint32_t>& ixs) {
   RTCGeometry geom = rtcNewGeometry(dev, RTC_GEOMETRY_TYPE_TRIANGLE);
   float* vertices = static_cast<float*>(rtcSetNewGeometryBuffer(geom,
                                                                 RTC_BUFFER_TYPE_VERTEX,
@@ -58,21 +58,8 @@ RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& 
   return geom;
 }
 
-void handleHit(const RTCRayHit rayhit) {
-  std::print("({}, {}, {}): ", rayhit.ray.org_x, rayhit.ray.org_y, rayhit.ray.org_z);
-  if (rayhit.hit.geomID != RTC_INVALID_GEOMETRY_ID)
-    std::println("Found intersection on geometry {}, primitive {} at tfar={}, normal=({}, {}, {}), uv=({}, {})",
-                 rayhit.hit.geomID,
-                 rayhit.hit.primID,
-                 rayhit.ray.tfar,
-                 rayhit.hit.Ng_x, rayhit.hit.Ng_y, rayhit.hit.Ng_z,
-                 rayhit.hit.u, rayhit.hit.v);
-  else
-    std::println("Did not find any intersection.");
-}
-
 int main() {
-  ws::Workshop workshop{800, 600, "Boilerplate app"};
+  ws::Workshop workshop{800, 600, "Embree Path Tracer Study"};
   ws::AssetManager assetManager;
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne.obj"));
   assetManager.meshes.emplace("cube", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
@@ -95,8 +82,6 @@ int main() {
   ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   ws::AutoOrbitingCameraController orbitingCamController{scene.camera};
-  //orbitingCamController.radius = 10.f;
-  //orbitingCamController.theta = 0.3f;
 
   /* for best performance set FTZ and DAZ flags in MXCSR control and status register */
   _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
