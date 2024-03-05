@@ -36,7 +36,7 @@
   return rayhit;
 }
 
-[[no_discard]] RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<glm::vec3>& norms, const std::vector<uint32_t>& ixs) {
+RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<glm::vec3>& norms, const std::vector<uint32_t>& ixs, const glm::mat4& xform) {
   RTCGeometry geom = rtcNewGeometry(dev, RTC_GEOMETRY_TYPE_TRIANGLE);
   float* vertices = static_cast<float*>(rtcSetNewGeometryBuffer(geom,
                                                                 RTC_BUFFER_TYPE_VERTEX,
@@ -50,11 +50,27 @@
                                                                      RTC_FORMAT_UINT3,
                                                                      3 * sizeof(unsigned),
                                                                      ixs.size()));
-  std::memcpy(vertices, verts.data(), verts.size() * sizeof(glm::vec3));
+  const glm::mat3 invTranspXForm = glm::mat3(glm::transpose(glm::inverse(xform)));
+
+  std::vector<glm::vec3> worldPositions;
+  std::vector<glm::vec3> worldNormals;
+  for (int32_t i = 0; i < verts.size(); ++i) {
+    // v.worldPosition = vec3(worldFromObject * vec4(objectPosition, 1));
+    const glm::vec3 worldPosition = glm::vec3(xform * glm::vec4(verts[i], 1));
+    worldPositions.push_back(worldPosition);
+
+    // v.worldNormal = mat3(transpose(inverse(worldFromObject))) * objectNormal;
+    const glm::vec3 worldNormal = invTranspXForm * norms[i];
+    worldNormals.push_back(worldNormal);
+  }
+  std::memcpy(vertices, worldPositions.data(), worldPositions.size() * sizeof(glm::vec3));
   std::memcpy(indices, ixs.data(), ixs.size() * sizeof(uint32_t));
 
   rtcSetGeometryVertexAttributeCount(geom, 1);
-  rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, RTC_FORMAT_FLOAT3, norms.data(), 0, sizeof(glm::vec3), norms.size());
+  rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, RTC_FORMAT_FLOAT3, worldNormals.data(), 0, sizeof(glm::vec3), worldNormals.size());
+
+  // only for instanced geometry
+  //rtcSetGeometryTransform(geom, 0, RTC_FORMAT_FLOAT4X4_COLUMN_MAJOR, glm::value_ptr(xform));
 
   rtcCommitGeometry(geom);
   return geom;
