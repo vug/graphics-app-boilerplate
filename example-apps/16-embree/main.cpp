@@ -22,7 +22,7 @@ RTCRay makeRay(const glm::vec3& o, const glm::vec3& d) {
     .org_x = o.x,
     .org_y = o.y,
     .org_z = o.z,
-    .tnear = 0,
+    .tnear = 0.001,
     .dir_x = d.x,
     .dir_y = d.y,
     .dir_z = d.z,
@@ -47,7 +47,7 @@ RTCRayHit makeRayHit(const glm::vec3& o, const glm::vec3& d) {
   return rh;
 }
 
-RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<glm::vec3>& norms, const std::vector<uint32_t>& ixs, const glm::mat4& xform) {
+RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<glm::vec3>& norms, const std::vector<uint32_t>& ixs) {
   RTCGeometry geom = rtcNewGeometry(dev, RTC_GEOMETRY_TYPE_TRIANGLE);
   float* vertices = static_cast<float*>(rtcSetNewGeometryBuffer(geom,
                                                                 RTC_BUFFER_TYPE_VERTEX,
@@ -61,24 +61,11 @@ RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& 
                                                                      RTC_FORMAT_UINT3,
                                                                      3 * sizeof(unsigned),
                                                                      ixs.size()));
-  const glm::mat3 invTranspXForm = glm::mat3(glm::transpose(glm::inverse(xform)));
-
-  std::vector<glm::vec3> worldPositions;
-  std::vector<glm::vec3> worldNormals;
-  for (int32_t i = 0; i < verts.size(); ++i) {
-    // v.worldPosition = vec3(worldFromObject * vec4(objectPosition, 1));
-    const glm::vec3 worldPosition = glm::vec3(xform * glm::vec4(verts[i], 1));
-    worldPositions.push_back(worldPosition);
-
-    // v.worldNormal = mat3(transpose(inverse(worldFromObject))) * objectNormal;
-    const glm::vec3 worldNormal = invTranspXForm * norms[i];
-    worldNormals.push_back(worldNormal);
-  }
-  std::memcpy(vertices, worldPositions.data(), worldPositions.size() * sizeof(glm::vec3));
+  std::memcpy(vertices, verts.data(), verts.size() * sizeof(glm::vec3));
   std::memcpy(indices, ixs.data(), ixs.size() * sizeof(uint32_t));
 
   rtcSetGeometryVertexAttributeCount(geom, 1);
-  rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, RTC_FORMAT_FLOAT3, worldNormals.data(), 0, sizeof(glm::vec3), worldNormals.size());
+  rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, RTC_FORMAT_FLOAT3, norms.data(), 0, sizeof(glm::vec3), norms.size());
 
   // only for instanced geometry
   //rtcSetGeometryTransform(geom, 0, RTC_FORMAT_FLOAT4X4_COLUMN_MAJOR, glm::value_ptr(xform));
@@ -171,19 +158,26 @@ int main() {
   RTCDevice device = rtcNewDevice("verbose=1");
   RTCScene eScene = rtcNewScene(device);
 
+  // Store world normals in a vector because we want them to exist until we exit the app. rtcSetSharedGeometryBuffer does not copy normals into a new memory location.
+  std::vector<std::vector<glm::vec3>> worldNormalsVec;
   for (const auto& r : scene.renderables) {
-    std::vector<glm::vec3> verts; 
-    for (const auto& v : r.get().mesh.meshData.vertices)
-      verts.push_back(v.position);  
-    std::vector<glm::vec3> norms; 
-    for (const auto& v : r.get().mesh.meshData.vertices)
-      norms.push_back(v.normal);  
+    const auto& xform = r.get().getGlobalTransformMatrix();
+    const glm::mat3 invTranspXForm = glm::mat3(glm::transpose(glm::inverse(xform)));
 
-    RTCGeometry geom = makeTriangularGeometry(device, verts, norms, r.get().mesh.meshData.indices, r.get().getGlobalTransformMatrix());
+    std::vector<glm::vec3> worldPositions;
+    std::vector<glm::vec3>& worldNormals = worldNormalsVec.emplace_back();
+    for (const auto& v : r.get().mesh.meshData.vertices) {
+      const glm::vec3 worldPosition = glm::vec3(xform * glm::vec4(v.position, 1));
+      worldPositions.push_back(worldPosition);
+      const glm::vec3 worldNormal = invTranspXForm * v.normal;
+      worldNormals.push_back(worldNormal);
+    }
+
+    RTCGeometry geom = makeTriangularGeometry(device, worldPositions, worldNormals, r.get().mesh.meshData.indices);
     rtcAttachGeometry(eScene, geom);
     rtcReleaseGeometry(geom);
-    rtcCommitScene(eScene);
   }
+  rtcCommitScene(eScene);
 
   //glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
@@ -214,8 +208,8 @@ int main() {
     static std::vector<glm::vec3> pixelColors(width * height);
     float numFrames = 1.f;
     if (isRayTraced) {
-      const int32_t numMaxBounces = 2;
-      const int32_t numSamplesPerPixel = 4;
+      const int32_t numMaxBounces = 1;
+      const int32_t numSamplesPerPixel = 1;
 
       ws::Camera& cam = scene.camera;
       const glm::u8vec4 missColor{0, 0, 255, 255};
@@ -223,8 +217,10 @@ int main() {
         for (int32_t j = 0; j < height; ++j) {
           glm::vec3 color{};
           for (int32_t s = 0; s < numSamplesPerPixel; ++s) {
-            float x = (i + uniDist(rndEngine)) / width - 0.5f;
-            float y = (j + uniDist(rndEngine)) / height - 0.5f;
+            //float x = (i + uniDist(rndEngine)) / width - 0.5f;
+            //float y = (j + uniDist(rndEngine)) / height - 0.5f;
+            float x = (i + 0.5f) / width - 0.5f;
+            float y = (j + 0.5f) / height - 0.5f;
 
             const glm::vec3 forward = cam.getForward() * 0.5f / glm::tan(glm::radians(cam.fov) * 0.5f);
             const glm::vec3 right = cam.getRight() * cam.aspectRatio * x;
@@ -251,24 +247,27 @@ int main() {
               glm::vec3 pos;
               pos = {o + d * rayHit.ray.tfar};
 
-              const float objEmis = objEmissiveness[geoId];
-              const glm::vec3 objCol = objColors[geoId];
-              color += glm::vec3(objEmis) * attenuation;
-              attenuation *= objCol;
-              o = pos;
-              d = sampleHemisphere(normal);
+              // color = normal * 0.5f + 0.5f;
+              // color = pos;
+              color = glm::max(glm::dot(glm::normalize(lightPos - pos), normal), 0.f) * glm::vec3(1);
+
+              //const float objEmis = objEmissiveness[geoId];
+              //const glm::vec3 objCol = objColors[geoId];
+              //color += glm::vec3(objEmis) * attenuation;
+              //attenuation *= objCol;
+              //o = pos;
+              //d = sampleHemisphere(normal);
             }
           }
           color /= numSamplesPerPixel;
 
           const size_t ix = j * width + i;
           pixelColors[ix] = color;
-          pixels[ix] = glm::u8vec4{pixelColors[ix] / numFrames * 255.f, 255};
+          pixels[ix] = glm::u8vec4{pixelColors[ix] * 255.f, 255};
         }
       }
       ++numFrames;
       offscreenFbo.getFirstColorAttachment().uploadPixels(pixels.data());
-      //rtcSetGeometryTransform(geom, workshop.getFrameNo(), RTC_FORMAT_FLOAT4X4_COLUMN_MAJOR, glm::value_ptr(monkey.getGlobalTransformMatrix()));
 
       glViewport(0, 0, winSize.x, winSize.y);
       ws::Framebuffer::clear(0, bgColor);
