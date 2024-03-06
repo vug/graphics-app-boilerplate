@@ -142,8 +142,8 @@ int main() {
   };
   std::vector<float> objEmissiveness = {0.f, 5.0f, 0.f};
   std::vector<glm::vec3> objColors = {{1.f, 0.8f, 0.6f},
-                                      {1, 1, 1},
-                                      {1, 1, 1}};
+                                      {0.8f, 0.6f, 1.f},
+                                      {0.6f, 1.f, 0.8f}};
   ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   ws::AutoOrbitingCameraController orbitingCamController{scene.camera};
@@ -208,8 +208,8 @@ int main() {
     static std::vector<glm::vec3> pixelColors(width * height);
     float numFrames = 1.f;
     if (isRayTraced) {
-      const int32_t numMaxBounces = 1;
-      const int32_t numSamplesPerPixel = 1;
+      const int32_t numMaxBounces = 3;
+      const int32_t numSamplesPerPixel = 2;
 
       ws::Camera& cam = scene.camera;
       const glm::u8vec4 missColor{0, 0, 255, 255};
@@ -217,6 +217,7 @@ int main() {
         for (int32_t j = 0; j < height; ++j) {
           glm::vec3 color{};
           for (int32_t s = 0; s < numSamplesPerPixel; ++s) {
+            glm::vec3 sampleColor{1, 1, 1};
             //float x = (i + uniDist(rndEngine)) / width - 0.5f;
             //float y = (j + uniDist(rndEngine)) / height - 0.5f;
             float x = (i + 0.5f) / width - 0.5f;
@@ -228,14 +229,13 @@ int main() {
           
             glm::vec3 d = glm::normalize(forward + right + up);
             glm::vec3 o = cam.position;
-            glm::vec3 attenuation{1, 1, 1};
             for (int32_t k = 0; k < numMaxBounces; ++k) {
               RTCRayHit rayHit = makeRayHit(o, d);
               rtcIntersect1(eScene, &rayHit);
               const uint32_t geoId = rayHit.hit.geomID;
               if (geoId == RTC_INVALID_GEOMETRY_ID) {
-                color += glm::vec3(0.0f);
-                attenuation = {0, 0, 0};
+                float a = 0.5f * (d.y + 1.0f);
+                sampleColor *= (1.0f - a) * glm::vec3(1) + a * glm::vec3(0.5, 0.7, 1.0);
                 break;
               }
 
@@ -247,17 +247,18 @@ int main() {
               glm::vec3 pos;
               pos = {o + d * rayHit.ray.tfar};
 
-              // color = normal * 0.5f + 0.5f;
-              // color = pos;
-              color = glm::max(glm::dot(glm::normalize(lightPos - pos), normal), 0.f) * glm::vec3(1);
+              // sampleColor = normal * 0.5f + 0.5f;
+              // sampleColor = pos;
+              // sampleColor = glm::max(glm::dot(glm::normalize(lightPos - pos), normal), 0.f) * glm::vec3(1);
 
               //const float objEmis = objEmissiveness[geoId];
-              //const glm::vec3 objCol = objColors[geoId];
-              //color += glm::vec3(objEmis) * attenuation;
-              //attenuation *= objCol;
-              //o = pos;
-              //d = sampleHemisphere(normal);
+              sampleColor *= objColors[geoId];
+
+              // rebounce
+              o = pos;
+              d = sampleHemisphere(normal);
             }
+            color += sampleColor;
           }
           color /= numSamplesPerPixel;
 
