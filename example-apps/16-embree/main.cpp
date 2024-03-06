@@ -215,21 +215,21 @@ int main() {
     float numFrames = 1.f;
     if (isRayTraced) {
       const int32_t numMaxBounces = 2;
-      const int32_t numSamplesPerPixel = 3;
+      const int32_t numSamplesPerPixel = 4;
 
       ws::Camera& cam = scene.camera;
       const glm::u8vec4 missColor{0, 0, 255, 255};
       for (int32_t i = 0; i < width; ++i) {
         for (int32_t j = 0; j < height; ++j) {
-          float x = (i + uniDist(rndEngine)) / width - 0.5f;
-          float y = (j + uniDist(rndEngine)) / height - 0.5f;
-
-          const glm::vec3 forward = cam.getForward() * 0.5f / glm::tan(glm::radians(cam.fov) * 0.5f);
-          const glm::vec3 right = cam.getRight() * cam.aspectRatio * x;
-          const glm::vec3 up = cam.getUp() * y;
           glm::vec3 color{};
-          
           for (int32_t s = 0; s < numSamplesPerPixel; ++s) {
+            float x = (i + uniDist(rndEngine)) / width - 0.5f;
+            float y = (j + uniDist(rndEngine)) / height - 0.5f;
+
+            const glm::vec3 forward = cam.getForward() * 0.5f / glm::tan(glm::radians(cam.fov) * 0.5f);
+            const glm::vec3 right = cam.getRight() * cam.aspectRatio * x;
+            const glm::vec3 up = cam.getUp() * y;
+          
             glm::vec3 d = glm::normalize(forward + right + up);
             glm::vec3 o = cam.position;
             glm::vec3 attenuation{1, 1, 1};
