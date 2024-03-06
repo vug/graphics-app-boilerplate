@@ -218,10 +218,8 @@ int main() {
           glm::vec3 color{};
           for (int32_t s = 0; s < numSamplesPerPixel; ++s) {
             glm::vec3 sampleColor{1, 1, 1};
-            //float x = (i + uniDist(rndEngine)) / width - 0.5f;
-            //float y = (j + uniDist(rndEngine)) / height - 0.5f;
-            float x = (i + 0.5f) / width - 0.5f;
-            float y = (j + 0.5f) / height - 0.5f;
+            float x = (i + uniDist(rndEngine)) / width - 0.5f;
+            float y = (j + uniDist(rndEngine)) / height - 0.5f;
 
             const glm::vec3 forward = cam.getForward() * 0.5f / glm::tan(glm::radians(cam.fov) * 0.5f);
             const glm::vec3 right = cam.getRight() * cam.aspectRatio * x;
@@ -282,6 +280,8 @@ int main() {
       ws::Framebuffer::clear(0, bgColor);
       scene.draw();
     }
+
+    workshop.drawUI();
 
     workshop.endFrame();
   }
