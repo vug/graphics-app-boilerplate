@@ -17,24 +17,34 @@
 #include <random>
 #include <vector>
 
-RTCRayHit castRay(RTCScene scene, const glm::vec3& o, const glm::vec3& d) {
-  struct RTCRayHit rayhit;
-  rayhit.ray.org_x = o.x;
-  rayhit.ray.org_y = o.y;
-  rayhit.ray.org_z = o.z;
-  rayhit.ray.dir_x = d.x;
-  rayhit.ray.dir_y = d.y;
-  rayhit.ray.dir_z = d.z;
-  rayhit.ray.tnear = 0;
-  rayhit.ray.tfar = std::numeric_limits<float>::infinity();
-  rayhit.ray.mask = static_cast<unsigned>(-1);
-  rayhit.ray.flags = 0;
-  rayhit.hit.geomID = RTC_INVALID_GEOMETRY_ID;
-  rayhit.hit.instID[0] = RTC_INVALID_GEOMETRY_ID;
+RTCRay makeRay(const glm::vec3& o, const glm::vec3& d) {
+  RTCRay r{
+    .org_x = o.x,
+    .org_y = o.y,
+    .org_z = o.z,
+    .tnear = 0,
+    .dir_x = d.x,
+    .dir_y = d.y,
+    .dir_z = d.z,
+    .tfar = std::numeric_limits<float>::infinity(),
+    .mask = static_cast<unsigned>(-1),
+    .flags = 0,
+  };
+  return r;
+}
 
-  rtcIntersect1(scene, &rayhit);
+RTCHit makeHit() {
+  RTCHit h;
+  h.geomID = RTC_INVALID_GEOMETRY_ID;
+  h.instID[0] = RTC_INVALID_GEOMETRY_ID;
+  return h;
+}
 
-  return rayhit;
+RTCRayHit makeRayHit(const glm::vec3& o, const glm::vec3& d) {
+  RTCRayHit rh;
+  rh.ray = makeRay(o, d);
+  rh.hit = makeHit();
+  return rh;
 }
 
 RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<glm::vec3>& norms, const std::vector<uint32_t>& ixs, const glm::mat4& xform) {
@@ -114,6 +124,7 @@ int main() {
   ws::AssetManager assetManager;
   assetManager.meshes.emplace("monkey", ws::loadOBJ(ws::ASSETS_FOLDER / "models/suzanne_smooth.obj"));
   assetManager.meshes.emplace("sphere", ws::loadOBJ(ws::ASSETS_FOLDER / "models/sphere_ico_smooth.obj"));
+  assetManager.meshes.emplace("box", ws::loadOBJ(ws::ASSETS_FOLDER / "models/cube.obj"));
   assetManager.shaders.emplace("solid_color", ws::Shader{ws::ASSETS_FOLDER / "shaders/solid_color.vert", ws::ASSETS_FOLDER / "shaders/solid_color.frag"});
   assetManager.shaders.emplace("copy", ws::Shader{ws::ASSETS_FOLDER / "shaders/fullscreen_quad_without_vbo.vert", ws::ASSETS_FOLDER / "shaders/fullscreen_quad_texture_sampler.frag"});
   assetManager.materials.emplace("solid_red", ws::Material{
@@ -129,19 +140,29 @@ int main() {
   };
   ws::RenderableObject sphere = {
       //{"Monkey", {glm::vec3{0, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
-      {"Sphere", {glm::vec3{3, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{0.5, 2.5, 0.5}}},
+      {"Sphere", {glm::vec3{3, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{2, 2, 2}}},
       assetManager.meshes.at("sphere"),
       assetManager.materials.at("solid_red"),
   };
-  ws::Scene scene{
-    .renderables{monkey, sphere},
+  ws::RenderableObject wall1 = {
+      //{"Monkey", {glm::vec3{0, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
+      {"Wall", {glm::vec3{-3, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{0.5, 10, 10}}},
+      assetManager.meshes.at("box"),
+      assetManager.materials.at("solid_red"),
   };
-  std::vector<float> objEmissiveness = {0.f, 5.0f};
+  ws::Scene scene{
+    .renderables{monkey, sphere, wall1},
+  };
+  std::vector<float> objEmissiveness = {0.f, 5.0f, 0.f};
   std::vector<glm::vec3> objColors = {{1.f, 0.8f, 0.6f},
+                                      {1, 1, 1},
                                       {1, 1, 1}};
   ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   ws::AutoOrbitingCameraController orbitingCamController{scene.camera};
+  orbitingCamController.speed = 0;
+  orbitingCamController.phi0 = 1;
+  orbitingCamController.radius = 10;
 
   /* for best performance set FTZ and DAZ flags in MXCSR control and status register */
   _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
@@ -151,17 +172,17 @@ int main() {
   RTCScene eScene = rtcNewScene(device);
 
   for (const auto& r : scene.renderables) {
-  std::vector<glm::vec3> verts; 
+    std::vector<glm::vec3> verts; 
     for (const auto& v : r.get().mesh.meshData.vertices)
-    verts.push_back(v.position);  
-  std::vector<glm::vec3> norms; 
+      verts.push_back(v.position);  
+    std::vector<glm::vec3> norms; 
     for (const auto& v : r.get().mesh.meshData.vertices)
-    norms.push_back(v.normal);  
+      norms.push_back(v.normal);  
 
     RTCGeometry geom = makeTriangularGeometry(device, verts, norms, r.get().mesh.meshData.indices, r.get().getGlobalTransformMatrix());
-  rtcAttachGeometry(eScene, geom);
-  rtcReleaseGeometry(geom);
-  rtcCommitScene(eScene);
+    rtcAttachGeometry(eScene, geom);
+    rtcReleaseGeometry(geom);
+    rtcCommitScene(eScene);
   }
 
   //glEnable(GL_DEPTH_TEST);
@@ -187,55 +208,65 @@ int main() {
 
     const glm::vec3 lightPos{10, 10, 10};
 
+    const int32_t width = winSize.x;
+    const int32_t height = winSize.y;
+    static std::vector<glm::u8vec4> pixels(width * height);
+    static std::vector<glm::vec3> pixelColors(width * height);
+    float numFrames = 1.f;
     if (isRayTraced) {
-      const int32_t width = winSize.x;
-      const int32_t height = winSize.y;
+      const int32_t numMaxBounces = 2;
+      const int32_t numSamplesPerPixel = 3;
+
       ws::Camera& cam = scene.camera;
       const glm::u8vec4 missColor{0, 0, 255, 255};
-      std::vector<glm::u8vec4> pixels(width * height);
       for (int32_t i = 0; i < width; ++i) {
         for (int32_t j = 0; j < height; ++j) {
-          float x = (i + 0.5f) / width - 0.5f;
-          float y = (j + 0.5f) / height - 0.5f;
+          float x = (i + uniDist(rndEngine)) / width - 0.5f;
+          float y = (j + uniDist(rndEngine)) / height - 0.5f;
 
           const glm::vec3 forward = cam.getForward() * 0.5f / glm::tan(glm::radians(cam.fov) * 0.5f);
           const glm::vec3 right = cam.getRight() * cam.aspectRatio * x;
           const glm::vec3 up = cam.getUp() * y;
-          glm::vec3 d = glm::normalize(forward + right + up);
-          glm::vec3 o = cam.position;
-
-          glm::vec3 attenuation{1, 1, 1};
           glm::vec3 color{};
-          const int32_t numMaxBounces = 3;
-          for (int32_t k = 0; k < numMaxBounces; ++k) {
-            RTCRayHit rayHit = castRay(eScene, o, d);
-            const uint32_t geoId = rayHit.hit.geomID;
-            if (geoId == RTC_INVALID_GEOMETRY_ID) {
-            pixels[j * width + i] = missColor;
-              color += glm::vec3(0.05f);
-              attenuation = {0, 0, 0};
-              break;
+          
+          for (int32_t s = 0; s < numSamplesPerPixel; ++s) {
+            glm::vec3 d = glm::normalize(forward + right + up);
+            glm::vec3 o = cam.position;
+            glm::vec3 attenuation{1, 1, 1};
+            for (int32_t k = 0; k < numMaxBounces; ++k) {
+              RTCRayHit rayHit = makeRayHit(o, d);
+              rtcIntersect1(eScene, &rayHit);
+              const uint32_t geoId = rayHit.hit.geomID;
+              if (geoId == RTC_INVALID_GEOMETRY_ID) {
+                color += glm::vec3(0.0f);
+                attenuation = {0, 0, 0};
+                break;
+              }
+
+              auto geo = rtcGetGeometry(eScene, geoId);
+              glm::vec3 normal;
+              rtcInterpolate0(geo, rayHit.hit.primID, rayHit.hit.u, rayHit.hit.v, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, glm::value_ptr(normal), 3);
+              normal = glm::normalize(normal);
+
+              glm::vec3 pos;
+              pos = {o + d * rayHit.ray.tfar};
+
+              const float objEmis = objEmissiveness[geoId];
+              const glm::vec3 objCol = objColors[geoId];
+              color += glm::vec3(objEmis) * attenuation;
+              attenuation *= objCol;
+              o = pos;
+              d = sampleHemisphere(normal);
+            }
           }
+          color /= numSamplesPerPixel;
 
-            auto geo = rtcGetGeometry(eScene, geoId);
-          glm::vec3 normal;
-          rtcInterpolate0(geo, rayHit.hit.primID, rayHit.hit.u, rayHit.hit.v, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, glm::value_ptr(normal), 3);
-          normal = glm::normalize(normal);
-
-          glm::vec3 pos;
-          pos = {o + d * rayHit.ray.tfar};
-
-            const float objEmis = objEmissiveness[geoId];
-            const glm::vec3 objCol = objColors[geoId];
-            color += glm::vec3(objEmis) * attenuation;
-            attenuation *= objCol;
-            o = pos;
-            d = sampleHemisphere(normal);
-          }
-
-          pixels[j * width + i] = glm::u8vec4{color * 255.f, 255};
+          const size_t ix = j * width + i;
+          pixelColors[ix] = color;
+          pixels[ix] = glm::u8vec4{pixelColors[ix] / numFrames * 255.f, 255};
         }
       }
+      ++numFrames;
       offscreenFbo.getFirstColorAttachment().uploadPixels(pixels.data());
       //rtcSetGeometryTransform(geom, workshop.getFrameNo(), RTC_FORMAT_FLOAT4X4_COLUMN_MAJOR, glm::value_ptr(monkey.getGlobalTransformMatrix()));
 
