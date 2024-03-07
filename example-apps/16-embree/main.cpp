@@ -214,9 +214,25 @@ int main() {
     const glm::uvec2 winSize = workshop.getWindowSize();
     offscreenFbo.resizeIfNeeded(winSize.x, winSize.y);
 
-    ImGui::Begin("Boilerplate");
-    static glm::vec4 bgColor{42 / 256.f, 96 / 256.f, 87 / 256.f, 1.f};
-    ImGui::ColorEdit4("BG Color", glm::value_ptr(bgColor));
+    ImGui::Begin("Embree Path Tracer Study");
+    static glm::vec3 skyColorNorth{0.5, 0.7, 1.0};
+    ImGui::ColorEdit3("Sky Color North", glm::value_ptr(skyColorNorth));
+    static glm::vec3 skyColorSouth{1};
+    ImGui::ColorEdit3("Sky Color South", glm::value_ptr(skyColorSouth));
+    static float skyEmissive{1.0f};
+    ImGui::SliderFloat("Sky Emissive", &skyEmissive, 0.f, 4.f);
+    static int32_t numMaxBounces = 4;
+    ImGui::SliderInt("Num Max Hits", &numMaxBounces, 0, 4);
+    static int32_t numSamplesPerPixel = 1;
+    ImGui::SliderInt("Num Samples Per Pixel", &numSamplesPerPixel, 1, 8);
+    ImGui::DragFloat3("Obj1 Position", glm::value_ptr(scene.renderables[0].get().transform.position));
+    ImGui::ColorEdit3("Obj1 Color", glm::value_ptr(objColors[0]));
+    ImGui::SliderFloat("Obj1 Emissive", &objEmissiveness[0], 0.f, 4.f);
+    ImGui::ColorEdit3("Obj2 Color", glm::value_ptr(objColors[1]));
+    ImGui::SliderFloat("Obj2 Emissive", &objEmissiveness[1], 0.f, 4.f);
+    ImGui::ColorEdit3("Obj3 Color", glm::value_ptr(objColors[2]));
+    ImGui::SliderFloat("Obj3 Emissive", &objEmissiveness[2], 0.f, 4.f);
+
     ImGui::Separator();
     static bool isRayTraced = true;
     ImGui::Checkbox("raytraced?", &isRayTraced);
@@ -234,9 +250,6 @@ int main() {
     static std::vector<glm::vec3> pixelColors(width * height);
     float numFrames = 1.f;
     if (isRayTraced) {
-      const int32_t numMaxBounces = 4;
-      const int32_t numSamplesPerPixel = 1;
-
       ws::Camera& cam = scene.camera;
       for (int32_t i = 0; i < width; ++i) {
         for (int32_t j = 0; j < height; ++j) {
@@ -258,9 +271,9 @@ int main() {
               rtcIntersect1(eScene, &rayHit);
               const uint32_t geoId = rayHit.hit.geomID;
               if (geoId == RTC_INVALID_GEOMETRY_ID) {
-                const float a = 0.5f * (d.y + 1.0f);
-                const glm::vec3 skyColor = (1.0f - a) * glm::vec3(1) + a * glm::vec3(0.5, 0.7, 1.0);
-                color += attenuation * skyColor;
+                const float m = 0.5f * (d.y + 1.0f);
+                const glm::vec3 skyColor = glm::mix(skyColorSouth, skyColorNorth, m);
+                color += attenuation * skyColor * skyEmissive;
                 break;
               }
 
@@ -298,7 +311,6 @@ int main() {
       offscreenFbo.getFirstColorAttachment().uploadPixels(pixels.data());
 
       glViewport(0, 0, winSize.x, winSize.y);
-      ws::Framebuffer::clear(0, bgColor);
       offscreenFbo.getFirstColorAttachment().bindToUnit(0);
       assetManager.shaders.at("copy").bind();
       assetManager.drawWithEmptyVao(6);
@@ -306,7 +318,7 @@ int main() {
       ws::Texture::unbindFromUnit(0);
     } else {
       glViewport(0, 0, winSize.x, winSize.y);
-      ws::Framebuffer::clear(0, bgColor);
+      ws::Framebuffer::clear(0, glm::vec4(skyColorNorth, 1.f));
       scene.draw();
     }
 
