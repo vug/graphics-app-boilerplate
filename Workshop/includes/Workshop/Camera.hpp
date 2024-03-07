@@ -128,7 +128,7 @@ class AutoOrbitingCameraController {
 
  public:
   AutoOrbitingCameraController(Camera& camera);
-  void update(float deltaTime);
+  bool update(float deltaTime);
 };
 
 // First Person Camera mechanism with state machine for dragging

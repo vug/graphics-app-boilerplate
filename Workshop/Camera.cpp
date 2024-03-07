@@ -92,7 +92,7 @@ glm::mat4 OrthographicCameraProjection::getProjectionFromView() const {
 AutoOrbitingCameraController::AutoOrbitingCameraController(Camera& cam)
     : camera(cam) {}
 
-void AutoOrbitingCameraController::update(float deltaTime) {
+bool AutoOrbitingCameraController::update(float deltaTime) {
   deltaPhi += speed * deltaTime;
   phi = phi0 + deltaPhi;
   camera.position = camera.target + glm::vec3{
@@ -103,12 +103,14 @@ void AutoOrbitingCameraController::update(float deltaTime) {
 
   ImGui::Begin("Workshop");
   ImGui::Text("Orbiting Camera Controller");
-  ImGui::SliderFloat("Theta", &theta, -std::numbers::pi_v<float> * 0.5, std::numbers::pi_v<float> * 0.5);
-  ImGui::SliderFloat("Phi0", &phi0, -std::numbers::pi_v<float>, std::numbers::pi_v<float>);
-  ImGui::SliderFloat("Speed", &speed, -2.f, 2.f);
-  ImGui::SliderFloat("Radius", &radius, 0.1f, 40.f);
+  bool hasMoved = false;
+  hasMoved |= ImGui::SliderFloat("Theta", &theta, -std::numbers::pi_v<float> * 0.5, std::numbers::pi_v<float> * 0.5);
+  hasMoved |= ImGui::SliderFloat("Phi0", &phi0, -std::numbers::pi_v<float>, std::numbers::pi_v<float>);
+  hasMoved |= ImGui::SliderFloat("Speed", &speed, -2.f, 2.f);
+  hasMoved |= ImGui::SliderFloat("Radius", &radius, 0.1f, 40.f);
   ImGui::Separator();
   ImGui::End();
+  return hasMoved;
 }
 
 // -----
