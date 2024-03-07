@@ -106,6 +106,32 @@ glm::vec3 sampleHemisphere(const glm::vec3& norm) {
   return refDir;
 }
 
+float hable(float c) {
+  float A = 0.15;
+  float B = 0.50;
+  float C = 0.10;
+  float D = 0.20;
+  float E = 0.02;
+  float F = 0.30;
+
+  return ((c * (A * c + C * B) + D * E) / (c * (A * c + B) + D * F)) - E / F;
+}
+
+glm::vec3 tonemap(glm::vec3 color) {
+  // Calculate the desaturation coefficient based on the brightness
+  float sig = std::max(color.r, std::max(color.g, color.b));
+  float luma = glm::dot(color, glm::vec3(0.2126, 0.7152, 0.0722));
+  float coeff = std::max(sig - 0.18, 1e-6) / std::max(sig, 1e-6f);
+  coeff = std::powf(coeff, 20.0f);
+
+  // Update the original color and signal
+  color = glm::mix(color, glm::vec3(luma), coeff);
+  sig = glm::mix(sig, luma, coeff);
+
+  // Perform tone-mapping
+  return color * hable(sig) / sig;
+}
+
 int main() {
   ws::Workshop workshop{800, 600, "Embree Path Tracer Study"};
   ws::AssetManager assetManager;
@@ -121,7 +147,7 @@ int main() {
   assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
   ws::RenderableObject monkey = {
     //{"Monkey", {glm::vec3{0, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
-    {"Monkey", {glm::vec3{0, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{1, 1, 1}}},
+    {"Monkey", {glm::vec3{-2, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{2, 2, 2}}},
     assetManager.meshes.at("monkey"),
     assetManager.materials.at("solid_red"),
   };
@@ -133,14 +159,14 @@ int main() {
   };
   ws::RenderableObject wall1 = {
       //{"Monkey", {glm::vec3{0, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
-      {"Wall", {glm::vec3{-3, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{0.5, 10, 10}}},
+      {"Wall", {glm::vec3{0, -2, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{20, 0.25, 20}}},
       assetManager.meshes.at("box"),
       assetManager.materials.at("solid_red"),
   };
   ws::Scene scene{
     .renderables{monkey, sphere, wall1},
   };
-  std::vector<float> objEmissiveness = {0.f, 5.0f, 0.f};
+  std::vector<float> objEmissiveness = {0.0f, 0.0f, 0.f};
   std::vector<glm::vec3> objColors = {{1.f, 0.8f, 0.6f},
                                       {0.8f, 0.6f, 1.f},
                                       {0.6f, 1.f, 0.8f}};
@@ -208,16 +234,16 @@ int main() {
     static std::vector<glm::vec3> pixelColors(width * height);
     float numFrames = 1.f;
     if (isRayTraced) {
-      const int32_t numMaxBounces = 3;
-      const int32_t numSamplesPerPixel = 2;
+      const int32_t numMaxBounces = 4;
+      const int32_t numSamplesPerPixel = 1;
 
       ws::Camera& cam = scene.camera;
-      const glm::u8vec4 missColor{0, 0, 255, 255};
       for (int32_t i = 0; i < width; ++i) {
         for (int32_t j = 0; j < height; ++j) {
           glm::vec3 color{};
           for (int32_t s = 0; s < numSamplesPerPixel; ++s) {
-            glm::vec3 sampleColor{1, 1, 1};
+            glm::vec3 sampleColor{};
+            glm::vec3 attenuation{1, 1, 1};
             float x = (i + uniDist(rndEngine)) / width - 0.5f;
             float y = (j + uniDist(rndEngine)) / height - 0.5f;
 
@@ -232,8 +258,9 @@ int main() {
               rtcIntersect1(eScene, &rayHit);
               const uint32_t geoId = rayHit.hit.geomID;
               if (geoId == RTC_INVALID_GEOMETRY_ID) {
-                float a = 0.5f * (d.y + 1.0f);
-                sampleColor *= (1.0f - a) * glm::vec3(1) + a * glm::vec3(0.5, 0.7, 1.0);
+                const float a = 0.5f * (d.y + 1.0f);
+                const glm::vec3 skyColor = (1.0f - a) * glm::vec3(1) + a * glm::vec3(0.5, 0.7, 1.0);
+                color += attenuation * skyColor;
                 break;
               }
 
@@ -249,19 +276,21 @@ int main() {
               // sampleColor = pos;
               // sampleColor = glm::max(glm::dot(glm::normalize(lightPos - pos), normal), 0.f) * glm::vec3(1);
 
-              //const float objEmis = objEmissiveness[geoId];
-              sampleColor *= objColors[geoId];
+              sampleColor += attenuation * objEmissiveness[geoId] * objColors[geoId];
+              attenuation *= objColors[geoId];
 
               // rebounce
               o = pos;
               d = sampleHemisphere(normal);
+              //d = glm::reflect(d, normal);
             }
             color += sampleColor;
           }
           color /= numSamplesPerPixel;
 
           const size_t ix = j * width + i;
-          pixelColors[ix] = color;
+          pixelColors[ix] = glm::clamp(color, 0.f, 1.f);
+          //pixelColors[ix] = tonemap(color);
           pixels[ix] = glm::u8vec4{pixelColors[ix] * 255.f, 255};
         }
       }
