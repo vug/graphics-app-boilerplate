@@ -209,36 +209,38 @@ int main() {
   glEnable(GL_CULL_FACE);
   scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("solid_color").getId(), "SceneUniforms");
 
+  float numFrames = 1.f;
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
     const glm::uvec2 winSize = workshop.getWindowSize();
     offscreenFbo.resizeIfNeeded(winSize.x, winSize.y);
 
+    bool hasChanged = false;
     ImGui::Begin("Embree Path Tracer Study");
     static glm::vec3 skyColorNorth{0.5, 0.7, 1.0};
-    ImGui::ColorEdit3("Sky Color North", glm::value_ptr(skyColorNorth));
+    hasChanged |= ImGui::ColorEdit3("Sky Color North", glm::value_ptr(skyColorNorth));
     static glm::vec3 skyColorSouth{1};
-    ImGui::ColorEdit3("Sky Color South", glm::value_ptr(skyColorSouth));
+    hasChanged |= ImGui::ColorEdit3("Sky Color South", glm::value_ptr(skyColorSouth));
     static float skyEmissive{1.0f};
-    ImGui::SliderFloat("Sky Emissive", &skyEmissive, 0.f, 4.f);
+    hasChanged |= ImGui::SliderFloat("Sky Emissive", &skyEmissive, 0.f, 4.f);
     static int32_t numMaxBounces = 4;
-    ImGui::SliderInt("Num Max Hits", &numMaxBounces, 0, 4);
+    hasChanged |= ImGui::SliderInt("Num Max Hits", &numMaxBounces, 0, 4);
     static int32_t numSamplesPerPixel = 1;
-    ImGui::SliderInt("Num Samples Per Pixel", &numSamplesPerPixel, 1, 8);
-    ImGui::DragFloat3("Obj1 Position", glm::value_ptr(scene.renderables[0].get().transform.position));
-    ImGui::ColorEdit3("Obj1 Color", glm::value_ptr(objColors[0]));
-    ImGui::SliderFloat("Obj1 Emissive", &objEmissiveness[0], 0.f, 4.f);
-    ImGui::ColorEdit3("Obj2 Color", glm::value_ptr(objColors[1]));
-    ImGui::SliderFloat("Obj2 Emissive", &objEmissiveness[1], 0.f, 4.f);
-    ImGui::ColorEdit3("Obj3 Color", glm::value_ptr(objColors[2]));
-    ImGui::SliderFloat("Obj3 Emissive", &objEmissiveness[2], 0.f, 4.f);
+    hasChanged |= ImGui::SliderInt("Num Samples Per Pixel", &numSamplesPerPixel, 1, 8);
+    //hasChanged |= ImGui::DragFloat3("Obj1 Position", glm::value_ptr(scene.renderables[0].get().transform.position));
+    hasChanged |= ImGui::ColorEdit3("Obj1 Color", glm::value_ptr(objColors[0]));
+    hasChanged |= ImGui::SliderFloat("Obj1 Emissive", &objEmissiveness[0], 0.f, 4.f);
+    hasChanged |= ImGui::ColorEdit3("Obj2 Color", glm::value_ptr(objColors[1]));
+    hasChanged |= ImGui::SliderFloat("Obj2 Emissive", &objEmissiveness[1], 0.f, 4.f);
+    hasChanged |= ImGui::ColorEdit3("Obj3 Color", glm::value_ptr(objColors[2]));
+    hasChanged |= ImGui::SliderFloat("Obj3 Emissive", &objEmissiveness[2], 0.f, 4.f);
 
     ImGui::Separator();
     static bool isRayTraced = true;
     ImGui::Checkbox("raytraced?", &isRayTraced);
     ImGui::End();
 
-    orbitingCamController.update(workshop.getFrameDurationSec());
+    bool hasCameraMoved = orbitingCamController.update(workshop.getFrameDurationSec());
     scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
     scene.uploadUniforms();
 
@@ -248,7 +250,11 @@ int main() {
     const int32_t height = winSize.y;
     static std::vector<glm::u8vec4> pixels(width * height);
     static std::vector<glm::vec3> pixelColors(width * height);
-    float numFrames = 1.f;
+    if (hasChanged || hasCameraMoved) {
+      numFrames = 1.f;
+      std::ranges::fill(pixels, glm::u8vec4(0, 0, 0, 1));
+      std::ranges::fill(pixelColors, glm::vec3(0));
+    }
     if (isRayTraced) {
       ws::Camera& cam = scene.camera;
       for (int32_t i = 0; i < width; ++i) {
@@ -302,9 +308,9 @@ int main() {
           color /= numSamplesPerPixel;
 
           const size_t ix = j * width + i;
-          pixelColors[ix] = glm::clamp(color, 0.f, 1.f);
+          pixelColors[ix] += color;
           //pixelColors[ix] = tonemap(color);
-          pixels[ix] = glm::u8vec4{pixelColors[ix] * 255.f, 255};
+          pixels[ix] = glm::u8vec4{glm::clamp(pixelColors[ix] / numFrames, 0.f, 1.f) * 255.f, 255};
         }
       }
       ++numFrames;
