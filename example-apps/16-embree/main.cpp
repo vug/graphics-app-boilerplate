@@ -210,6 +210,7 @@ int main() {
   scene.ubo.compareSizeWithUniformBlock(assetManager.shaders.at("solid_color").getId(), "SceneUniforms");
 
   float numFrames = 1.f;
+  int numAccumulatedSamplesPerPixel = 0;
   while (!workshop.shouldStop()) {
     workshop.beginFrame();
     const glm::uvec2 winSize = workshop.getWindowSize();
@@ -238,6 +239,7 @@ int main() {
     ImGui::Separator();
     static bool isRayTraced = true;
     ImGui::Checkbox("raytraced?", &isRayTraced);
+    ImGui::Text("Samples accumulated %d", numAccumulatedSamplesPerPixel);
     ImGui::End();
 
     bool hasCameraMoved = orbitingCamController.update(workshop.getFrameDurationSec());
@@ -251,9 +253,10 @@ int main() {
     static std::vector<glm::u8vec4> pixels(width * height);
     static std::vector<glm::vec3> pixelColors(width * height);
     if (hasChanged || hasCameraMoved) {
-      numFrames = 1.f;
       std::ranges::fill(pixels, glm::u8vec4(0, 0, 0, 1));
       std::ranges::fill(pixelColors, glm::vec3(0));
+      numAccumulatedSamplesPerPixel = 0;
+      numFrames = 1.f;
     }
     if (isRayTraced) {
       ws::Camera& cam = scene.camera;
@@ -314,6 +317,7 @@ int main() {
         }
       }
       ++numFrames;
+      numAccumulatedSamplesPerPixel += numSamplesPerPixel;
       offscreenFbo.getFirstColorAttachment().uploadPixels(pixels.data());
 
       glViewport(0, 0, winSize.x, winSize.y);
