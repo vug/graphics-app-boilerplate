@@ -106,6 +106,16 @@ glm::vec3 sampleHemisphere(const glm::vec3& norm) {
   return refDir;
 }
 
+glm::vec3 sampleLambertian(const glm::vec3& norm, float spread = 1.f) {
+  float theta = 2.f * std::numbers::pi_v<float> * uniDist(rndEngine);
+  float phi = std::acos(1.f - 2.f * uniDist(rndEngine));
+  const glm::vec3 rndDir{
+      sin(phi) * cos(theta),
+      sin(phi) * sin(theta),
+      cos(phi)};
+  return glm::normalize(norm + glm::mix(norm, rndDir, spread));
+}
+
 float hable(float c) {
   float A = 0.15;
   float B = 0.50;
@@ -167,9 +177,10 @@ int main() {
     .renderables{monkey, sphere, wall1},
   };
   std::vector<float> objEmissiveness = {0.0f, 0.0f, 0.f};
+  std::vector<float> objRoughnesses = {0.5f, 0.0f, 1.f};
   std::vector<glm::vec3> objColors = {{1.f, 0.8f, 0.6f},
                                       {0.8f, 0.6f, 1.f},
-                                      {0.6f, 1.f, 0.8f}};
+                                      {0.75f, 0.75f, 0.75f}};
   ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   ws::AutoOrbitingCameraController orbitingCamController{scene.camera};
@@ -225,16 +236,21 @@ int main() {
     static float skyEmissive{1.0f};
     hasChanged |= ImGui::SliderFloat("Sky Emissive", &skyEmissive, 0.f, 4.f);
     static int32_t numMaxBounces = 4;
-    hasChanged |= ImGui::SliderInt("Num Max Hits", &numMaxBounces, 0, 4);
+    hasChanged |= ImGui::SliderInt("Num Max Hits", &numMaxBounces, 0, 8);
     static int32_t numSamplesPerPixel = 1;
     hasChanged |= ImGui::SliderInt("Num Samples Per Pixel", &numSamplesPerPixel, 1, 8);
     //hasChanged |= ImGui::DragFloat3("Obj1 Position", glm::value_ptr(scene.renderables[0].get().transform.position));
     hasChanged |= ImGui::ColorEdit3("Obj1 Color", glm::value_ptr(objColors[0]));
     hasChanged |= ImGui::SliderFloat("Obj1 Emissive", &objEmissiveness[0], 0.f, 4.f);
+    hasChanged |= ImGui::SliderFloat("Obj1 Rougness", &objRoughnesses[0], 0.f, 1.f);
     hasChanged |= ImGui::ColorEdit3("Obj2 Color", glm::value_ptr(objColors[1]));
     hasChanged |= ImGui::SliderFloat("Obj2 Emissive", &objEmissiveness[1], 0.f, 4.f);
+    hasChanged |= ImGui::SliderFloat("Obj2 Rougness", &objRoughnesses[1], 0.f, 1.f);
     hasChanged |= ImGui::ColorEdit3("Obj3 Color", glm::value_ptr(objColors[2]));
     hasChanged |= ImGui::SliderFloat("Obj3 Emissive", &objEmissiveness[2], 0.f, 4.f);
+    hasChanged |= ImGui::SliderFloat("Obj3 Rougness", &objRoughnesses[2], 0.f, 1.f);
+    static float roughness = 1.f;
+    hasChanged |= ImGui::SliderFloat("Roughness", &roughness, 0.f, 1.f);
 
     ImGui::Separator();
     static bool isRayTraced = true;
@@ -252,7 +268,12 @@ int main() {
     const int32_t height = winSize.y;
     static std::vector<glm::u8vec4> pixels(width * height);
     static std::vector<glm::vec3> pixelColors(width * height);
-    if (hasChanged || hasCameraMoved) {
+    const bool shouldResizePixelBuffers = pixels.size() != width * height;
+    if (shouldResizePixelBuffers) {
+      pixels.resize(width * height);
+      pixelColors.resize(width * height);
+    }
+    if (hasChanged || hasCameraMoved || shouldResizePixelBuffers) {
       std::ranges::fill(pixels, glm::u8vec4(0, 0, 0, 1));
       std::ranges::fill(pixelColors, glm::vec3(0));
       numAccumulatedSamplesPerPixel = 0;
@@ -303,7 +324,8 @@ int main() {
 
               // rebounce
               o = pos;
-              d = sampleHemisphere(normal);
+              //d = sampleHemisphere(normal);
+              d = sampleLambertian(normal, objRoughnesses[geoId]);
               //d = glm::reflect(d, normal);
             }
             color += sampleColor;
