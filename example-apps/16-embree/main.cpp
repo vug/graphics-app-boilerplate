@@ -1,3 +1,5 @@
+#include "EmbreeUtils.hpp"
+
 #include <Workshop/AssetManager.hpp>
 #include <Workshop/Assets.hpp>
 #include <Workshop/Camera.hpp>
@@ -16,36 +18,6 @@
 #include <print>
 #include <random>
 #include <vector>
-
-RTCRay makeRay(const glm::vec3& o, const glm::vec3& d) {
-  RTCRay r{
-    .org_x = o.x,
-    .org_y = o.y,
-    .org_z = o.z,
-    .tnear = 0.001,
-    .dir_x = d.x,
-    .dir_y = d.y,
-    .dir_z = d.z,
-    .tfar = std::numeric_limits<float>::infinity(),
-    .mask = static_cast<unsigned>(-1),
-    .flags = 0,
-  };
-  return r;
-}
-
-RTCHit makeHit() {
-  RTCHit h;
-  h.geomID = RTC_INVALID_GEOMETRY_ID;
-  h.instID[0] = RTC_INVALID_GEOMETRY_ID;
-  return h;
-}
-
-RTCRayHit makeRayHit(const glm::vec3& o, const glm::vec3& d) {
-  RTCRayHit rh;
-  rh.ray = makeRay(o, d);
-  rh.hit = makeHit();
-  return rh;
-}
 
 RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<glm::vec3>& norms, const std::vector<uint32_t>& ixs) {
   RTCGeometry geom = rtcNewGeometry(dev, RTC_GEOMETRY_TYPE_TRIANGLE);
@@ -245,35 +217,31 @@ int main() {
             glm::vec3 d = glm::normalize(forward + right + up);
             glm::vec3 o = cam.position;
             for (int32_t k = 0; k < numMaxBounces; ++k) {
-              RTCRayHit rayHit = makeRayHit(o, d);
-              rtcIntersect1(eScene, &rayHit);
-              const uint32_t geoId = rayHit.hit.geomID;
-              if (geoId == RTC_INVALID_GEOMETRY_ID) {
-                const float m = 0.5f * (d.y + 1.0f);
+              ws::ERay ray(eScene, o, d);
+              ray.intersect();
+              if (ray.hasMissed()) {
+                const float m = 0.5f * (ray.direction().y + 1.0f);
                 const glm::vec3 skyColor = glm::mix(skyColorSouth, skyColorNorth, m);
                 color += attenuation * skyColor * skyEmissive;
                 break;
               }
 
-              auto geo = rtcGetGeometry(eScene, geoId);
+              auto geo = rtcGetGeometry(eScene, ray.geomId());
               glm::vec3 normal;
-              rtcInterpolate0(geo, rayHit.hit.primID, rayHit.hit.u, rayHit.hit.v, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, glm::value_ptr(normal), 3);
+              rtcInterpolate0(geo, ray.primId(), ray.uv().x, ray.uv().y, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, glm::value_ptr(normal), 3);
               normal = glm::normalize(normal);
 
-              glm::vec3 pos;
-              pos = {o + d * rayHit.ray.tfar};
+              //sampleColor = normal * 0.5f + 0.5f;
+              //sampleColor = ray.pos();
+              //sampleColor = glm::max(glm::dot(glm::normalize(lightPos - ray.pos()), normal), 0.f) * glm::vec3(1);
 
-              // sampleColor = normal * 0.5f + 0.5f;
-              // sampleColor = pos;
-              // sampleColor = glm::max(glm::dot(glm::normalize(lightPos - pos), normal), 0.f) * glm::vec3(1);
-
-              sampleColor += attenuation * objEmissiveness[geoId] * objColors[geoId];
-              attenuation *= objColors[geoId];
+              sampleColor += attenuation * objEmissiveness[ray.geomId()] * objColors[ray.geomId()];
+              attenuation *= objColors[ray.geomId()];
 
               // rebounce
-              o = pos;
-              d = sampleLambertian(normal, d, objRoughnesses[geoId]);
-              //d = glm::reflect(d, normal);
+              d = sampleLambertian(normal, ray.direction(), objRoughnesses[ray.geomId()]);
+              o = ray.pos();
+              //const glm::vec3 d = glm::reflect(d, normal);
             }
             color += sampleColor;
           }

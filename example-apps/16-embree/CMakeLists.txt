@@ -3,6 +3,7 @@ set(TARGET EmbreeTest)
 
 add_executable(${TARGET}
   main.cpp
+  EmbreeUtils.hpp EmbreeUtils.cpp
 )
 
 if(MSVC)
