@@ -1,5 +1,7 @@
 #include "EmbreeUtils.hpp"
 
+#include <glm/gtc/type_ptr.hpp>
+
 namespace ws {
 
 ERay::ERay(RTCScene scene)
@@ -33,6 +35,7 @@ ERay::ERay(RTCScene scene, const glm::vec3& o, const glm::vec3& d)
 const ERayResult ERay::intersect() {
   rtcIntersect1(scene_, &rh_);
   ERayResult result{
+    .scene=scene_,
     .origin=*ori_,
     .direction=*dir_,
     .position=*ori_ + *dir_ * rh_.ray.tfar,
@@ -42,8 +45,15 @@ const ERayResult ERay::intersect() {
     .hasMissed=rh_.hit.geomID == RTC_INVALID_GEOMETRY_ID,
     .geomId=rh_.hit.geomID,
     .primId=rh_.hit.primID,
+    .geom=hasHit() ? rtcGetGeometry(scene_, rh_.hit.geomID) : nullptr,
   };
 
   return result;
 }
+
+glm::vec3 ERayResult::interpolateVertexAttribute(int bufferSlot) const {
+  glm::vec3 result;
+  rtcInterpolate0(geom, primId, faceUv.x, faceUv.y, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, bufferSlot, glm::value_ptr(result), 3);
+  return result;
+};
 }  // namespace ws

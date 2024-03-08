@@ -226,9 +226,7 @@ int main() {
                 break;
               }
 
-              auto geo = rtcGetGeometry(eScene, res.geomId);
-              glm::vec3 normal;
-              rtcInterpolate0(geo, res.primId, res.faceUv.x, res.faceUv.y, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, glm::value_ptr(normal), 3);
+              glm::vec3 normal = res.interpolateVertexAttribute(0);
               normal = glm::normalize(normal);
 
               //sampleColor = normal * 0.5f + 0.5f;

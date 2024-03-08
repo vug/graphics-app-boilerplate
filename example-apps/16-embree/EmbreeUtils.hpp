@@ -6,6 +6,7 @@
 namespace ws {
 
 struct ERayResult {
+  RTCScene scene;
   glm::vec3 origin;
   glm::vec3 direction;
   glm::vec3 position;
@@ -15,6 +16,9 @@ struct ERayResult {
   bool hasMissed;
   uint32_t geomId{RTC_INVALID_GEOMETRY_ID};
   uint32_t primId{RTC_INVALID_GEOMETRY_ID};
+  RTCGeometry geom;
+
+  glm::vec3 interpolateVertexAttribute(int bufferSlot) const;
 };
 
 class ERay {
