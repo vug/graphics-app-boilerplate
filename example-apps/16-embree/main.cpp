@@ -106,14 +106,16 @@ glm::vec3 sampleHemisphere(const glm::vec3& norm) {
   return refDir;
 }
 
-glm::vec3 sampleLambertian(const glm::vec3& norm, float spread = 1.f) {
+glm::vec3 sampleLambertian(const glm::vec3& norm, const glm::vec3& in, float spread = 1.f) {
   float theta = 2.f * std::numbers::pi_v<float> * uniDist(rndEngine);
   float phi = std::acos(1.f - 2.f * uniDist(rndEngine));
   const glm::vec3 rndDir{
       sin(phi) * cos(theta),
       sin(phi) * sin(theta),
       cos(phi)};
-  return glm::normalize(norm + glm::mix(norm, rndDir, spread));
+
+  const glm::vec3 refl = glm::reflect(in, norm);
+  return glm::normalize(norm + glm::mix(refl, rndDir, spread));
 }
 
 float hable(float c) {
@@ -325,7 +327,7 @@ int main() {
               // rebounce
               o = pos;
               //d = sampleHemisphere(normal);
-              d = sampleLambertian(normal, objRoughnesses[geoId]);
+              d = sampleLambertian(normal, d, objRoughnesses[geoId]);
               //d = glm::reflect(d, normal);
             }
             color += sampleColor;
