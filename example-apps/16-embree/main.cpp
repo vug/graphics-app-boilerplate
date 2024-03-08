@@ -176,6 +176,9 @@ int main() {
     ImGui::Separator();
     static bool isRayTraced = true;
     ImGui::Checkbox("raytraced?", &isRayTraced);
+    const std::array<const char*, 4> vizOpts = {"Scene", "Pos", "Normal", "Phong"};
+    static int vizOpt = 0;
+    hasChanged |= ImGui::Combo("Shading Mode", &vizOpt, vizOpts.data(), static_cast<int>(vizOpts.size()));
     ImGui::Text("Samples accumulated %d", numAccumulatedSamplesPerPixel);
     ImGui::End();
 
@@ -222,14 +225,25 @@ int main() {
               break;
             }
 
-            glm::vec3 normal = res.interpolateVertexAttribute(0);
-            normal = glm::normalize(normal);
+            const glm::vec3 normal = glm::normalize(res.interpolateVertexAttribute(0));
 
-            //sampCol = normal * 0.5f + 0.5f;
-            //sampCol = res.position;
-            //sampCol = glm::max(glm::dot(glm::normalize(lightPos - res.position), normal), 0.f) * glm::vec3(1);
-
-            sampCol += attenuation * objEmissiveness[res.geomId] * objColors[res.geomId];
+            switch (vizOpt) {
+              case 0:
+                sampCol += attenuation * objEmissiveness[res.geomId] * objColors[res.geomId];
+                break;
+              case 1:
+                sampCol = res.position;
+                break;
+              case 2:
+                sampCol = normal * 0.5f + 0.5f;
+                break;
+              case 3:
+                sampCol = glm::max(glm::dot(glm::normalize(lightPos - res.position), normal), 0.f) * glm::vec3(1);
+                break;
+              default:
+                std::unreachable();
+            }
+            if (vizOpt != 0) break; // don't bounce if debug viz
             attenuation *= objColors[res.geomId];
 
             // rebounce
