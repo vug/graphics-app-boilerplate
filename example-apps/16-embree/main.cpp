@@ -218,30 +218,30 @@ int main() {
             glm::vec3 o = cam.position;
             for (int32_t k = 0; k < numMaxBounces; ++k) {
               ws::ERay ray(eScene, o, d);
-              ray.intersect();
-              if (ray.hasMissed()) {
-                const float m = 0.5f * (ray.direction().y + 1.0f);
+              const ws::ERayResult res = ray.intersect();
+              if (res.hasMissed) {
+                const float m = 0.5f * (res.direction.y + 1.0f);
                 const glm::vec3 skyColor = glm::mix(skyColorSouth, skyColorNorth, m);
                 color += attenuation * skyColor * skyEmissive;
                 break;
               }
 
-              auto geo = rtcGetGeometry(eScene, ray.geomId());
+              auto geo = rtcGetGeometry(eScene, res.geomId);
               glm::vec3 normal;
-              rtcInterpolate0(geo, ray.primId(), ray.uv().x, ray.uv().y, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, glm::value_ptr(normal), 3);
+              rtcInterpolate0(geo, res.primId, res.faceUv.x, res.faceUv.y, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, glm::value_ptr(normal), 3);
               normal = glm::normalize(normal);
 
               //sampleColor = normal * 0.5f + 0.5f;
-              //sampleColor = ray.pos();
-              //sampleColor = glm::max(glm::dot(glm::normalize(lightPos - ray.pos()), normal), 0.f) * glm::vec3(1);
+              //sampleColor = res.position;
+              //sampleColor = glm::max(glm::dot(glm::normalize(lightPos - res.position), normal), 0.f) * glm::vec3(1);
 
-              sampleColor += attenuation * objEmissiveness[ray.geomId()] * objColors[ray.geomId()];
-              attenuation *= objColors[ray.geomId()];
+              sampleColor += attenuation * objEmissiveness[res.geomId] * objColors[res.geomId];
+              attenuation *= objColors[res.geomId];
 
               // rebounce
-              d = sampleLambertian(normal, ray.direction(), objRoughnesses[ray.geomId()]);
-              o = ray.pos();
-              //const glm::vec3 d = glm::reflect(d, normal);
+              d = sampleLambertian(normal, res.direction, objRoughnesses[res.geomId]);
+              //d =  glm::reflect(d, normal);
+              o = res.position;
             }
             color += sampleColor;
           }

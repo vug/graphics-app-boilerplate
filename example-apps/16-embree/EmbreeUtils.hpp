@@ -4,13 +4,27 @@
 #include <glm/glm.hpp>
 
 namespace ws {
+
+struct ERayResult {
+  glm::vec3 origin;
+  glm::vec3 direction;
+  glm::vec3 position;
+  glm::vec3 faceNormal;
+  glm::vec2 faceUv;
+  bool hasHit;
+  bool hasMissed;
+  uint32_t geomId{RTC_INVALID_GEOMETRY_ID};
+  uint32_t primId{RTC_INVALID_GEOMETRY_ID};
+};
+
 class ERay {
  public:
   ERay(RTCScene scene);
   ERay(RTCScene scene, const glm::vec3& o, const glm::vec3& d);
 
-  void intersect();
+  const ERayResult intersect();
 
+  // No need to use the methods below, instead prefer using a const ERayResult
   inline glm::vec3& direction() const { return *dir_; }
   inline glm::vec3& origin() const { return *ori_; }
   inline glm::vec3& normal() const { return *norm_; }

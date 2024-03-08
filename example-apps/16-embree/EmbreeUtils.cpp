@@ -30,7 +30,20 @@ ERay::ERay(RTCScene scene, const glm::vec3& o, const glm::vec3& d)
       uv_{reinterpret_cast<glm::vec2*>(&rh_.hit.u)} {
 }
 
-void ERay::intersect() {
+const ERayResult ERay::intersect() {
   rtcIntersect1(scene_, &rh_);
+  ERayResult result{
+    .origin=*ori_,
+    .direction=*dir_,
+    .position=*ori_ + *dir_ * rh_.ray.tfar,
+    .faceNormal=*norm_,
+    .faceUv=*uv_,
+    .hasHit=rh_.hit.geomID != RTC_INVALID_GEOMETRY_ID,
+    .hasMissed=rh_.hit.geomID == RTC_INVALID_GEOMETRY_ID,
+    .geomId=rh_.hit.geomID,
+    .primId=rh_.hit.primID,
+  };
+
+  return result;
 }
 }  // namespace ws
