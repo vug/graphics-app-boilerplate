@@ -39,6 +39,15 @@ float Camera::getPitch() const {
 	return glm::acos(dir.z);
 }
 
+glm::vec3 Camera::getRayDirection(float x, float y) const {
+  const glm::vec3 forward = getForward() * 0.5f / glm::tan(glm::radians(fov) * 0.5f);
+  const glm::vec3 right = getRight() * aspectRatio * x;
+  const glm::vec3 up = getUp() * y;
+
+  const glm::vec3 dir = glm::normalize(forward + right + up);
+  return dir;
+}
+
 //
 
 const glm::vec3& ICameraView::getPosition() const {

@@ -33,7 +33,9 @@ public:
 
 	float getPitch() const;
 	float getYaw() const;
-	float getRoll() const;	
+	float getRoll() const;
+
+  glm::vec3 getRayDirection(float x, float y) const;
 };
 
 class ICamera {
