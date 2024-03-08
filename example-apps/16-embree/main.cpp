@@ -17,6 +17,7 @@
 
 #include <print>
 #include <random>
+#include <ranges>
 #include <vector>
 
 RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<glm::vec3>& norms, const std::vector<uint32_t>& ixs) {
@@ -201,54 +202,52 @@ int main() {
     }
     if (isRayTraced) {
       ws::Camera& cam = scene.camera;
-      for (int32_t i = 0; i < width; ++i) {
-        for (int32_t j = 0; j < height; ++j) {
-          glm::vec3 color{};
-          for (int32_t s = 0; s < numSamplesPerPixel; ++s) {
-            glm::vec3 sampleColor{};
-            glm::vec3 attenuation{1, 1, 1};
-            float x = (i + uniDist(rndEngine)) / width - 0.5f;
-            float y = (j + uniDist(rndEngine)) / height - 0.5f;
+      for (auto [i, j] : std::views::cartesian_product(std::views::iota(0, width), std::views::iota(0, height))) {
+        glm::vec3 pixCol{};
+        for (int32_t s = 0; s < numSamplesPerPixel; ++s) {
+          glm::vec3 sampCol{0};
+          glm::vec3 attenuation{1};
+          float x = (i + uniDist(rndEngine)) / width - 0.5f;
+          float y = (j + uniDist(rndEngine)) / height - 0.5f;
 
-            const glm::vec3 forward = cam.getForward() * 0.5f / glm::tan(glm::radians(cam.fov) * 0.5f);
-            const glm::vec3 right = cam.getRight() * cam.aspectRatio * x;
-            const glm::vec3 up = cam.getUp() * y;
+          const glm::vec3 forward = cam.getForward() * 0.5f / glm::tan(glm::radians(cam.fov) * 0.5f);
+          const glm::vec3 right = cam.getRight() * cam.aspectRatio * x;
+          const glm::vec3 up = cam.getUp() * y;
           
-            glm::vec3 d = glm::normalize(forward + right + up);
-            glm::vec3 o = cam.position;
-            for (int32_t k = 0; k < numMaxBounces; ++k) {
-              ws::ERay ray(eScene, o, d);
-              const ws::ERayResult res = ray.intersect();
-              if (res.hasMissed) {
-                const float m = 0.5f * (res.direction.y + 1.0f);
-                const glm::vec3 skyColor = glm::mix(skyColorSouth, skyColorNorth, m);
-                color += attenuation * skyColor * skyEmissive;
-                break;
-              }
-
-              glm::vec3 normal = res.interpolateVertexAttribute(0);
-              normal = glm::normalize(normal);
-
-              //sampleColor = normal * 0.5f + 0.5f;
-              //sampleColor = res.position;
-              //sampleColor = glm::max(glm::dot(glm::normalize(lightPos - res.position), normal), 0.f) * glm::vec3(1);
-
-              sampleColor += attenuation * objEmissiveness[res.geomId] * objColors[res.geomId];
-              attenuation *= objColors[res.geomId];
-
-              // rebounce
-              d = sampleLambertian(normal, res.direction, objRoughnesses[res.geomId]);
-              //d =  glm::reflect(d, normal);
-              o = res.position;
+          glm::vec3 d = glm::normalize(forward + right + up);
+          glm::vec3 o = cam.position;
+          for (int32_t k = 0; k < numMaxBounces; ++k) {
+            ws::ERay ray(eScene, o, d);
+            const ws::ERayResult res = ray.intersect();
+            if (res.hasMissed) {
+              const float m = 0.5f * (res.direction.y + 1.0f);
+              const glm::vec3 skyColor = glm::mix(skyColorSouth, skyColorNorth, m);
+              sampCol += attenuation * skyColor * skyEmissive;
+              break;
             }
-            color += sampleColor;
-          }
-          color /= numSamplesPerPixel;
 
-          const size_t ix = j * width + i;
-          pixelColors[ix] += color;
-          pixels[ix] = glm::u8vec4{glm::clamp(pixelColors[ix] / numFrames, 0.f, 1.f) * 255.f, 255};
+            glm::vec3 normal = res.interpolateVertexAttribute(0);
+            normal = glm::normalize(normal);
+
+            //sampCol = normal * 0.5f + 0.5f;
+            //sampCol = res.position;
+            //sampCol = glm::max(glm::dot(glm::normalize(lightPos - res.position), normal), 0.f) * glm::vec3(1);
+
+            sampCol += attenuation * objEmissiveness[res.geomId] * objColors[res.geomId];
+            attenuation *= objColors[res.geomId];
+
+            // rebounce
+            d = sampleLambertian(normal, res.direction, objRoughnesses[res.geomId]);
+            //d =  glm::reflect(d, normal);
+            o = res.position;
+          }
+          pixCol += sampCol;
         }
+        pixCol /= numSamplesPerPixel;
+
+        const size_t ix = j * width + i;
+        pixelColors[ix] += pixCol;
+        pixels[ix] = glm::u8vec4{glm::clamp(pixelColors[ix] / numFrames, 0.f, 1.f) * 255.f, 255};
       }
       ++numFrames;
       numAccumulatedSamplesPerPixel += numSamplesPerPixel;
