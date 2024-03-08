@@ -79,33 +79,6 @@ std::mt19937 rndEngine(rndDev());
 std::uniform_real_distribution<float> uniDistCircle(0.f, std::numbers::pi_v<float>);
 std::uniform_real_distribution<float> uniDist(0.f, 1.0f);
 
-glm::vec3 sampleHemisphere(const glm::vec3& norm) {
-  // surface coordinate system
-  const glm::vec3& Z = norm;
-  glm::vec3 axis;
-  if (Z.x < Z.y && Z.x < Z.z)
-    axis = {1.0f, 0.0f, 0.0f};
-  else if (Z.y < Z.z)
-    axis = {0.0f, 1.0f, 0.0f};
-  else
-    axis = {0.0f, 0.0f, 1.0f};
-  const glm::vec3 X = glm::normalize(glm::cross(Z, axis));
-  const glm::vec3 Y = glm::cross(Z, X);
-
-  // sample unit disk
-  const float phi = uniDistCircle(rndEngine);
-  const float r = uniDist(rndEngine);
-  const float r2 = r * r;
-  const float x = r2 * std::cos(phi);
-  const float y = r2 * std::sin(phi);
-
-  // project to hemisphere
-  const float z = std::sqrtf(1 - x * x - y * y);
-  const glm::vec3 refDir = X * x + Y * y + Z * z;
-
-  return refDir;
-}
-
 glm::vec3 sampleLambertian(const glm::vec3& norm, const glm::vec3& in, float spread = 1.f) {
   float theta = 2.f * std::numbers::pi_v<float> * uniDist(rndEngine);
   float phi = std::acos(1.f - 2.f * uniDist(rndEngine));
@@ -118,31 +91,6 @@ glm::vec3 sampleLambertian(const glm::vec3& norm, const glm::vec3& in, float spr
   return glm::normalize(norm + glm::mix(refl, rndDir, spread));
 }
 
-float hable(float c) {
-  float A = 0.15;
-  float B = 0.50;
-  float C = 0.10;
-  float D = 0.20;
-  float E = 0.02;
-  float F = 0.30;
-
-  return ((c * (A * c + C * B) + D * E) / (c * (A * c + B) + D * F)) - E / F;
-}
-
-glm::vec3 tonemap(glm::vec3 color) {
-  // Calculate the desaturation coefficient based on the brightness
-  float sig = std::max(color.r, std::max(color.g, color.b));
-  float luma = glm::dot(color, glm::vec3(0.2126, 0.7152, 0.0722));
-  float coeff = std::max(sig - 0.18, 1e-6) / std::max(sig, 1e-6f);
-  coeff = std::powf(coeff, 20.0f);
-
-  // Update the original color and signal
-  color = glm::mix(color, glm::vec3(luma), coeff);
-  sig = glm::mix(sig, luma, coeff);
-
-  // Perform tone-mapping
-  return color * hable(sig) / sig;
-}
 
 int main() {
   ws::Workshop workshop{800, 600, "Embree Path Tracer Study"};
@@ -251,8 +199,6 @@ int main() {
     hasChanged |= ImGui::ColorEdit3("Obj3 Color", glm::value_ptr(objColors[2]));
     hasChanged |= ImGui::SliderFloat("Obj3 Emissive", &objEmissiveness[2], 0.f, 4.f);
     hasChanged |= ImGui::SliderFloat("Obj3 Rougness", &objRoughnesses[2], 0.f, 1.f);
-    static float roughness = 1.f;
-    hasChanged |= ImGui::SliderFloat("Roughness", &roughness, 0.f, 1.f);
 
     ImGui::Separator();
     static bool isRayTraced = true;
@@ -326,7 +272,6 @@ int main() {
 
               // rebounce
               o = pos;
-              //d = sampleHemisphere(normal);
               d = sampleLambertian(normal, d, objRoughnesses[geoId]);
               //d = glm::reflect(d, normal);
             }
@@ -336,7 +281,6 @@ int main() {
 
           const size_t ix = j * width + i;
           pixelColors[ix] += color;
-          //pixelColors[ix] = tonemap(color);
           pixels[ix] = glm::u8vec4{glm::clamp(pixelColors[ix] / numFrames, 0.f, 1.f) * 255.f, 255};
         }
       }
