@@ -207,14 +207,10 @@ int main() {
         for (int32_t s = 0; s < numSamplesPerPixel; ++s) {
           glm::vec3 sampCol{0};
           glm::vec3 attenuation{1};
+
           float x = (i + uniDist(rndEngine)) / width - 0.5f;
           float y = (j + uniDist(rndEngine)) / height - 0.5f;
-
-          const glm::vec3 forward = cam.getForward() * 0.5f / glm::tan(glm::radians(cam.fov) * 0.5f);
-          const glm::vec3 right = cam.getRight() * cam.aspectRatio * x;
-          const glm::vec3 up = cam.getUp() * y;
-          
-          glm::vec3 d = glm::normalize(forward + right + up);
+          glm::vec3 d = cam.getRayDirection(x, y);
           glm::vec3 o = cam.position;
           for (int32_t k = 0; k < numMaxBounces; ++k) {
             ws::ERay ray(eScene, o, d);
