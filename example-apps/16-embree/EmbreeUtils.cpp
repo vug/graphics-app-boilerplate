@@ -52,9 +52,12 @@ const ERayResult ERay::intersect() {
 }
 
 Image::Image(const std::filesystem::path& path) {
+  const auto ext = path.extension();
+  const bool isHdr = ext == "hdr";
+  if (!isHdr) {
   uint8_t* data = stbi_load(path.string().c_str(), &width, &height, &numChannels, 0);
-  pixels.resize(width * height);
   assert(numChannels == 3);
+    pixels.resize(width * height);
   for (int i = 0; i < height; ++i) {
     for (int j = 0; j < width; ++j) {
       const int ix = i * width + j;
@@ -63,6 +66,17 @@ Image::Image(const std::filesystem::path& path) {
     }
   }
   delete data;
+  } else {
+    float* data = stbi_loadf(path.string().c_str(), &width, &height, &numChannels, 0);
+    pixels.resize(width * height);
+    for (int i = 0; i < height; ++i) {
+      for (int j = 0; j < width; ++j) {
+        const int ix = i * width + j;
+        pixels[ix] = {data[3 * ix + 0], data[3 * ix + 1], data[3 * ix + 2]};
+      }
+}
+    delete data;
+  }
 }
 
 glm::vec3 Image::nearest(float x, float y) const {
