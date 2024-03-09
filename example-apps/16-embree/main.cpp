@@ -119,6 +119,15 @@ int main() {
   objAlbedos.emplace_back(ws::ASSETS_FOLDER / "images/Wikipedia/UV_checker_Map_byValle_1024.jpg");
   objAlbedos.emplace_back(ws::ASSETS_FOLDER / "images/LearnOpenGL/metal.png");
   objAlbedos.emplace_back(ws::ASSETS_FOLDER / "images/LearnOpenGL/brickwall.jpg");
+  // Skybox textures
+  std::vector<ws::Image> skyboxes;
+  skyboxes.emplace_back(ws::ASSETS_FOLDER / "images/hdr/the_lost_city.hdr");
+  skyboxes.emplace_back(ws::ASSETS_FOLDER / "images/hdr/little_paris.hdr");
+  skyboxes.emplace_back(ws::ASSETS_FOLDER / "images/hdr/night_snowy_christmas.hdr");
+  std::vector<ws::Image> skyboxIrradiances;
+  skyboxIrradiances.emplace_back(ws::ASSETS_FOLDER / "images/hdr/the_lost_city_irradiance.hdr");
+  skyboxIrradiances.emplace_back(ws::ASSETS_FOLDER / "images/hdr/little_paris_irradiance.hdr");
+  skyboxIrradiances.emplace_back(ws::ASSETS_FOLDER / "images/hdr/night_snowy_christmas_irradiance.hdr");
   ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   ws::AutoOrbitingCameraController orbitingCamController{scene.camera};
@@ -171,10 +180,13 @@ int main() {
 
     bool hasChanged = false;
     ImGui::Begin("Embree Path Tracer Study");
-    static glm::vec3 skyColorNorth{0.5, 0.7, 1.0};
-    hasChanged |= ImGui::ColorEdit3("Sky Color North", glm::value_ptr(skyColorNorth));
-    static glm::vec3 skyColorSouth{1};
-    hasChanged |= ImGui::ColorEdit3("Sky Color South", glm::value_ptr(skyColorSouth));
+    //static glm::vec3 skyColorNorth{0.5, 0.7, 1.0};
+    //hasChanged |= ImGui::ColorEdit3("Sky Color North", glm::value_ptr(skyColorNorth));
+    //static glm::vec3 skyColorSouth{1};
+    //hasChanged |= ImGui::ColorEdit3("Sky Color South", glm::value_ptr(skyColorSouth));
+    const std::array<const char*, 3> skyNames = {"ruins", "paris", "night"};
+    static int skyboxIx = 0;
+    hasChanged |= ImGui::Combo("Skybox", &skyboxIx, skyNames.data(), static_cast<int>(skyNames.size()));
     static float skyEmissive{1.0f};
     hasChanged |= ImGui::SliderFloat("Sky Emissive", &skyEmissive, 0.f, 4.f);
     static int32_t numMaxBounces = 4;
@@ -238,17 +250,22 @@ int main() {
             ws::ERay ray(eScene, o, d);
             const ws::ERayResult res = ray.intersect();
             if (res.hasMissed) {
-              const float m = 0.5f * (res.direction.y + 1.0f);
-              const glm::vec3 skyColor = glm::mix(skyColorSouth, skyColorNorth, m);
-              sampCol += attenuation * skyColor * skyEmissive;
+              // procedural sky
+              //const float m = 0.5f * (res.direction.y + 1.0f);
+              //const glm::vec3 skyColor = glm::mix(skyColorSouth, skyColorNorth, m);
+              //sampCol += attenuation * skyColor * skyEmissive;
+
+              glm::vec2 lonLat = dirToLonLat(res.direction);
+              const ws::Image& img = (k == 0) ? skyboxes[skyboxIx] : skyboxIrradiances[skyboxIx];
+              sampCol += attenuation * img.nearest(lonLat.x * img.getWidth(), lonLat.y * img.getHeight()) * skyEmissive;
               break;
             }
 
             const glm::vec3 normal = glm::normalize(res.interpolateVertexAttribute<glm::vec3>(0));
             const glm::vec2 texCoord = res.interpolateVertexAttribute<glm::vec2>(1);
-            //const glm::vec3 objColor = objColors[res.geomId];
-            //const glm::vec3 objColor = glm::vec3(texCoord, 0);
-            const ws::Image& img = objAlbedos[res.geomId];
+            //const glm::vec3 objColor = objColors[res.geomId]; // solid color albedo
+            //const glm::vec3 objColor = glm::vec3(texCoord, 0); // use UVs as albedo
+            const ws::Image& img = objAlbedos[res.geomId]; // use textures for albedo
             glm::vec3 objColor = img.nearest(texCoord.x * img.getWidth(), texCoord.y * img.getHeight());
 
             switch (vizOpt) {
@@ -298,7 +315,7 @@ int main() {
       ws::Texture::unbindFromUnit(0);
     } else {
       glViewport(0, 0, winSize.x, winSize.y);
-      ws::Framebuffer::clear(0, glm::vec4(skyColorNorth, 1.f));
+      ws::Framebuffer::clear(0, glm::vec4(1.f, 1.f, 1.f, 1.f));
       scene.draw();
     }
 
