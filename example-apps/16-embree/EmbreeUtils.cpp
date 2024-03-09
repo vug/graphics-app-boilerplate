@@ -55,17 +55,17 @@ Image::Image(const std::filesystem::path& path) {
   const auto ext = path.extension();
   const bool isHdr = ext == "hdr";
   if (!isHdr) {
-  uint8_t* data = stbi_load(path.string().c_str(), &width, &height, &numChannels, 0);
-  assert(numChannels == 3);
+    uint8_t* data = stbi_load(path.string().c_str(), &width, &height, &numChannels, 0);
+    assert(numChannels == 3);
     pixels.resize(width * height);
-  for (int i = 0; i < height; ++i) {
-    for (int j = 0; j < width; ++j) {
-      const int ix = i * width + j;
-      pixels[ix] = {data[3 * ix + 0], data[3 * ix + 1], data[3 * ix + 2]};
-      pixels[ix] /= 255.99;
+    for (int i = 0; i < height; ++i) {
+      for (int j = 0; j < width; ++j) {
+        const int ix = i * width + j;
+        pixels[ix] = {data[3 * ix + 0], data[3 * ix + 1], data[3 * ix + 2]};
+        pixels[ix] /= 255.99;
+      }
     }
-  }
-  delete data;
+    delete data;
   } else {
     float* data = stbi_loadf(path.string().c_str(), &width, &height, &numChannels, 0);
     pixels.resize(width * height);
@@ -74,7 +74,7 @@ Image::Image(const std::filesystem::path& path) {
         const int ix = i * width + j;
         pixels[ix] = {data[3 * ix + 0], data[3 * ix + 1], data[3 * ix + 2]};
       }
-}
+    }
     delete data;
   }
 }
@@ -82,8 +82,8 @@ Image::Image(const std::filesystem::path& path) {
 glm::vec3 Image::nearest(float x, float y) const {
   x = std::max(std::min(x, width - 1.f), 0.f); // clamp
   y = std::max(std::min(y, height - 1.f), 0.f);
-  int i = std::floor(x);
-  int j = std::floor(y);
+  int j = std::floor(x);
+  int i = std::floor(y);
   glm::vec3 result = pixels[i * width + j];
   return result;
 }
