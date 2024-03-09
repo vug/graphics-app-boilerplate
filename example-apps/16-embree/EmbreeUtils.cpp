@@ -51,6 +51,38 @@ const ERayResult ERay::intersect() {
   return result;
 }
 
+
+
+RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<glm::vec3>& norms, const std::vector<glm::vec2>& texCoords, const std::vector<uint32_t>& ixs) {
+  RTCGeometry geom = rtcNewGeometry(dev, RTC_GEOMETRY_TYPE_TRIANGLE);
+  float* vertices = static_cast<float*>(rtcSetNewGeometryBuffer(geom,
+                                                                RTC_BUFFER_TYPE_VERTEX,
+                                                                0,
+                                                                RTC_FORMAT_FLOAT3,
+                                                                3 * sizeof(float),
+                                                                verts.size()));
+  unsigned* indices = static_cast<unsigned*>(rtcSetNewGeometryBuffer(geom,
+                                                                     RTC_BUFFER_TYPE_INDEX,
+                                                                     0,
+                                                                     RTC_FORMAT_UINT3,
+                                                                     3 * sizeof(unsigned),
+                                                                     ixs.size()));
+  std::memcpy(vertices, verts.data(), verts.size() * sizeof(glm::vec3));
+  std::memcpy(indices, ixs.data(), ixs.size() * sizeof(uint32_t));
+
+  rtcSetGeometryVertexAttributeCount(geom, 2);
+  rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, RTC_FORMAT_FLOAT3, norms.data(), 0, sizeof(glm::vec3), norms.size());
+  rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 1, RTC_FORMAT_FLOAT2, texCoords.data(), 0, sizeof(glm::vec2), texCoords.size());
+
+  // only for instanced geometry
+  // rtcSetGeometryTransform(geom, 0, RTC_FORMAT_FLOAT4X4_COLUMN_MAJOR, glm::value_ptr(xform));
+
+  rtcCommitGeometry(geom);
+  return geom;
+}
+
+
+
 Image::Image(const std::filesystem::path& path) {
   const auto ext = path.extension();
   const bool isHdr = ext == "hdr";

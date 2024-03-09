@@ -21,7 +21,7 @@ struct ERayResult {
   uint32_t primId{RTC_INVALID_GEOMETRY_ID};
   RTCGeometry geom;
 
-  template<typename TVecN>
+  template <typename TVecN>
   TVecN interpolateVertexAttribute(int bufferSlot) const {
     TVecN result;
     rtcInterpolate0(geom, primId, faceUv.x, faceUv.y, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, bufferSlot, glm::value_ptr(result), result.length());
@@ -55,6 +55,8 @@ class ERay {
   glm::vec3* norm_{};
   glm::vec2* uv_{};
 };
+
+RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<glm::vec3>& norms, const std::vector<glm::vec2>& texCoords, const std::vector<uint32_t>& ixs);
 
 class Image {
  public:
