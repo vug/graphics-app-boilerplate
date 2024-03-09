@@ -90,27 +90,27 @@ int main() {
   assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
   ws::RenderableObject monkey = {
     //{"Monkey", {glm::vec3{0, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
-    {"Monkey", {glm::vec3{-1, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{2, 2, 2}}},
+    {"Monkey", {glm::vec3{-1.5, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{2, 2, 2}}},
     assetManager.meshes.at("monkey"),
     assetManager.materials.at("solid_red"),
   };
   ws::RenderableObject sphere = {
       //{"Monkey", {glm::vec3{0, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
-      {"Sphere", {glm::vec3{2, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{2, 2, 2}}},
+      {"Sphere", {glm::vec3{2.5, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{2, 2, 2}}},
       assetManager.meshes.at("sphere"),
       assetManager.materials.at("solid_red"),
   };
-  ws::RenderableObject wall1 = {
+  ws::RenderableObject ground = {
       //{"Monkey", {glm::vec3{0, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
       {"Wall", {glm::vec3{0, -2, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{20, 0.25, 20}}},
       assetManager.meshes.at("box"),
       assetManager.materials.at("solid_red"),
   };
   ws::Scene scene{
-    .renderables{monkey, sphere, wall1},
+    .renderables{monkey, sphere, ground},
   };
-  std::vector<float> objEmissiveness = {0.0f, 0.0f, 0.f};
-  std::vector<float> objRoughnesses = {0.5f, 0.0f, 1.f};
+  std::vector<float> objEmissiveness = {0.0f, 0.0f, 0.0f};
+  std::vector<float> objRoughnesses = {1.0f, 1.0f, 1.0f};
   std::vector<glm::vec3> objColors = {{1.f, 0.8f, 0.6f},
                                       {0.8f, 0.6f, 1.f},
                                       {0.75f, 0.75f, 0.75f}};
