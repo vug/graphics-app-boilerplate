@@ -232,10 +232,12 @@ int main() {
 
             const glm::vec3 normal = glm::normalize(res.interpolateVertexAttribute<glm::vec3>(0));
             const glm::vec2 texCoord = res.interpolateVertexAttribute<glm::vec2>(1);
+            const glm::vec3 objColor = objColors[res.geomId];
+            //const glm::vec3 objColor = glm::vec3(texCoord, 0);
 
             switch (vizOpt) {
               case 0:
-                sampCol += attenuation * objEmissiveness[res.geomId] * objColors[res.geomId];
+                sampCol += attenuation * objEmissiveness[res.geomId] * objColor;
                 break;
               case 1:
                 sampCol = res.position;
@@ -253,7 +255,7 @@ int main() {
                 std::unreachable();
             }
             if (vizOpt != 0) break; // don't bounce if debug viz
-            attenuation *= objColors[res.geomId];
+            attenuation *= objColor;
 
             // rebounce
             d = sampleLambertian(normal, res.direction, objRoughnesses[res.geomId]);
