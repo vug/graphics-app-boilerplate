@@ -1,5 +1,7 @@
 #include "EmbreeUtils.hpp"
 
+#include <stb_image.h>
+
 namespace ws {
 
 ERay::ERay(RTCScene scene)
@@ -46,6 +48,29 @@ const ERayResult ERay::intersect() {
     .geom=hasHit() ? rtcGetGeometry(scene_, rh_.hit.geomID) : nullptr,
   };
 
+  return result;
+}
+
+Image::Image(const std::filesystem::path& path) {
+  uint8_t* data = stbi_load(path.string().c_str(), &width, &height, &numChannels, 0);
+  pixels.resize(width * height);
+  assert(numChannels == 3);
+  for (int i = 0; i < height; ++i) {
+    for (int j = 0; j < width; ++j) {
+      const int ix = i * width + j;
+      pixels[ix] = {data[3 * ix + 0], data[3 * ix + 1], data[3 * ix + 2]};
+      pixels[ix] /= 255.99;
+    }
+  }
+  delete data;
+}
+
+glm::vec3 Image::nearest(float x, float y) const {
+  x = std::max(std::min(x, width - 1.f), 0.f); // clamp
+  y = std::max(std::min(y, height - 1.f), 0.f);
+  int i = std::floor(x);
+  int j = std::floor(y);
+  glm::vec3 result = pixels[i * width + j];
   return result;
 }
 }  // namespace ws

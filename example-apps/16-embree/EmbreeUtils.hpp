@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <filesystem>
+
 namespace ws {
 
 struct ERayResult {
@@ -52,5 +54,20 @@ class ERay {
   glm::vec3* ori_{};
   glm::vec3* norm_{};
   glm::vec2* uv_{};
+};
+
+class Image {
+ public:
+  Image(const std::filesystem::path& path);
+  glm::vec3 nearest(float x, float y) const;
+  int getWidth() const { return width; }
+  int getHeight() const { return height; }
+  int getNumChannels() const { return numChannels; }
+
+ private:
+  int width;
+  int height;
+  int numChannels;
+  std::vector<glm::vec3> pixels;
 };
 }  // namespace ws
