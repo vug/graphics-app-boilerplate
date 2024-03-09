@@ -81,13 +81,13 @@ int main() {
   assert(assetManager.doAllMaterialsHaveMatchingParametersAndUniforms());
   ws::RenderableObject monkey = {
     //{"Monkey", {glm::vec3{0, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
-    {"Monkey", {glm::vec3{-2, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{2, 2, 2}}},
+    {"Monkey", {glm::vec3{-1, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{2, 2, 2}}},
     assetManager.meshes.at("monkey"),
     assetManager.materials.at("solid_red"),
   };
   ws::RenderableObject sphere = {
       //{"Monkey", {glm::vec3{0, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(-30.f), glm::vec3{1.5f, 1.5f, 1.5f}}},
-      {"Sphere", {glm::vec3{3, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{2, 2, 2}}},
+      {"Sphere", {glm::vec3{2, 0, 0}, glm::vec3{1, 0, 0}, glm::radians(0.f), glm::vec3{2, 2, 2}}},
       assetManager.meshes.at("sphere"),
       assetManager.materials.at("solid_red"),
   };
@@ -105,6 +105,11 @@ int main() {
   std::vector<glm::vec3> objColors = {{1.f, 0.8f, 0.6f},
                                       {0.8f, 0.6f, 1.f},
                                       {0.75f, 0.75f, 0.75f}};
+  std::vector<ws::Image> objAlbedos;
+  //objAlbedos.emplace_back(ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg");
+  objAlbedos.emplace_back(ws::ASSETS_FOLDER / "images/Wikipedia/UV_checker_Map_byValle_1024.jpg");
+  objAlbedos.emplace_back(ws::ASSETS_FOLDER / "images/LearnOpenGL/metal.png");
+  objAlbedos.emplace_back(ws::ASSETS_FOLDER / "images/LearnOpenGL/brickwall.jpg");
   ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   ws::AutoOrbitingCameraController orbitingCamController{scene.camera};
@@ -232,8 +237,10 @@ int main() {
 
             const glm::vec3 normal = glm::normalize(res.interpolateVertexAttribute<glm::vec3>(0));
             const glm::vec2 texCoord = res.interpolateVertexAttribute<glm::vec2>(1);
-            const glm::vec3 objColor = objColors[res.geomId];
+            //const glm::vec3 objColor = objColors[res.geomId];
             //const glm::vec3 objColor = glm::vec3(texCoord, 0);
+            const ws::Image& img = objAlbedos[res.geomId];
+            glm::vec3 objColor = img.nearest(texCoord.x * img.getWidth(), texCoord.y * img.getHeight());
 
             switch (vizOpt) {
               case 0:
