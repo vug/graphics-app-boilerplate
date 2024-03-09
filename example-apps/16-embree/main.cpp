@@ -181,7 +181,7 @@ int main() {
     ImGui::Separator();
     static bool isRayTraced = true;
     ImGui::Checkbox("raytraced?", &isRayTraced);
-    const std::array<const char*, 4> vizOpts = {"Scene", "Pos", "Normal", "Phong"};
+    const std::array<const char*, 5> vizOpts = {"Scene", "Pos", "Normal", "UV", "Phong"};
     static int vizOpt = 0;
     hasChanged |= ImGui::Combo("Shading Mode", &vizOpt, vizOpts.data(), static_cast<int>(vizOpts.size()));
     ImGui::Text("Samples accumulated %d", numAccumulatedSamplesPerPixel);
@@ -231,6 +231,7 @@ int main() {
             }
 
             const glm::vec3 normal = glm::normalize(res.interpolateVertexAttribute<glm::vec3>(0));
+            const glm::vec2 texCoord = res.interpolateVertexAttribute<glm::vec2>(1);
 
             switch (vizOpt) {
               case 0:
@@ -243,6 +244,9 @@ int main() {
                 sampCol = normal * 0.5f + 0.5f;
                 break;
               case 3:
+                sampCol = glm::vec3(texCoord, 0);
+                break;
+              case 4:
                 sampCol = glm::max(glm::dot(glm::normalize(lightPos - res.position), normal), 0.f) * glm::vec3(1);
                 break;
               default:
