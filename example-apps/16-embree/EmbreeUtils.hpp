@@ -6,7 +6,7 @@
 
 #include <filesystem>
 
-namespace ws {
+namespace eu {
 
 struct ERayResult {
   RTCScene scene;

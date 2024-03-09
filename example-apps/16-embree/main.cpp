@@ -86,17 +86,17 @@ int main() {
   std::vector<glm::vec3> objColors = {{1.f, 0.8f, 0.6f},
                                       {0.8f, 0.6f, 1.f},
                                       {0.75f, 0.75f, 0.75f}};
-  std::vector<ws::Image> objAlbedos;
+  std::vector<eu::Image> objAlbedos;
   //objAlbedos.emplace_back(ws::ASSETS_FOLDER / "images/LearnOpenGL/container.jpg");
   objAlbedos.emplace_back(ws::ASSETS_FOLDER / "images/Wikipedia/UV_checker_Map_byValle_1024.jpg");
   objAlbedos.emplace_back(ws::ASSETS_FOLDER / "images/LearnOpenGL/metal.png");
   objAlbedos.emplace_back(ws::ASSETS_FOLDER / "images/LearnOpenGL/brickwall.jpg");
   // Skybox textures
-  std::vector<ws::Image> skyboxes;
+  std::vector<eu::Image> skyboxes;
   skyboxes.emplace_back(ws::ASSETS_FOLDER / "images/hdr/the_lost_city.hdr");
   skyboxes.emplace_back(ws::ASSETS_FOLDER / "images/hdr/little_paris.hdr");
   skyboxes.emplace_back(ws::ASSETS_FOLDER / "images/hdr/night_snowy_christmas.hdr");
-  std::vector<ws::Image> skyboxIrradiances;
+  std::vector<eu::Image> skyboxIrradiances;
   skyboxIrradiances.emplace_back(ws::ASSETS_FOLDER / "images/hdr/the_lost_city_irradiance.hdr");
   skyboxIrradiances.emplace_back(ws::ASSETS_FOLDER / "images/hdr/little_paris_irradiance.hdr");
   skyboxIrradiances.emplace_back(ws::ASSETS_FOLDER / "images/hdr/night_snowy_christmas_irradiance.hdr");
@@ -133,7 +133,7 @@ int main() {
 
     }
 
-    RTCGeometry geom = ws::makeTriangularGeometry(device, worldPositions, worldNormals, texCoords, r.get().mesh.meshData.indices);
+    RTCGeometry geom = eu::makeTriangularGeometry(device, worldPositions, worldNormals, texCoords, r.get().mesh.meshData.indices);
     rtcAttachGeometry(eScene, geom);
     rtcReleaseGeometry(geom);
   }
@@ -219,8 +219,8 @@ int main() {
           glm::vec3 d = cam.getRayDirection(x, y);
           glm::vec3 o = cam.position;
           for (int32_t k = 0; k < numMaxBounces; ++k) {
-            ws::ERay ray(eScene, o, d);
-            const ws::ERayResult res = ray.intersect();
+            eu::ERay ray(eScene, o, d);
+            const eu::ERayResult res = ray.intersect();
             if (res.hasMissed) {
               // procedural sky
               //const float m = 0.5f * (res.direction.y + 1.0f);
@@ -228,7 +228,7 @@ int main() {
               //sampCol += attenuation * skyColor * skyEmissive;
 
               glm::vec2 lonLat = dirToLonLat(res.direction);
-              const ws::Image& img = (k == 0) ? skyboxes[skyboxIx] : skyboxIrradiances[skyboxIx];
+              const eu::Image& img = (k == 0) ? skyboxes[skyboxIx] : skyboxIrradiances[skyboxIx];
               sampCol += attenuation * img.nearest(lonLat.x * img.getWidth(), lonLat.y * img.getHeight()) * skyEmissive;
               break;
             }
@@ -237,7 +237,7 @@ int main() {
             const glm::vec2 texCoord = res.interpolateVertexAttribute<glm::vec2>(1);
             //const glm::vec3 objColor = objColors[res.geomId]; // solid color albedo
             //const glm::vec3 objColor = glm::vec3(texCoord, 0); // use UVs as albedo
-            const ws::Image& img = objAlbedos[res.geomId]; // use textures for albedo
+            const eu::Image& img = objAlbedos[res.geomId];  // use textures for albedo
             glm::vec3 objColor = img.nearest(texCoord.x * img.getWidth(), texCoord.y * img.getHeight());
 
             switch (vizOpt) {

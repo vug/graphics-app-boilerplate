@@ -2,7 +2,7 @@
 
 #include <stb_image.h>
 
-namespace ws {
+namespace eu {
 
 ERay::ERay(RTCScene scene)
     : ERay(scene, glm::vec3(0), glm::vec3(0, 0, 1)) {
