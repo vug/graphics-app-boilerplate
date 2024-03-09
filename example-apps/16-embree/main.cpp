@@ -225,7 +225,7 @@ int main() {
               break;
             }
 
-            const glm::vec3 normal = glm::normalize(res.interpolateVertexAttribute(0));
+            const glm::vec3 normal = glm::normalize(res.interpolateVertexAttribute<glm::vec3>(0));
 
             switch (vizOpt) {
               case 0:

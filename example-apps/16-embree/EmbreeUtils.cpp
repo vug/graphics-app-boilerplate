@@ -1,7 +1,5 @@
 #include "EmbreeUtils.hpp"
 
-#include <glm/gtc/type_ptr.hpp>
-
 namespace ws {
 
 ERay::ERay(RTCScene scene)
@@ -50,10 +48,4 @@ const ERayResult ERay::intersect() {
 
   return result;
 }
-
-glm::vec3 ERayResult::interpolateVertexAttribute(int bufferSlot) const {
-  glm::vec3 result;
-  rtcInterpolate0(geom, primId, faceUv.x, faceUv.y, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, bufferSlot, glm::value_ptr(result), 3);
-  return result;
-};
 }  // namespace ws

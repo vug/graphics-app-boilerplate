@@ -2,6 +2,7 @@
 
 #include <embree4/rtcore.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace ws {
 
@@ -18,7 +19,12 @@ struct ERayResult {
   uint32_t primId{RTC_INVALID_GEOMETRY_ID};
   RTCGeometry geom;
 
-  glm::vec3 interpolateVertexAttribute(int bufferSlot) const;
+  template<typename TVecN>
+  TVecN interpolateVertexAttribute(int bufferSlot) const {
+    TVecN result;
+    rtcInterpolate0(geom, primId, faceUv.x, faceUv.y, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, bufferSlot, glm::value_ptr(result), result.length());
+    return result;
+  };
 };
 
 class ERay {
