@@ -20,7 +20,7 @@
 #include <ranges>
 #include <vector>
 
-RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<glm::vec3>& norms, const std::vector<uint32_t>& ixs) {
+RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<glm::vec3>& norms, const std::vector<glm::vec2>& texCoords, const std::vector<uint32_t>& ixs) {
   RTCGeometry geom = rtcNewGeometry(dev, RTC_GEOMETRY_TYPE_TRIANGLE);
   float* vertices = static_cast<float*>(rtcSetNewGeometryBuffer(geom,
                                                                 RTC_BUFFER_TYPE_VERTEX,
@@ -37,8 +37,9 @@ RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& 
   std::memcpy(vertices, verts.data(), verts.size() * sizeof(glm::vec3));
   std::memcpy(indices, ixs.data(), ixs.size() * sizeof(uint32_t));
 
-  rtcSetGeometryVertexAttributeCount(geom, 1);
+  rtcSetGeometryVertexAttributeCount(geom, 2);
   rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, RTC_FORMAT_FLOAT3, norms.data(), 0, sizeof(glm::vec3), norms.size());
+  rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 1, RTC_FORMAT_FLOAT2, texCoords.data(), 0, sizeof(glm::vec2), texCoords.size());
 
   // only for instanced geometry
   //rtcSetGeometryTransform(geom, 0, RTC_FORMAT_FLOAT4X4_COLUMN_MAJOR, glm::value_ptr(xform));
@@ -120,20 +121,24 @@ int main() {
 
   // Store world normals in a vector because we want them to exist until we exit the app. rtcSetSharedGeometryBuffer does not copy normals into a new memory location.
   std::vector<std::vector<glm::vec3>> worldNormalsVec;
+  std::vector<std::vector<glm::vec2>> texCoordss;
   for (const auto& r : scene.renderables) {
     const auto& xform = r.get().getGlobalTransformMatrix();
     const glm::mat3 invTranspXForm = glm::mat3(glm::transpose(glm::inverse(xform)));
 
     std::vector<glm::vec3> worldPositions;
     std::vector<glm::vec3>& worldNormals = worldNormalsVec.emplace_back();
+    std::vector<glm::vec2>& texCoords = texCoordss.emplace_back();
     for (const auto& v : r.get().mesh.meshData.vertices) {
       const glm::vec3 worldPosition = glm::vec3(xform * glm::vec4(v.position, 1));
       worldPositions.push_back(worldPosition);
       const glm::vec3 worldNormal = invTranspXForm * v.normal;
       worldNormals.push_back(worldNormal);
+      texCoords.push_back(v.texCoord);
+
     }
 
-    RTCGeometry geom = makeTriangularGeometry(device, worldPositions, worldNormals, r.get().mesh.meshData.indices);
+    RTCGeometry geom = makeTriangularGeometry(device, worldPositions, worldNormals, texCoords, r.get().mesh.meshData.indices);
     rtcAttachGeometry(eScene, geom);
     rtcReleaseGeometry(geom);
   }
