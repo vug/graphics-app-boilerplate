@@ -2,6 +2,8 @@
 
 #include <stb_image.h>
 
+#include <numbers>
+
 namespace eu {
 
 ERay::ERay(RTCScene scene)
@@ -79,6 +81,15 @@ RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& 
 
   rtcCommitGeometry(geom);
   return geom;
+}
+
+// world vector to longitude latitude coordinates. singularity at (x=0 && z=0) requires disabling of mips or computing mip level manually
+glm::vec2 dirToLonLat(glm::vec3 dir) {
+  glm::vec2 vo{};
+  vo.x = atan2(dir.x, dir.z) / std::numbers::pi_v<float>;
+  vo.y = -dir.y;
+  vo = vo * 0.5f + 0.5f;
+  return vo;
 }
 
 
