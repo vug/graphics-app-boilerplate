@@ -20,14 +20,9 @@
 #include <ranges>
 #include <vector>
 
-std::random_device rndDev;
-std::mt19937 rndEngine(rndDev());
-std::uniform_real_distribution<float> uniDistCircle(0.f, std::numbers::pi_v<float>);
-std::uniform_real_distribution<float> uniDist(0.f, 1.0f);
-
 glm::vec3 sampleLambertian(const glm::vec3& norm, const glm::vec3& in, float spread = 1.f) {
-  float theta = 2.f * std::numbers::pi_v<float> * uniDist(rndEngine);
-  float phi = std::acos(1.f - 2.f * uniDist(rndEngine));
+  float theta = 2.f * std::numbers::pi_v<float> * eu::rndUni01();
+  float phi = std::acos(1.f - 2.f * eu::rndUni01());
   const glm::vec3 rndDir{
       sin(phi) * cos(theta),
       sin(phi) * sin(theta),
@@ -205,8 +200,8 @@ int main() {
           glm::vec3 sampCol{0};
           glm::vec3 attenuation{1};
 
-          float x = (i + uniDist(rndEngine)) / width - 0.5f;
-          float y = (j + uniDist(rndEngine)) / height - 0.5f;
+          float x = (i + eu::rndUni01()) / width - 0.5f;
+          float y = (j + eu::rndUni01()) / height - 0.5f;
           glm::vec3 d = cam.getRayDirection(x, y);
           glm::vec3 o = cam.position;
           for (int32_t k = 0; k < numMaxBounces; ++k) {

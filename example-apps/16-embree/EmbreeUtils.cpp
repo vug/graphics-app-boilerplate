@@ -3,6 +3,7 @@
 #include <stb_image.h>
 
 #include <numbers>
+#include <random>
 
 namespace eu {
 
@@ -92,7 +93,12 @@ glm::vec2 dirToLonLat(glm::vec3 dir) {
   return vo;
 }
 
-
+float rndUni01() {
+  static std::random_device rndDev;
+  static std::mt19937 rndEngine(rndDev());
+  static std::uniform_real_distribution<float> uni01(0.f, 1.0f);
+  return uni01(rndEngine);
+}
 
 Image::Image(const std::filesystem::path& path) {
   const auto ext = path.extension();
@@ -125,8 +131,8 @@ Image::Image(const std::filesystem::path& path) {
 glm::vec3 Image::nearest(float x, float y) const {
   x = std::max(std::min(x, width - 1.f), 0.f); // clamp
   y = std::max(std::min(y, height - 1.f), 0.f);
-  int j = std::floor(x);
-  int i = std::floor(y);
+  int j = static_cast<int>(std::floor(x));
+  int i = static_cast<int>(std::floor(y));
   glm::vec3 result = pixels[i * width + j];
   return result;
 }

@@ -58,6 +58,8 @@ class ERay {
 
 glm::vec2 dirToLonLat(glm::vec3 dir);
 
+float rndUni01();
+
 RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<glm::vec3>& norms, const std::vector<glm::vec2>& texCoords, const std::vector<uint32_t>& ixs);
 
 class Image {
