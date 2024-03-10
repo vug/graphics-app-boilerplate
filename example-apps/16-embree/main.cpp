@@ -20,18 +20,6 @@
 #include <ranges>
 #include <vector>
 
-glm::vec3 sampleLambertian(const glm::vec3& norm, const glm::vec3& in, float spread = 1.f) {
-  float theta = 2.f * std::numbers::pi_v<float> * eu::rndUni01();
-  float phi = std::acos(1.f - 2.f * eu::rndUni01());
-  const glm::vec3 rndDir{
-      sin(phi) * cos(theta),
-      sin(phi) * sin(theta),
-      cos(phi)};
-
-  const glm::vec3 refl = glm::reflect(in, norm);
-  return glm::normalize(norm + glm::mix(refl, rndDir, spread));
-}
-
 
 int main() {
   ws::Workshop workshop{800, 600, "Embree Path Tracer Study"};
@@ -249,7 +237,7 @@ int main() {
             attenuation *= objColor;
 
             // rebounce
-            d = sampleLambertian(normal, res.direction, objRoughnesses[res.geomId]);
+            d = eu::sampleLambertian(normal, res.direction, objRoughnesses[res.geomId]);
             //d =  glm::reflect(d, normal);
             o = res.position;
           }

@@ -100,6 +100,18 @@ float rndUni01() {
   return uni01(rndEngine);
 }
 
+glm::vec3 sampleLambertian(const glm::vec3& norm, const glm::vec3& in, float spread) {
+  float theta = 2.f * std::numbers::pi_v<float> * eu::rndUni01();
+  float phi = std::acos(1.f - 2.f * eu::rndUni01());
+  const glm::vec3 rndDir{
+      sin(phi) * cos(theta),
+      sin(phi) * sin(theta),
+      cos(phi)};
+
+  const glm::vec3 refl = glm::reflect(in, norm);
+  return glm::normalize(norm + glm::mix(refl, rndDir, spread));
+}
+
 Image::Image(const std::filesystem::path& path) {
   const auto ext = path.extension();
   const bool isHdr = ext == "hdr";
