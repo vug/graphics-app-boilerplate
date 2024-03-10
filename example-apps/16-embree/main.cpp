@@ -153,7 +153,7 @@ int main() {
     ImGui::Separator();
     static bool isRayTraced = true;
     ImGui::Checkbox("raytraced?", &isRayTraced);
-    const std::array<const char*, 5> vizOpts = {"Scene", "Pos", "Normal", "UV", "Phong"};
+    const std::array<const char*, 6> vizOpts = {"Scene", "Pos", "Normal", "UV", "Phong", "LightMap"};
     static int vizOpt = 0;
     hasChanged |= ImGui::Combo("Shading Mode", &vizOpt, vizOpts.data(), static_cast<int>(vizOpts.size()));
     ImGui::Text("Samples accumulated %d", numAccumulatedSamplesPerPixel);
@@ -209,13 +209,15 @@ int main() {
 
             const glm::vec3 normal = glm::normalize(res.interpolateVertexAttribute<glm::vec3>(0));
             const glm::vec2 texCoord = res.interpolateVertexAttribute<glm::vec2>(1);
-            //const glm::vec3 objColor = objColors[res.geomId]; // solid color albedo
+            //const glm::vec3 objColor = (k == 0) ? glm::vec3(1) : objColors[res.geomId];  // solid color albedo
             //const glm::vec3 objColor = glm::vec3(texCoord, 0); // use UVs as albedo
             const eu::Image& img = objAlbedos[res.geomId];  // use textures for albedo
-            glm::vec3 objColor = img.nearest(texCoord.x * img.getWidth(), texCoord.y * img.getHeight());
+            //glm::vec3 objColor = img.nearest(texCoord.x * img.getWidth(), texCoord.y * img.getHeight());
+            glm::vec3 objColor = (vizOpt == 5 && k == 0) ? glm::vec3(1) : img.nearest(texCoord.x * img.getWidth(), texCoord.y * img.getHeight());
 
             switch (vizOpt) {
               case 0:
+              case 5:
                 sampCol += attenuation * objEmissiveness[res.geomId] * objColor;
                 break;
               case 1:
@@ -233,7 +235,7 @@ int main() {
               default:
                 std::unreachable();
             }
-            if (vizOpt != 0) break; // don't bounce if debug viz
+            if (vizOpt != 0 && vizOpt != 5) break; // don't bounce if debug viz
             attenuation *= objColor;
 
             // rebounce
