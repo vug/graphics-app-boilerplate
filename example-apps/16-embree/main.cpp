@@ -153,12 +153,14 @@ int main() {
     ImGui::Separator();
     static bool isRayTraced = true;
     ImGui::Checkbox("raytraced?", &isRayTraced);
-    const std::array<const char*, 6> vizOpts = {"Scene", "Pos", "Normal", "UV", "Phong", "LightMap"};
+    static int toneMapIx = 0;
+    const std::vector<const char*> toneMappers = {"None", "Clamp", "Gamma", "Reinhard1", "Reinhard2", "Filmic", "Uncharted"};
+    ImGui::Combo("Tone Mapper", &toneMapIx, toneMappers.data(), static_cast<int>(toneMappers.size()));
     static int vizOpt = 0;
+    const std::vector<const char*> vizOpts = {"Scene", "Pos", "Normal", "UV", "Phong", "LightMap"};
     hasChanged |= ImGui::Combo("Shading Mode", &vizOpt, vizOpts.data(), static_cast<int>(vizOpts.size()));
     ImGui::Text("Samples accumulated %d", numAccumulatedSamplesPerPixel);
     ImGui::End();
-
     bool hasCameraMoved = orbitingCamController.update(workshop.getFrameDurationSec());
     scene.camera.aspectRatio = static_cast<float>(winSize.x) / winSize.y;
     scene.uploadUniforms();
@@ -232,8 +234,7 @@ int main() {
               case 4:
                 sampCol = glm::max(glm::dot(glm::normalize(lightPos - res.position), normal), 0.f) * glm::vec3(1);
                 break;
-              default:
-                std::unreachable();
+              // putting a default: std::unreachable(); causes a bug where objects look purple
             }
             if (vizOpt != 0 && vizOpt != 5) break; // don't bounce if debug viz
             attenuation *= objColor;
@@ -249,7 +250,30 @@ int main() {
 
         const size_t ix = j * width + i;
         pixelColors[ix] += pixCol;
-        pixels[ix] = glm::u8vec4{glm::clamp(pixelColors[ix] / numFrames, 0.f, 1.f) * 255.f, 255};
+        glm::vec3 col = pixelColors[ix] / numFrames;
+        switch (toneMapIx) {
+          case 0:
+            break;
+          case 1:
+            col = glm::clamp(col, 0.f, 1.f);
+            break;
+          case 2:
+            col = eu::ToneMapper::toGamma(col); // clamp?
+            break;
+          case 3:
+            col = eu::ToneMapper::toReinhard1(col);
+            break;
+          case 4:
+            col = eu::ToneMapper::toReinhard2(col, 1.5f);
+            break;
+          case 5:
+            col = eu::ToneMapper::toFilmic(col);
+            break;
+          case 6:
+            col = eu::ToneMapper::toUncharted2b(col);
+            break;
+        }
+        pixels[ix] = glm::u8vec4{col * 255.f, 255};
       }
       ++numFrames;
       numAccumulatedSamplesPerPixel += numSamplesPerPixel;
