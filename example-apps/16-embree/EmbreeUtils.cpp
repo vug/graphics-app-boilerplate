@@ -54,6 +54,11 @@ const ERayResult ERay::intersect() {
   return result;
 }
 
+bool ERay::isOccluded() {
+  rtcOccluded1(scene_, &rh_.ray);
+  return rh_.ray.tfar < 0.f;
+}
+
 
 
 RTCGeometry makeTriangularGeometry(RTCDevice dev, const std::vector<glm::vec3>& verts, const std::vector<glm::vec3>& norms, const std::vector<glm::vec2>& texCoords, const std::vector<uint32_t>& ixs) {

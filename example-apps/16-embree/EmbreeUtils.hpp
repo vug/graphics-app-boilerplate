@@ -35,6 +35,7 @@ class ERay {
   ERay(RTCScene scene, const glm::vec3& o, const glm::vec3& d);
 
   const ERayResult intersect();
+  bool isOccluded();
 
   // No need to use the methods below, instead prefer using a const ERayResult
   inline glm::vec3& direction() const { return *dir_; }
