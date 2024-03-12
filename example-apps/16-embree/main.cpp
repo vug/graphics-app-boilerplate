@@ -20,6 +20,12 @@
 #include <ranges>
 #include <vector>
 
+struct DirLight {
+  glm::vec3 dir{-1, -1, -1};
+  glm::vec3 col{1.0f};
+  float intensity{1.0f};
+};
+
 
 int main() {
   ws::Workshop workshop{800, 600, "Embree Path Tracer Study"};
@@ -74,6 +80,7 @@ int main() {
   skyboxIrradiances.emplace_back(ws::ASSETS_FOLDER / "images/hdr/the_lost_city_irradiance.hdr");
   skyboxIrradiances.emplace_back(ws::ASSETS_FOLDER / "images/hdr/little_paris_irradiance.hdr");
   skyboxIrradiances.emplace_back(ws::ASSETS_FOLDER / "images/hdr/night_snowy_christmas_irradiance.hdr");
+  DirLight dirLight;
   ws::Framebuffer offscreenFbo = ws::Framebuffer::makeDefaultColorOnly(1, 1);
 
   ws::AutoOrbitingCameraController orbitingCamController{scene.camera};
@@ -139,6 +146,9 @@ int main() {
     hasChanged |= ImGui::SliderInt("Num Max Hits", &numMaxBounces, 0, 8);
     static int32_t numSamplesPerPixel = 1;
     hasChanged |= ImGui::SliderInt("Num Samples Per Pixel", &numSamplesPerPixel, 1, 8);
+    hasChanged |= ImGui::DragFloat3("DirLight Direction", glm::value_ptr(dirLight.dir), 1.f, -5.f, 5.f);
+    hasChanged |= ImGui::ColorEdit3("DirLight Color", glm::value_ptr(dirLight.col));
+    hasChanged |= ImGui::SliderFloat("DirLight Intensity", &dirLight.intensity, 0.f, 4.f);
     //hasChanged |= ImGui::DragFloat3("Obj1 Position", glm::value_ptr(scene.renderables[0].get().transform.position));
     hasChanged |= ImGui::ColorEdit3("Obj1 Color", glm::value_ptr(objColors[0]));
     hasChanged |= ImGui::SliderFloat("Obj1 Emissive", &objEmissiveness[0], 0.f, 4.f);
@@ -217,11 +227,18 @@ int main() {
             //glm::vec3 objColor = img.nearest(texCoord.x * img.getWidth(), texCoord.y * img.getHeight());
             glm::vec3 objColor = (vizOpt == 5 && k == 0) ? glm::vec3(1) : img.nearest(texCoord.x * img.getWidth(), texCoord.y * img.getHeight());
 
+
             switch (vizOpt) {
               case 0:
-              case 5:
-                sampCol += attenuation * objEmissiveness[res.geomId] * objColor;
-                break;
+              case 5: {
+                const glm::vec3 objEmisTerm = objEmissiveness[res.geomId] * objColor;
+
+                eu::ERay rayToDirLight(eScene, res.position, -dirLight.dir);
+                const bool getsDirectLight = !rayToDirLight.isOccluded();
+                const glm::vec3 dirLightTerm = getsDirectLight ? dirLight.col * dirLight.intensity * glm::max(0.f, glm::dot(normal, -dirLight.dir)) : glm::vec3();
+
+                sampCol += attenuation * (objEmisTerm + dirLightTerm);
+              } break;
               case 1:
                 sampCol = res.position;
                 break;
